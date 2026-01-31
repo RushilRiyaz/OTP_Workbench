@@ -1,3 +1,5 @@
+"use client";
+
 interface DateTimeInputProps {
   label: string;
   value: string;

@@ -24,6 +24,8 @@ interface SearchParams {
   pointType?: string;
 }
 
+const REQUEST_TIMEOUT_MS = 5000;
+
 export async function searchLocations(params: SearchParams): Promise<AutocompleteResult[]> {
   const { search, size = 10, center = "51.3,12.6", pointType = "P,S,W,N" } = params;
 
@@ -39,17 +41,26 @@ export async function searchLocations(params: SearchParams): Promise<Autocomplet
     pointType,
   });
 
-  const response = await fetch(`${API_BASE_URL}/search?${queryParams}`, {
-    method: "GET",
-    headers: {
-      "X-API-Key": API_KEY,
-    },
-  });
+  // Add timeout to prevent hanging requests
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  if (!response.ok) {
-    throw new Error(`Autocomplete API error: ${response.status}`);
+  try {
+    const response = await fetch(`${API_BASE_URL}/search?${queryParams}`, {
+      method: "GET",
+      headers: {
+        "X-API-Key": API_KEY,
+      },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Autocomplete API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data as AutocompleteResult[];
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  const data = await response.json();
-  return data as AutocompleteResult[];
 }

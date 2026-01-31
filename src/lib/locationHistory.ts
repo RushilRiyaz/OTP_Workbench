@@ -5,6 +5,18 @@ import { LocationValue } from "@/components/LocationInput";
 const STORAGE_KEY = "otp-location-history";
 const MAX_HISTORY_SIZE = 10;
 
+// Validate that an item has the expected LocationValue shape
+function isValidLocationValue(item: unknown): item is LocationValue {
+  if (typeof item !== "object" || item === null) {
+    return false;
+  }
+  const obj = item as Record<string, unknown>;
+  return (
+    typeof obj.text === "string" &&
+    (obj.type === "autocomplete" || obj.type === "stopId" || obj.type === "coordinates" || obj.type === null)
+  );
+}
+
 export function getLocationHistory(): LocationValue[] {
   if (typeof window === "undefined") {
     return [];
@@ -15,7 +27,17 @@ export function getLocationHistory(): LocationValue[] {
     if (!stored) {
       return [];
     }
-    return JSON.parse(stored) as LocationValue[];
+    const parsed = JSON.parse(stored);
+
+    // Validate data shape to handle corrupted/old schema
+    if (!Array.isArray(parsed)) {
+      console.warn("Location history is not an array, clearing");
+      localStorage.removeItem(STORAGE_KEY);
+      return [];
+    }
+
+    // Filter out any invalid entries
+    return parsed.filter(isValidLocationValue);
   } catch (error) {
     console.error("Error reading location history:", error);
     return [];
