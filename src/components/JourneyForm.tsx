@@ -3,11 +3,13 @@
 import { useState } from "react";
 import LocationInput, { LocationValue, emptyLocationValue } from "./LocationInput";
 import DateTimeInput from "./DateTimeInput";
+import RoutingOptionsForm, { RoutingOptions, defaultRoutingOptions } from "./RoutingOptionsForm";
 
 export default function JourneyForm() {
   const [startLocation, setStartLocation] = useState<LocationValue>(emptyLocationValue);
   const [destinationLocation, setDestinationLocation] = useState<LocationValue>(emptyLocationValue);
   const [dateTime, setDateTime] = useState("");
+  const [routingOptions, setRoutingOptions] = useState<RoutingOptions>(defaultRoutingOptions);
 
   // FR4.9: Swap start and destination
   const handleSwap = () => {
@@ -62,6 +64,12 @@ export default function JourneyForm() {
         value={dateTime}
         onChange={setDateTime}
         required
+      />
+
+      {/* FR5: Routing Options */}
+      <RoutingOptionsForm
+        value={routingOptions}
+        onChange={setRoutingOptions}
       />
     </div>
   );
