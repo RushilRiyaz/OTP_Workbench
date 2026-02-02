@@ -1,16 +1,26 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode for Tailwind 4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
 
   /* LVB Brand Colors */
-  --lvb-yellow: #FFD800;
-  --lvb-yellow-hover: #E6C200;
-  --lvb-yellow-light: #FFF8D6;
-  --lvb-yellow-dark: #B39700;
+  --lvb-yellow: #EFC335;
+  --lvb-yellow-hover: #D4AC2B;
+  --lvb-yellow-light: #FDF6E0;
+  --lvb-yellow-dark: #A8891F;
   --lvb-dark: #1a1a1a;
   --lvb-gray: #4a4a4a;
+}
+
+/* Dark mode class-based (for toggle) */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --lvb-yellow-light: #3d3500;
 }
 
 @theme inline {
@@ -28,8 +38,9 @@
   --color-lvb-gray: var(--lvb-gray);
 }
 
+/* System preference dark mode (fallback when no class is set) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     --background: #0a0a0a;
     --foreground: #ededed;
     --lvb-yellow-light: #3d3500;
