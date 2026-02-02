@@ -19,12 +19,12 @@ export default function Home() {
   // FR3.5: Single environment only when Routing use case selected
   const singleSelectMode = activeTab === "routing";
 
-  // When switching from multi-select to single-select, keep only first selection
+  // FR3.5: When switching to single-select mode, keep only first selection
   useEffect(() => {
-    if (singleSelectMode && selectedEnvironments.length > 1) {
-      setSelectedEnvironments([selectedEnvironments[0]]);
+    if (singleSelectMode) {
+      setSelectedEnvironments((prev) => (prev.length > 1 ? [prev[0]] : prev));
     }
-  }, [singleSelectMode, selectedEnvironments]);
+  }, [singleSelectMode]);
 
   const handleAddCustomEnvironment = (env: Environment) => {
     setCustomEnvironments((prev) => [...prev, env]);
