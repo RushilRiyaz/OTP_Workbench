@@ -27,7 +27,7 @@ interface SearchParams {
 const REQUEST_TIMEOUT_MS = 5000;
 
 export async function searchLocations(params: SearchParams): Promise<AutocompleteResult[]> {
-  const { search, size = 10, center = "51.3,12.6", pointType = "P,S,W,N" } = params;
+  const { search, size = 10, center = "51.3,12.6", pointType = "P,S,W,V,N" } = params;
 
   if (!search || search.length < 2) {
     return [];
