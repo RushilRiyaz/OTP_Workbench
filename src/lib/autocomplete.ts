@@ -63,7 +63,19 @@ export async function searchLocations(params: SearchParams): Promise<Autocomplet
       throw new Error(`Autocomplete API error: ${response.status}`);
     }
 
-    const data = await response.json();
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch {
+      console.error("Failed to parse autocomplete response as JSON");
+      return [];
+    }
+
+    if (!Array.isArray(data)) {
+      console.error("Unexpected autocomplete response format:", data);
+      return [];
+    }
+
     return data as AutocompleteResult[];
   } finally {
     clearTimeout(timeoutId);

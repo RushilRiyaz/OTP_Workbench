@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 const tabs = [
   { id: "routing", label: "Routing" },
   { id: "routing-comparison", label: "Routing Comparison" },
