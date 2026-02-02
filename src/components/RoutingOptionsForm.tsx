@@ -6,15 +6,26 @@ export type TimingMode = "departAt" | "arriveBy";
 
 // FR5.2: Predefined travel modes (Transit modes from Routing API)
 export const TRAVEL_MODES = [
-  { id: "TRANSIT", label: "Transit", icon: "🚇" },
-  { id: "BUS", label: "Bus", icon: "🚌" },
-  { id: "TRAM", label: "Tram", icon: "🚊" },
-  { id: "SUBURB", label: "S-Bahn", icon: "🚈" },
-  { id: "TRAIN", label: "Train", icon: "🚆" },
-  { id: "FLEXA", label: "Flexa", icon: "🚐" },
-  { id: "SUBWAY", label: "U-Bahn", icon: "🚇" },
-  { id: "FERRY", label: "Ferry", icon: "⛴️" },
-  { id: "GONDOLA", label: "Gondola", icon: "🚡" },
+  { id: "TRANSIT", label: "Transit", description: "The same as WALK, TRAM, BUS, SUBURB, TRAIN" },
+  { id: "BIKE", label: "Bike", description: null },
+  { id: "BIKERENTAL", label: "Bike Rental", description: null },
+  { id: "WALK", label: "Walk", description: null },
+  { id: "CAR", label: "Car", description: null },
+  { id: "CARRENTAL", label: "Car Rental", description: null },
+  { id: "BUS", label: "Bus", description: null },
+  { id: "TRAM", label: "Tram", description: null },
+  { id: "SUBURB", label: "S-Bahn", description: "Suburban railway" },
+  { id: "TRAIN", label: "Train", description: "Regional and long distance" },
+  { id: "TAXI4884", label: "Taxi4884", description: "CAR routing within TAXI4884 service area" },
+  { id: "ESCOOTER", label: "E-Scooter", description: "Max 15 minutes walking legs" },
+  { id: "FLEXA", label: "Flexa", description: "On-demand bus in Leipzig" },
+  { id: "SUBWAY", label: "U-Bahn", description: null },
+  { id: "RRB", label: "RRB", description: "Rail replacement bus (SEV)" },
+  { id: "OD", label: "OD", description: "On-demand bus (Rufbus)" },
+  { id: "ICE", label: "ICE", description: "Inter-city express" },
+  { id: "IC", label: "IC", description: "Inter-city rail" },
+  { id: "COACH", label: "Coach", description: "Long distance bus" },
+  { id: "RE", label: "RE", description: "Regional express (Regional-Bahn)" },
 ] as const;
 
 export type TravelModeId = (typeof TRAVEL_MODES)[number]["id"];
@@ -28,10 +39,10 @@ export interface OptionalParams {
 }
 
 export const OPTIONAL_PARAMS = [
-  { id: "accessibility", label: "Wheelchair Accessible", icon: "♿" },
-  { id: "shortWalk", label: "Short Walk", icon: "🚶" },
-  { id: "lessTransfers", label: "Less Transfers", icon: "🔄" },
-  { id: "transitOnly", label: "Transit Only", icon: "🚏" },
+  { id: "accessibility", label: "Wheelchair Accessible" },
+  { id: "shortWalk", label: "Short Walk" },
+  { id: "lessTransfers", label: "Less Transfers" },
+  { id: "transitOnly", label: "Transit Only" },
 ] as const;
 
 export interface RoutingOptions {
@@ -160,10 +171,9 @@ export default function RoutingOptionsForm({
                       }`
                     : "border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700"
                 }`}
-                title={isLastSelectedMode(mode.id) ? "At least one travel mode must be selected" : undefined}
+                title={isLastSelectedMode(mode.id) ? "At least one travel mode must be selected" : mode.description ?? undefined}
               >
-                <span className="mr-1.5">{mode.icon}</span>
-                {mode.label}
+{mode.label}
               </button>
             );
           })}
@@ -190,7 +200,6 @@ export default function RoutingOptionsForm({
                   className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-0 dark:bg-zinc-800"
                 />
                 <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                  <span className="mr-1.5">{param.icon}</span>
                   {param.label}
                 </span>
               </label>
