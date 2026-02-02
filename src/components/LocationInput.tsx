@@ -78,7 +78,8 @@ export default function LocationInput({
   const [showHistory, setShowHistory] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Click outside detection
   useEffect(() => {
@@ -91,12 +92,13 @@ export default function LocationInput({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Cleanup debounce timeout on unmount to prevent memory leaks
+  // Cleanup debounce timeout and abort controller on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
+      abortControllerRef.current?.abort();
     };
   }, []);
 
@@ -194,12 +196,23 @@ export default function LocationInput({
     setIsStopIdInput(false);
 
     debounceRef.current = setTimeout(async () => {
+      // Cancel any in-flight request before starting new one
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = new AbortController();
+
       setIsLoading(true);
       try {
-        const results = await searchLocations({ search: text });
+        const results = await searchLocations({
+          search: text,
+          signal: abortControllerRef.current.signal,
+        });
         setSuggestions(results);
         setShowDropdown(results.length > 0);
       } catch (error) {
+        // Ignore abort errors - they're expected when user types quickly
+        if (error instanceof Error && error.name === "AbortError") {
+          return;
+        }
         console.error("Autocomplete error:", error);
         setSuggestions([]);
       } finally {
