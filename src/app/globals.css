@@ -3,6 +3,14 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* LVB Brand Colors */
+  --lvb-yellow: #FFD800;
+  --lvb-yellow-hover: #E6C200;
+  --lvb-yellow-light: #FFF8D6;
+  --lvb-yellow-dark: #B39700;
+  --lvb-dark: #1a1a1a;
+  --lvb-gray: #4a4a4a;
 }
 
 @theme inline {
@@ -10,12 +18,21 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* LVB Colors for Tailwind */
+  --color-lvb-yellow: var(--lvb-yellow);
+  --color-lvb-yellow-hover: var(--lvb-yellow-hover);
+  --color-lvb-yellow-light: var(--lvb-yellow-light);
+  --color-lvb-yellow-dark: var(--lvb-yellow-dark);
+  --color-lvb-dark: var(--lvb-dark);
+  --color-lvb-gray: var(--lvb-gray);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --lvb-yellow-light: #3d3500;
   }
 }
 
