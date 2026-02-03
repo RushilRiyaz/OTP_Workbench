@@ -1,27 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import LocationInput, { LocationValue, emptyLocationValue } from "./LocationInput";
+import LocationInput, { LocationValue } from "./LocationInput";
 import DateTimeInput from "./DateTimeInput";
 
-export default function JourneyForm() {
-  const [startLocation, setStartLocation] = useState<LocationValue>(emptyLocationValue);
-  const [destinationLocation, setDestinationLocation] = useState<LocationValue>(emptyLocationValue);
+interface JourneyFormProps {
+  start: LocationValue;
+  destination: LocationValue;
+  onStartChange: (value: LocationValue) => void;
+  onDestinationChange: (value: LocationValue) => void;
+}
+
+export default function JourneyForm({
+  start,
+  destination,
+  onStartChange,
+  onDestinationChange,
+}: JourneyFormProps) {
   const [dateTime, setDateTime] = useState("");
 
   // FR4.9: Swap start and destination
   const handleSwap = () => {
-    const temp = startLocation;
-    setStartLocation(destinationLocation);
-    setDestinationLocation(temp);
+    const tempStart = start;
+    onStartChange(destination);
+    onDestinationChange(tempStart);
   };
 
   return (
     <div className="flex flex-col gap-4">
       <LocationInput
         label="Start"
-        value={startLocation}
-        onChange={setStartLocation}
+        value={start}
+        onChange={onStartChange}
         placeholder="Enter start location"
         required
       />
@@ -51,8 +61,8 @@ export default function JourneyForm() {
 
       <LocationInput
         label="Destination"
-        value={destinationLocation}
-        onChange={setDestinationLocation}
+        value={destination}
+        onChange={onDestinationChange}
         placeholder="Enter destination"
         required
       />

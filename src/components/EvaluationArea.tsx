@@ -1,16 +1,25 @@
 "use client";
 
 import Tabs, { TabId } from "./Tabs";
+import { LocationValue } from "./LocationInput";
 
 interface EvaluationAreaProps {
   activeTab: TabId;
   onTabChange: (tab: TabId) => void;
+  startLocation: LocationValue;
+  destinationLocation: LocationValue;
+  onStartChange: (value: LocationValue) => void;
+  onDestinationChange: (value: LocationValue) => void;
   children?: React.ReactNode;
 }
 
 export default function EvaluationArea({
   activeTab,
   onTabChange,
+  startLocation,
+  destinationLocation,
+  onStartChange,
+  onDestinationChange,
   children,
 }: EvaluationAreaProps) {
   return (
