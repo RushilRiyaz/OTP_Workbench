@@ -1,7 +1,8 @@
 import type { LocationValue } from "@/components/LocationInput";
 
 // Extract lat/lng from LocationValue
-// Handles both autocomplete results (location.lat/lon) and direct coordinates
+// Handles autocomplete results (location.lat/lon) and direct coordinates
+// Returns null for stopId type — coords unavailable until API lookup
 export function getCoords(
   loc: LocationValue | null
 ): { lat: number; lng: number } | null {
