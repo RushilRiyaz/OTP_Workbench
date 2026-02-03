@@ -11,6 +11,8 @@ import { RoutingOptions, defaultRoutingOptions } from "@/components/RoutingOptio
 import { ValidationError, RequestHistoryEntry } from "@/lib/types";
 import { validateRoutingParams } from "@/lib/validation";
 import { fetchRouting, RoutingResponse, RoutingError } from "@/lib/routing";
+import { getRequestHistory, addToRequestHistory, clearRequestHistory, generateDisplayLabel } from "@/lib/requestHistory";
+import RequestHistoryList from "@/components/RequestHistoryList";
 
 export default function Home() {
   // Shared state: active tab
@@ -47,6 +49,11 @@ export default function Home() {
       setSelectedEnvironments((prev) => (prev.length > 1 ? [prev[0]] : prev));
     }
   }, [singleSelectMode]);
+
+  // FR6.4: Load request history from localStorage on mount
+  useEffect(() => {
+    setRequestHistory(getRequestHistory());
+  }, []);
 
   const handleAddCustomEnvironment = (env: Environment) => {
     setCustomEnvironments((prev) => [...prev, env]);
@@ -90,7 +97,20 @@ export default function Home() {
 
       if (result.success) {
         setRoutingResult(result.data);
-        // TODO: FR6.4 - Save to request history (Phase 3)
+
+        // FR6.4: Save to request history
+        const historyEntry: RequestHistoryEntry = {
+          id: crypto.randomUUID(),
+          timestamp: Date.now(),
+          start: startLocation,
+          destination: destinationLocation,
+          dateTime,
+          routingOptions,
+          selectedEnvironment: selectedEnvironments[0] || "prod",
+          displayLabel: generateDisplayLabel(startLocation, destinationLocation),
+        };
+        addToRequestHistory(historyEntry);
+        setRequestHistory(getRequestHistory());
       } else {
         setRoutingError(result.error);
         console.error("[Routing] Error:", result.error);
@@ -98,6 +118,25 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // FR6.5: Load historical request (overwrites current, no warning)
+  const handleLoadRequest = (entry: RequestHistoryEntry) => {
+    setStartLocation(entry.start);
+    setDestinationLocation(entry.destination);
+    setDateTime(entry.dateTime);
+    setRoutingOptions(entry.routingOptions);
+    setSelectedEnvironments([entry.selectedEnvironment]);
+    // Clear any previous errors/results
+    setValidationErrors([]);
+    setRoutingError(null);
+    setRoutingResult(null);
+  };
+
+  // FR6.4: Clear request history
+  const handleClearHistory = () => {
+    clearRequestHistory();
+    setRequestHistory([]);
   };
 
   return (
@@ -131,6 +170,18 @@ export default function Home() {
           onSubmit={handleSubmitRouting}
           routingError={routingError}
         />
+
+        {/* FR6.4-6.5: Request History */}
+        {requestHistory.length > 0 && (
+          <>
+            <div className="my-4 border-t border-zinc-300 dark:border-zinc-700" />
+            <RequestHistoryList
+              history={requestHistory}
+              onLoad={handleLoadRequest}
+              onClear={handleClearHistory}
+            />
+          </>
+        )}
       </ParameterArea>
       <EvaluationArea
         activeTab={activeTab}
