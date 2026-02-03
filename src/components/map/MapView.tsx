@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -9,7 +9,7 @@ import type { LocationValue } from "@/components/LocationInput";
 import { LEIPZIG_HBF, DEFAULT_ZOOM, TILE_URL, TILE_ATTRIBUTION } from "./constants";
 import MapEvents from "./MapEvents";
 import MapMarkers from "./MapMarkers";
-import CursorCoords from "./CursorCoords";
+import CursorTracker from "./CursorTracker";
 import CoordPopup from "./CoordPopup";
 
 // Fix Leaflet default icon paths for Next.js
@@ -34,8 +34,15 @@ export default function MapView({
   onStartChange,
   onDestinationChange,
 }: MapViewProps) {
-  const [cursorCoords, setCursorCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [popupCoords, setPopupCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  const handlePopupOpen = useCallback((coords: { lat: number; lng: number } | null) => {
+    setPopupCoords(coords);
+  }, []);
+
+  const handleClosePopup = useCallback(() => {
+    setPopupCoords(null);
+  }, []);
 
   return (
     <div className="relative h-full w-full">
@@ -51,21 +58,20 @@ export default function MapView({
           destination={destination}
           onStartChange={onStartChange}
           onDestinationChange={onDestinationChange}
-          onCursorMove={setCursorCoords}
-          onPopupOpen={setPopupCoords}
+          onPopupOpen={handlePopupOpen}
         />
 
         <MapMarkers start={start} destination={destination} />
 
+        <CursorTracker />
+
         {popupCoords && (
           <CoordPopup
             coords={popupCoords}
-            onClose={() => setPopupCoords(null)}
+            onClose={handleClosePopup}
           />
         )}
       </MapContainer>
-
-      <CursorCoords coords={cursorCoords} />
     </div>
   );
 }

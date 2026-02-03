@@ -1,14 +1,13 @@
 "use client";
 
 import { useMapEvents } from "react-leaflet";
-import type { LocationValue, emptyLocationValue } from "@/components/LocationInput";
+import type { LocationValue } from "@/components/LocationInput";
 
 interface MapEventsProps {
   start: LocationValue | null;
   destination: LocationValue | null;
   onStartChange: (loc: LocationValue) => void;
   onDestinationChange: (loc: LocationValue) => void;
-  onCursorMove: (coords: { lat: number; lng: number } | null) => void;
   onPopupOpen: (coords: { lat: number; lng: number }) => void;
 }
 
@@ -31,13 +30,12 @@ function createCoordsLocation(lat: number, lng: number): LocationValue {
   };
 }
 
-// FR8.2-8.4: Handle map click and mousemove events
+// FR8.2-8.4: Handle map click events
 export default function MapEvents({
   start,
   destination,
   onStartChange,
   onDestinationChange,
-  onCursorMove,
   onPopupOpen,
 }: MapEventsProps) {
   useMapEvents({
@@ -58,15 +56,6 @@ export default function MapEvents({
 
       // FR8.4: Both filled, show popup
       onPopupOpen({ lat, lng });
-    },
-
-    // FR8.6: Update cursor coords on mouse move
-    mousemove(e) {
-      onCursorMove({ lat: e.latlng.lat, lng: e.latlng.lng });
-    },
-
-    mouseout() {
-      onCursorMove(null);
     },
   });
 
