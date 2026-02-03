@@ -1,36 +1,130 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OTP Client v2
 
-## Getting Started
+A developer tool for LVB (Leipziger Verkehrsbetriebe) routing developers to test and compare routing APIs across environments.
 
-First, run the development server:
+<!-- CI Badges - Update URLs with your actual repository paths -->
+![GitHub Actions](https://github.com/YOUR_USERNAME/otp-client-v2/actions/workflows/e2e-tests.yml/badge.svg)
+![Azure DevOps](https://dev.azure.com/YOUR_ORG/YOUR_PROJECT/_apis/build/status/otp-client-v2?branchName=main)
+
+## Tech Stack
+
+- **Framework**: Next.js 16 + React 19
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4
+- **Maps**: Leaflet + react-leaflet
+- **Testing**: Selenium WebDriver
+
+## Prerequisites
+
+- Node.js 20 or later
+- npm 10 or later
+- Google Chrome (for E2E tests)
+
+## Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Clone the repository
+git clone <repository-url>
+cd otp-client-v2
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your API keys
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create a `.env.local` file with:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+NEXT_PUBLIC_API_BASE_URL=https://api.lmservices.mobilityinnovate.net/api
+NEXT_PUBLIC_API_KEY=<your-api-key>
+```
 
-## Learn More
+## Running the App
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Development server (with hot reload)
+npm run dev
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Production build
+npm run build
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Start production server
+npm run start
 
-## Deploy on Vercel
+# Lint code
+npm run lint
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Testing
+
+### E2E Tests
+
+The project includes Selenium WebDriver-based end-to-end tests.
+
+```bash
+# Run tests with visible browser (for local development)
+npm run dev          # Terminal 1: Start dev server
+npm run test:e2e:local  # Terminal 2: Run tests
+
+# Run tests headless (CI mode)
+npm run dev          # Terminal 1: Start dev server
+npm run test:e2e:ci     # Terminal 2: Run tests headless
+```
+
+### Test Coverage
+
+The E2E test suite covers:
+
+| Test | Description |
+|------|-------------|
+| Page load | Verifies the app loads successfully |
+| Parameter area | Sidebar is visible |
+| Tab navigation | 5 tabs displayed, can switch between them |
+| Environment selection | PROD selected by default, can switch to STAGE/DEV |
+| Location inputs | Can type start/destination locations |
+| Swap functionality | Swap button exchanges start and destination |
+| Map display | Leaflet map is visible |
+| Collapse/expand | Parameter area sidebar toggles correctly |
+
+## CI/CD
+
+### GitHub Actions
+
+E2E tests run automatically on:
+- Push to `main`, `dev`, or `feature/**` branches
+- Pull requests to `main` or `dev`
+
+Workflow file: `.github/workflows/e2e-tests.yml`
+
+### Azure DevOps
+
+E2E tests run automatically on:
+- Push to `main`, `dev`, or `feature/*` branches
+- Pull requests to `main` or `dev`
+
+Pipeline file: `azure-pipelines.yml`
+
+## Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Create production build |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+| `npm run test:e2e` | Run E2E tests (requires server running) |
+| `npm run test:e2e:ci` | Run E2E tests headless |
+| `npm run test:e2e:local` | Run E2E tests with visible browser |
+
+## Developers
+
+- [Ayman Kandouli](https://www.linkedin.com/in/ayman-kandouli-6a493b21a/)
+- [Rushil Riyaz](https://github.com/RushilRiyaz)
+- [Valentino Toscano](https://github.com/ToscanoValentin)
