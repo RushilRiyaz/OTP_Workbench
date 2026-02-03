@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useMapEvents } from "react-leaflet";
-import { COORD_PRECISION } from "./constants";
+import { COORD_PRECISION, CURSOR_THROTTLE_MS } from "./constants";
 
 // FR8.6: Self-contained cursor coordinate tracker and display
 export default function CursorTracker() {
@@ -12,7 +12,7 @@ export default function CursorTracker() {
   useMapEvents({
     mousemove(e) {
       const now = Date.now();
-      if (now - lastUpdate.current < 100) return;
+      if (now - lastUpdate.current < CURSOR_THROTTLE_MS) return;
       lastUpdate.current = now;
       setCoords({ lat: e.latlng.lat, lng: e.latlng.lng });
     },
