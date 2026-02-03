@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/e2e/dist
 
 # next.js
 /.next/
