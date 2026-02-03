@@ -128,3 +128,4 @@ Pipeline file: `azure-pipelines.yml`
 - [Ayman Kandouli](https://www.linkedin.com/in/ayman-kandouli-6a493b21a/)
 - [Rushil Riyaz](https://github.com/RushilRiyaz)
 - [Valentino Toscano](https://github.com/ToscanoValentin)
+
