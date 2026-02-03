@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 const tabs = [
   { id: "routing", label: "Routing" },
   { id: "routing-comparison", label: "Routing Comparison" },
@@ -24,7 +22,7 @@ export default function Tabs({ activeTab, onTabChange }: TabsProps) {
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
-          className={`px-4 py-2 text-sm font-medium transition-colors ${
+          className={`px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             activeTab === tab.id
               ? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
               : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"

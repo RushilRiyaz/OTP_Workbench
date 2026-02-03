@@ -6,6 +6,7 @@ import EvaluationArea from "@/components/EvaluationArea";
 import JourneyForm from "@/components/JourneyForm";
 import EnvironmentSelector, { Environment } from "@/components/EnvironmentSelector";
 import { TabId } from "@/components/Tabs";
+import { LocationValue, emptyLocationValue } from "@/components/LocationInput";
 
 export default function Home() {
   // Shared state: active tab
@@ -15,16 +16,20 @@ export default function Home() {
   const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>(["prod"]); // FR3.6: PROD preselected
   const [customEnvironments, setCustomEnvironments] = useState<Environment[]>([]);
 
+  // Journey state - lifted from JourneyForm for map interaction (FR8)
+  const [startLocation, setStartLocation] = useState<LocationValue>(emptyLocationValue);
+  const [destinationLocation, setDestinationLocation] = useState<LocationValue>(emptyLocationValue);
+
   // Determine if single select mode based on active tab
   // FR3.5: Single environment only when Routing use case selected
   const singleSelectMode = activeTab === "routing";
 
-  // When switching from multi-select to single-select, keep only first selection
+  // FR3.5: When switching to single-select mode, keep only first selection
   useEffect(() => {
-    if (singleSelectMode && selectedEnvironments.length > 1) {
-      setSelectedEnvironments([selectedEnvironments[0]]);
+    if (singleSelectMode) {
+      setSelectedEnvironments((prev) => (prev.length > 1 ? [prev[0]] : prev));
     }
-  }, [singleSelectMode, selectedEnvironments]);
+  }, [singleSelectMode]);
 
   const handleAddCustomEnvironment = (env: Environment) => {
     setCustomEnvironments((prev) => [...prev, env]);
@@ -51,9 +56,21 @@ export default function Home() {
         <div className="my-4 border-t border-zinc-300 dark:border-zinc-700" />
 
         {/* Journey Form */}
-        <JourneyForm />
+        <JourneyForm
+          start={startLocation}
+          destination={destinationLocation}
+          onStartChange={setStartLocation}
+          onDestinationChange={setDestinationLocation}
+        />
       </ParameterArea>
-      <EvaluationArea activeTab={activeTab} onTabChange={setActiveTab} />
+      <EvaluationArea
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        startLocation={startLocation}
+        destinationLocation={destinationLocation}
+        onStartChange={setStartLocation}
+        onDestinationChange={setDestinationLocation}
+      />
     </div>
   );
 }

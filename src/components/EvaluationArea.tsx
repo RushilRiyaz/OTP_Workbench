@@ -1,26 +1,59 @@
 "use client";
 
 import Tabs, { TabId } from "./Tabs";
+import { LocationValue } from "./LocationInput";
+import Map from "./map/DynamicMapLoader";
+import ErrorBoundary from "./ErrorBoundary";
 
 interface EvaluationAreaProps {
   activeTab: TabId;
   onTabChange: (tab: TabId) => void;
+  startLocation: LocationValue;
+  destinationLocation: LocationValue;
+  onStartChange: (value: LocationValue) => void;
+  onDestinationChange: (value: LocationValue) => void;
   children?: React.ReactNode;
 }
 
 export default function EvaluationArea({
   activeTab,
   onTabChange,
+  startLocation,
+  destinationLocation,
+  onStartChange,
+  onDestinationChange,
   children,
 }: EvaluationAreaProps) {
   return (
     <main className="flex-1 flex flex-col h-full bg-zinc-50 dark:bg-zinc-950">
       <Tabs activeTab={activeTab} onTabChange={onTabChange} />
-      <div className="flex-1 p-4">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Evaluation area - {activeTab}
-        </p>
-        {children}
+      <div className="flex-1 flex flex-col min-h-0">
+        {activeTab === "routing" && (
+          <ErrorBoundary
+            fallback={
+              <div className="flex items-center justify-center h-full bg-zinc-100 dark:bg-zinc-900">
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Map failed to load. Try refreshing.
+                </p>
+              </div>
+            }
+          >
+            <Map
+              start={startLocation}
+              destination={destinationLocation}
+              onStartChange={onStartChange}
+              onDestinationChange={onDestinationChange}
+            />
+          </ErrorBoundary>
+        )}
+        {activeTab !== "routing" && (
+          <div className="flex-1 p-4">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              {activeTab} - Coming soon
+            </p>
+            {children}
+          </div>
+        )}
       </div>
     </main>
   );

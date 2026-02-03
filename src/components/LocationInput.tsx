@@ -78,7 +78,8 @@ export default function LocationInput({
   const [showHistory, setShowHistory] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Click outside detection
   useEffect(() => {
@@ -91,12 +92,13 @@ export default function LocationInput({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Cleanup debounce timeout on unmount to prevent memory leaks
+  // Cleanup debounce timeout and abort controller on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
+      abortControllerRef.current?.abort();
     };
   }, []);
 
@@ -194,12 +196,23 @@ export default function LocationInput({
     setIsStopIdInput(false);
 
     debounceRef.current = setTimeout(async () => {
+      // Cancel any in-flight request before starting new one
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = new AbortController();
+
       setIsLoading(true);
       try {
-        const results = await searchLocations({ search: text });
+        const results = await searchLocations({
+          search: text,
+          signal: abortControllerRef.current.signal,
+        });
         setSuggestions(results);
         setShowDropdown(results.length > 0);
       } catch (error) {
+        // Ignore abort errors - they're expected when user types quickly
+        if (error instanceof Error && error.name === "AbortError") {
+          return;
+        }
         console.error("Autocomplete error:", error);
         setSuggestions([]);
       } finally {
@@ -300,10 +313,6 @@ export default function LocationInput({
             }
           }}
           placeholder={placeholder}
-          role="combobox"
-          aria-expanded={showDropdown}
-          aria-haspopup="listbox"
-          aria-autocomplete="list"
           className={`w-full px-3 py-2 text-sm rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${value.text ? "pr-8" : ""}`}
         />
         {isLoading && (
@@ -316,8 +325,7 @@ export default function LocationInput({
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-            aria-label="Clear input"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -333,7 +341,6 @@ export default function LocationInput({
 
       {showDropdown && (
         <ul
-          role="listbox"
           className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-md shadow-lg max-h-60 overflow-y-auto z-50"
         >
           {showHistory && history.length > 0 ? (
@@ -344,59 +351,75 @@ export default function LocationInput({
               {history.map((item, index) => (
                 <li
                   key={`history-${item.text}-${item.type}`}
-                  onClick={() => handleSelectFromHistory(item)}
-                  className={`px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 cursor-pointer border-b border-zinc-200 dark:border-zinc-700 last:border-b-0 ${
-                    highlightedIndex === index ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
-                  }`}
+                  className="border-b border-zinc-200 dark:border-zinc-700 last:border-b-0"
                 >
-                  <div className="font-medium">{item.text}</div>
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {item.type === "autocomplete" && "Location"}
-                    {item.type === "stopId" && "Stop ID"}
-                    {item.type === "coordinates" && "Coordinates"}
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectFromHistory(item)}
+                    className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      highlightedIndex === index ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                    }`}
+                  >
+                    <div className="font-medium">{item.text}</div>
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                      {item.type === "autocomplete" && "Location"}
+                      {item.type === "stopId" && "Stop ID"}
+                      {item.type === "coordinates" && "Coordinates"}
+                    </div>
+                  </button>
                 </li>
               ))}
             </>
           ) : isCoordinatesInput && parsedCoordinates ? (
-            <li
-              onClick={() => handleSelectCoordinates(parsedCoordinates)}
-              className={`px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 cursor-pointer ${
-                highlightedIndex === 0 ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
-              }`}
-            >
-              <div className="font-medium">Use as Coordinates</div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                Lat: {parsedCoordinates.lat}, Lon: {parsedCoordinates.lon}
-              </div>
+            <li>
+              <button
+                type="button"
+                onClick={() => handleSelectCoordinates(parsedCoordinates)}
+                className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  highlightedIndex === 0 ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                }`}
+              >
+                <div className="font-medium">Use as Coordinates</div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Lat: {parsedCoordinates.lat}, Lon: {parsedCoordinates.lon}
+                </div>
+              </button>
             </li>
           ) : isStopIdInput ? (
-            <li
-              onClick={() => handleSelectStopId(value.text.trim())}
-              className={`px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 cursor-pointer ${
-                highlightedIndex === 0 ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
-              }`}
-            >
-              <div className="font-medium">Use as Stop ID</div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                {value.text.trim()}
-              </div>
+            <li>
+              <button
+                type="button"
+                onClick={() => handleSelectStopId(value.text.trim())}
+                className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  highlightedIndex === 0 ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                }`}
+              >
+                <div className="font-medium">Use as Stop ID</div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {value.text.trim()}
+                </div>
+              </button>
             </li>
           ) : (
             suggestions.map((suggestion, index) => (
               <li
                 key={suggestion.id}
-                onClick={() => handleSelectLocation(suggestion)}
-                className={`px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 cursor-pointer border-b border-zinc-200 dark:border-zinc-700 last:border-b-0 ${
-                  highlightedIndex === index ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
-                }`}
+                className="border-b border-zinc-200 dark:border-zinc-700 last:border-b-0"
               >
-                <div className="font-medium">{suggestion.name}</div>
-                {suggestion.data && suggestion.data !== suggestion.name && (
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
-                    {suggestion.data}
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => handleSelectLocation(suggestion)}
+                  className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    highlightedIndex === index ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                  }`}
+                >
+                  <div className="font-medium">{suggestion.name}</div>
+                  {suggestion.data && suggestion.data !== suggestion.name && (
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                      {suggestion.data}
+                    </div>
+                  )}
+                </button>
               </li>
             ))
           )}

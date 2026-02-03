@@ -22,12 +22,14 @@ interface SearchParams {
   size?: number;
   center?: string;
   pointType?: string;
+  signal?: AbortSignal;
 }
 
 const REQUEST_TIMEOUT_MS = 5000;
 
 export async function searchLocations(params: SearchParams): Promise<AutocompleteResult[]> {
-  const { search, size = 10, center = "51.3,12.6", pointType = "P,S,W,V,N" } = params;
+  const { search, size = 10, center = "51.3,12.6", pointType = "P,S,W,V,N", signal } = params;
+  
 
   if (!search || search.length < 2) {
     return [];
@@ -41,9 +43,13 @@ export async function searchLocations(params: SearchParams): Promise<Autocomplet
     pointType,
   });
 
-  // Add timeout to prevent hanging requests
+  // Internal controller for timeout
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  // If external signal aborts, abort internal controller too
+  const onExternalAbort = () => controller.abort();
+  signal?.addEventListener("abort", onExternalAbort);
 
   try {
     const response = await fetch(`${API_BASE_URL}/search?${queryParams}`, {
@@ -58,9 +64,22 @@ export async function searchLocations(params: SearchParams): Promise<Autocomplet
       throw new Error(`Autocomplete API error: ${response.status}`);
     }
 
-    const data = await response.json();
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch {
+      console.error("Failed to parse autocomplete response as JSON");
+      return [];
+    }
+
+    if (!Array.isArray(data)) {
+      console.error("Unexpected autocomplete response format:", data);
+      return [];
+    }
+
     return data as AutocompleteResult[];
   } finally {
     clearTimeout(timeoutId);
+    signal?.removeEventListener("abort", onExternalAbort);
   }
 }

@@ -26,8 +26,7 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
         )}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-md transition-colors"
-          aria-label={isExpanded ? "Collapse parameter area" : "Expand parameter area"}
+          className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
           title={isExpanded ? "Collapse" : "Expand"}
         >
           <svg

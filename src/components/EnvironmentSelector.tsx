@@ -118,14 +118,16 @@ export default function EnvironmentSelector({
       {/* Environment list */}
       <div className="space-y-2">
         {allEnvironments.map((env) => (
-          <div
+          <button
+            type="button"
             key={env.id}
-            className={`flex items-center justify-between p-2 rounded-md border transition-colors ${
+            disabled={isDisabled(env.id)}
+            onClick={() => handleEnvironmentToggle(env.id)}
+            className={`w-full flex items-center justify-between p-2 rounded-md border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               isSelected(env.id)
                 ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                 : "border-zinc-300 dark:border-zinc-600 hover:border-zinc-400 dark:hover:border-zinc-500"
             } ${isDisabled(env.id) ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-            onClick={() => !isDisabled(env.id) && handleEnvironmentToggle(env.id)}
           >
             <div className="flex items-center gap-2">
               {/* Checkbox/Radio indicator */}
@@ -169,11 +171,12 @@ export default function EnvironmentSelector({
             {/* Remove button for custom environments */}
             {env.isCustom && (
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRemoveCustom(env.id);
                 }}
-                className="p-1 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                className="p-1 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 title="Remove custom environment"
               >
                 <svg
@@ -191,7 +194,7 @@ export default function EnvironmentSelector({
                 </svg>
               </button>
             )}
-          </div>
+          </button>
         ))}
       </div>
 
@@ -199,7 +202,7 @@ export default function EnvironmentSelector({
       {!showAddForm ? (
         <button
           onClick={() => setShowAddForm(true)}
-          className="w-full flex items-center justify-center gap-1 p-2 text-sm text-blue-600 dark:text-blue-400 border border-dashed border-zinc-300 dark:border-zinc-600 rounded-md hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors"
+          className="w-full flex items-center justify-center gap-1 p-2 text-sm text-blue-600 dark:text-blue-400 border border-dashed border-zinc-300 dark:border-zinc-600 rounded-md hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <svg
             className="w-4 h-4"
@@ -236,7 +239,7 @@ export default function EnvironmentSelector({
             <button
               onClick={handleAddCustomEnvironment}
               disabled={!customName.trim() || !customUrl.trim()}
-              className="flex-1 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               Add
             </button>
@@ -246,7 +249,7 @@ export default function EnvironmentSelector({
                 setCustomName("");
                 setCustomUrl("");
               }}
-              className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-600 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+              className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-600 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               Cancel
             </button>
