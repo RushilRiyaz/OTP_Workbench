@@ -33,7 +33,8 @@ async function runAllTests(): Promise<void> {
     console.log('\n🚀 Starting E2E Tests\n');
     console.log('Setting up WebDriver...');
     driver = await createDriver();
-    const homePage = new HomePage(driver);
+    console.log('Detecting server port...');
+    const homePage = await HomePage.create(driver);
 
     console.log('\nRunning tests:\n');
 

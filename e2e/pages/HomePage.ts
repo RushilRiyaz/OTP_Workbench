@@ -5,9 +5,14 @@ export class HomePage {
   private driver: WebDriver;
   private baseUrl: string;
 
-  constructor(driver: WebDriver) {
+  private constructor(driver: WebDriver, baseUrl: string) {
     this.driver = driver;
-    this.baseUrl = getBaseUrl();
+    this.baseUrl = baseUrl;
+  }
+
+  static async create(driver: WebDriver): Promise<HomePage> {
+    const baseUrl = await getBaseUrl();
+    return new HomePage(driver, baseUrl);
   }
 
   async navigate(): Promise<void> {
