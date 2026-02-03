@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Popup } from "react-leaflet";
+import { COORD_PRECISION } from "./constants";
 
 interface CoordPopupProps {
   coords: { lat: number; lng: number };
@@ -11,7 +12,7 @@ interface CoordPopupProps {
 // FR8.4-8.5: Popup with copy functionality when both start/dest are filled
 export default function CoordPopup({ coords, onClose }: CoordPopupProps) {
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
-  const coordString = `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`;
+  const coordString = `${coords.lat.toFixed(COORD_PRECISION)}, ${coords.lng.toFixed(COORD_PRECISION)}`;
 
   const handleCopy = async () => {
     try {

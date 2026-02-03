@@ -2,6 +2,7 @@
 
 import { useMapEvents } from "react-leaflet";
 import type { LocationValue } from "@/components/LocationInput";
+import { COORD_PRECISION } from "./constants";
 
 interface MapEventsProps {
   start: LocationValue | null;
@@ -22,7 +23,7 @@ function hasCoords(loc: LocationValue | null): boolean {
 // Create a LocationValue from map click coordinates
 function createCoordsLocation(lat: number, lng: number): LocationValue {
   return {
-    text: `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+    text: `${lat.toFixed(COORD_PRECISION)}, ${lng.toFixed(COORD_PRECISION)}`,
     type: "coordinates",
     location: null,
     stopId: null,
