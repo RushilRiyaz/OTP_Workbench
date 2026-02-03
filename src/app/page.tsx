@@ -9,6 +9,8 @@ import { TabId } from "@/components/Tabs";
 import { LocationValue, emptyLocationValue } from "@/components/LocationInput";
 import { RoutingOptions, defaultRoutingOptions } from "@/components/RoutingOptionsForm";
 import { ValidationError, RequestHistoryEntry } from "@/lib/types";
+import { validateRoutingParams } from "@/lib/validation";
+import { fetchRouting, RoutingResponse, RoutingError } from "@/lib/routing";
 
 export default function Home() {
   // Shared state: active tab
@@ -29,6 +31,8 @@ export default function Home() {
   // FR6: Request state
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [routingResult, setRoutingResult] = useState<RoutingResponse | null>(null);
+  const [routingError, setRoutingError] = useState<RoutingError | null>(null);
 
   // FR6.4: Request history (loaded from localStorage)
   const [requestHistory, setRequestHistory] = useState<RequestHistoryEntry[]>([]);
@@ -50,6 +54,50 @@ export default function Home() {
 
   const handleRemoveCustomEnvironment = (envId: string) => {
     setCustomEnvironments((prev) => prev.filter((e) => e.id !== envId));
+  };
+
+  // FR6.1: Start routing request
+  const handleSubmitRouting = async () => {
+    // Clear previous errors and results
+    setValidationErrors([]);
+    setRoutingError(null);
+
+    // FR6.2: Validate mandatory inputs
+    const errors = validateRoutingParams({
+      start: startLocation,
+      destination: destinationLocation,
+      dateTime,
+      routingOptions,
+    });
+
+    // FR6.3: Display error if mandatory fields missing
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+
+    // Start request
+    setIsLoading(true);
+    setRoutingResult(null);
+
+    try {
+      const result = await fetchRouting({
+        start: startLocation,
+        destination: destinationLocation,
+        dateTime,
+        routingOptions,
+      });
+
+      if (result.success) {
+        setRoutingResult(result.data);
+        // TODO: FR6.4 - Save to request history (Phase 3)
+      } else {
+        setRoutingError(result.error);
+        console.error("[Routing] Error:", result.error);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -80,6 +128,8 @@ export default function Home() {
           onRoutingOptionsChange={setRoutingOptions}
           validationErrors={validationErrors}
           isLoading={isLoading}
+          onSubmit={handleSubmitRouting}
+          routingError={routingError}
         />
       </ParameterArea>
       <EvaluationArea
