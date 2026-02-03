@@ -26,6 +26,7 @@ interface LocationInputProps {
   onChange: (value: LocationValue) => void;
   placeholder?: string;
   required?: boolean;
+  error?: string; // FR6: Validation error message
 }
 
 function isStopId(input: string): boolean {
@@ -67,6 +68,7 @@ export default function LocationInput({
   onChange,
   placeholder,
   required = false,
+  error,
 }: LocationInputProps) {
   const [suggestions, setSuggestions] = useState<AutocompleteResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -313,7 +315,11 @@ export default function LocationInput({
             }
           }}
           placeholder={placeholder}
-          className={`w-full px-3 py-2 text-sm rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${value.text ? "pr-8" : ""}`}
+          className={`w-full px-3 py-2 text-sm rounded-md border bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:border-transparent transition-colors ${value.text ? "pr-8" : ""} ${
+            error
+              ? "border-red-500 focus:ring-red-500"
+              : "border-zinc-300 dark:border-zinc-700 focus:ring-blue-500"
+          }`}
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -424,6 +430,11 @@ export default function LocationInput({
             ))
           )}
         </ul>
+      )}
+
+      {/* FR6: Validation error message */}
+      {error && (
+        <p className="text-xs text-red-500 mt-1">{error}</p>
       )}
     </div>
   );

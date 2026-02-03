@@ -1,15 +1,22 @@
 "use client";
 
-import { useState } from "react";
 import LocationInput, { LocationValue } from "./LocationInput";
 import DateTimeInput from "./DateTimeInput";
-import RoutingOptionsForm, { RoutingOptions, defaultRoutingOptions } from "./RoutingOptionsForm";
+import RoutingOptionsForm, { RoutingOptions } from "./RoutingOptionsForm";
+import { ValidationError } from "@/lib/types";
 
 interface JourneyFormProps {
   start: LocationValue;
   destination: LocationValue;
   onStartChange: (value: LocationValue) => void;
   onDestinationChange: (value: LocationValue) => void;
+  // FR6: Lifted state
+  dateTime: string;
+  onDateTimeChange: (value: string) => void;
+  routingOptions: RoutingOptions;
+  onRoutingOptionsChange: (value: RoutingOptions) => void;
+  validationErrors: ValidationError[];
+  isLoading: boolean;
 }
 
 export default function JourneyForm({
@@ -17,9 +24,17 @@ export default function JourneyForm({
   destination,
   onStartChange,
   onDestinationChange,
+  dateTime,
+  onDateTimeChange,
+  routingOptions,
+  onRoutingOptionsChange,
+  validationErrors,
+  isLoading,
 }: JourneyFormProps) {
-  const [dateTime, setDateTime] = useState("");
-  const [routingOptions, setRoutingOptions] = useState<RoutingOptions>(defaultRoutingOptions);
+  // Helper to get error for a field
+  const getFieldError = (field: ValidationError["field"]): string | undefined => {
+    return validationErrors.find((e) => e.field === field)?.message;
+  };
 
   // FR4.9: Swap start and destination
   const handleSwap = () => {
@@ -36,6 +51,7 @@ export default function JourneyForm({
         onChange={onStartChange}
         placeholder="Enter start location"
         required
+        error={getFieldError("start")}
       />
 
       {/* FR4.9: Swap button */}
@@ -67,18 +83,21 @@ export default function JourneyForm({
         onChange={onDestinationChange}
         placeholder="Enter destination"
         required
+        error={getFieldError("destination")}
       />
       <DateTimeInput
         label="Date & Time"
         value={dateTime}
-        onChange={setDateTime}
+        onChange={onDateTimeChange}
         required
+        error={getFieldError("dateTime")}
       />
 
       {/* FR5: Routing Options */}
       <RoutingOptionsForm
         value={routingOptions}
-        onChange={setRoutingOptions}
+        onChange={onRoutingOptionsChange}
+        error={getFieldError("travelModes")}
       />
     </div>
   );

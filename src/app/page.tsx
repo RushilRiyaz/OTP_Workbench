@@ -7,6 +7,8 @@ import JourneyForm from "@/components/JourneyForm";
 import EnvironmentSelector, { Environment } from "@/components/EnvironmentSelector";
 import { TabId } from "@/components/Tabs";
 import { LocationValue, emptyLocationValue } from "@/components/LocationInput";
+import { RoutingOptions, defaultRoutingOptions } from "@/components/RoutingOptionsForm";
+import { ValidationError, RequestHistoryEntry } from "@/lib/types";
 
 export default function Home() {
   // Shared state: active tab
@@ -19,6 +21,17 @@ export default function Home() {
   // Journey state - lifted from JourneyForm for map interaction (FR8)
   const [startLocation, setStartLocation] = useState<LocationValue>(emptyLocationValue);
   const [destinationLocation, setDestinationLocation] = useState<LocationValue>(emptyLocationValue);
+
+  // FR6: Lifted state from JourneyForm
+  const [dateTime, setDateTime] = useState<string>("");
+  const [routingOptions, setRoutingOptions] = useState<RoutingOptions>(defaultRoutingOptions);
+
+  // FR6: Request state
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+
+  // FR6.4: Request history (loaded from localStorage)
+  const [requestHistory, setRequestHistory] = useState<RequestHistoryEntry[]>([]);
 
   // Determine if single select mode based on active tab
   // FR3.5: Single environment only when Routing use case selected
@@ -61,6 +74,12 @@ export default function Home() {
           destination={destinationLocation}
           onStartChange={setStartLocation}
           onDestinationChange={setDestinationLocation}
+          dateTime={dateTime}
+          onDateTimeChange={setDateTime}
+          routingOptions={routingOptions}
+          onRoutingOptionsChange={setRoutingOptions}
+          validationErrors={validationErrors}
+          isLoading={isLoading}
         />
       </ParameterArea>
       <EvaluationArea

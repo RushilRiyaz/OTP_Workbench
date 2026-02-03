@@ -68,11 +68,13 @@ export const defaultRoutingOptions: RoutingOptions = {
 interface RoutingOptionsFormProps {
   value: RoutingOptions;
   onChange: (value: RoutingOptions) => void;
+  error?: string; // FR6: Validation error for travel modes
 }
 
 export default function RoutingOptionsForm({
   value,
   onChange,
+  error,
 }: RoutingOptionsFormProps) {
   // FR5.1: Handle timing mode change
   const handleTimingModeChange = (mode: TimingMode) => {
@@ -156,7 +158,7 @@ export default function RoutingOptionsForm({
         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
           Travel Modes
         </label>
-        <div className="flex flex-wrap gap-2">
+        <div className={`flex flex-wrap gap-2 ${error ? "p-2 rounded-md border border-red-500" : ""}`}>
           {TRAVEL_MODES.map((mode) => {
             const isSelected = value.travelModes.includes(mode.id);
             return (
@@ -178,6 +180,10 @@ export default function RoutingOptionsForm({
             );
           })}
         </div>
+        {/* FR6: Validation error message */}
+        {error && (
+          <p className="text-xs text-red-500 mt-1">{error}</p>
+        )}
       </div>
 
       {/* FR5.5: Optional Parameters */}
