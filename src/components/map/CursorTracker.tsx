@@ -1,15 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useMapEvents } from "react-leaflet";
 import { COORD_PRECISION } from "./constants";
 
 // FR8.6: Self-contained cursor coordinate tracker and display
 export default function CursorTracker() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const lastUpdate = useRef(0);
 
   useMapEvents({
     mousemove(e) {
+      const now = Date.now();
+      if (now - lastUpdate.current < 100) return;
+      lastUpdate.current = now;
       setCoords({ lat: e.latlng.lat, lng: e.latlng.lng });
     },
     mouseout() {
