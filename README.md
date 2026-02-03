@@ -4,7 +4,7 @@ A developer tool for LVB (Leipziger Verkehrsbetriebe) routing developers to test
 
 <!-- CI Badges - Update URLs with your actual repository paths -->
 ![GitHub Actions](https://github.com/YOUR_USERNAME/otp-client-v2/actions/workflows/e2e-tests.yml/badge.svg)
-![Azure DevOps](https://dev.azure.com/YOUR_ORG/YOUR_PROJECT/_apis/build/status/otp-client-v2?branchName=main)
+![Azure DevOps](https://dev.azure.com/Mobifabrik/Microservices%20MoFa/_apis/build/status%2FOTP-Client-V2%20dev?branchName=dev)
 
 ## Tech Stack
 
