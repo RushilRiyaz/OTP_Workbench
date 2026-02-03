@@ -1,65 +1,76 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import ParameterArea from "@/components/ParameterArea";
+import EvaluationArea from "@/components/EvaluationArea";
+import JourneyForm from "@/components/JourneyForm";
+import EnvironmentSelector, { Environment } from "@/components/EnvironmentSelector";
+import { TabId } from "@/components/Tabs";
+import { LocationValue, emptyLocationValue } from "@/components/LocationInput";
 
 export default function Home() {
+  // Shared state: active tab
+  const [activeTab, setActiveTab] = useState<TabId>("routing");
+
+  // Environment selection state
+  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>(["prod"]); // FR3.6: PROD preselected
+  const [customEnvironments, setCustomEnvironments] = useState<Environment[]>([]);
+
+  // Journey state - lifted from JourneyForm for map interaction (FR8)
+  const [startLocation, setStartLocation] = useState<LocationValue>(emptyLocationValue);
+  const [destinationLocation, setDestinationLocation] = useState<LocationValue>(emptyLocationValue);
+
+  // Determine if single select mode based on active tab
+  // FR3.5: Single environment only when Routing use case selected
+  const singleSelectMode = activeTab === "routing";
+
+  // FR3.5: When switching to single-select mode, keep only first selection
+  useEffect(() => {
+    if (singleSelectMode) {
+      setSelectedEnvironments((prev) => (prev.length > 1 ? [prev[0]] : prev));
+    }
+  }, [singleSelectMode]);
+
+  const handleAddCustomEnvironment = (env: Environment) => {
+    setCustomEnvironments((prev) => [...prev, env]);
+  };
+
+  const handleRemoveCustomEnvironment = (envId: string) => {
+    setCustomEnvironments((prev) => prev.filter((e) => e.id !== envId));
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="flex h-screen w-full">
+      <ParameterArea>
+        {/* Environment Selection - FR3.x */}
+        <EnvironmentSelector
+          singleSelectMode={singleSelectMode}
+          selectedEnvironments={selectedEnvironments}
+          onSelectionChange={setSelectedEnvironments}
+          customEnvironments={customEnvironments}
+          onAddCustomEnvironment={handleAddCustomEnvironment}
+          onRemoveCustomEnvironment={handleRemoveCustomEnvironment}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+
+        {/* Divider */}
+        <div className="my-4 border-t border-zinc-300 dark:border-zinc-700" />
+
+        {/* Journey Form */}
+        <JourneyForm
+          start={startLocation}
+          destination={destinationLocation}
+          onStartChange={setStartLocation}
+          onDestinationChange={setDestinationLocation}
+        />
+      </ParameterArea>
+      <EvaluationArea
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        startLocation={startLocation}
+        destinationLocation={destinationLocation}
+        onStartChange={setStartLocation}
+        onDestinationChange={setDestinationLocation}
+      />
     </div>
   );
 }
