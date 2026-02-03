@@ -2,6 +2,7 @@
 
 import Tabs, { TabId } from "./Tabs";
 import { LocationValue } from "./LocationInput";
+import MapContainer from "./map/MapContainer";
 
 interface EvaluationAreaProps {
   activeTab: TabId;
@@ -25,11 +26,23 @@ export default function EvaluationArea({
   return (
     <main className="flex-1 flex flex-col h-full bg-zinc-50 dark:bg-zinc-950">
       <Tabs activeTab={activeTab} onTabChange={onTabChange} />
-      <div className="flex-1 p-4">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Evaluation area - {activeTab}
-        </p>
-        {children}
+      <div className="flex-1 flex flex-col min-h-0">
+        {activeTab === "routing" && (
+          <MapContainer
+            start={startLocation}
+            destination={destinationLocation}
+            onStartChange={onStartChange}
+            onDestinationChange={onDestinationChange}
+          />
+        )}
+        {activeTab !== "routing" && (
+          <div className="flex-1 p-4">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              {activeTab} - Coming soon
+            </p>
+            {children}
+          </div>
+        )}
       </div>
     </main>
   );
