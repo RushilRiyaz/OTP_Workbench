@@ -2,7 +2,7 @@
 
 import Tabs, { TabId } from "./Tabs";
 import { LocationValue } from "./LocationInput";
-import MapContainer from "./map/MapContainer";
+import Map from "./map/DynamicMapLoader";
 
 interface EvaluationAreaProps {
   activeTab: TabId;
@@ -28,7 +28,7 @@ export default function EvaluationArea({
       <Tabs activeTab={activeTab} onTabChange={onTabChange} />
       <div className="flex-1 flex flex-col min-h-0">
         {activeTab === "routing" && (
-          <MapContainer
+          <Map
             start={startLocation}
             destination={destinationLocation}
             onStartChange={onStartChange}
