@@ -3,6 +3,7 @@
 import Tabs, { TabId } from "./Tabs";
 import { LocationValue } from "./LocationInput";
 import Map from "./map/DynamicMapLoader";
+import ErrorBoundary from "./ErrorBoundary";
 
 interface EvaluationAreaProps {
   activeTab: TabId;
@@ -28,12 +29,22 @@ export default function EvaluationArea({
       <Tabs activeTab={activeTab} onTabChange={onTabChange} />
       <div className="flex-1 flex flex-col min-h-0">
         {activeTab === "routing" && (
-          <Map
-            start={startLocation}
-            destination={destinationLocation}
-            onStartChange={onStartChange}
-            onDestinationChange={onDestinationChange}
-          />
+          <ErrorBoundary
+            fallback={
+              <div className="flex items-center justify-center h-full bg-zinc-100 dark:bg-zinc-900">
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Map failed to load. Try refreshing.
+                </p>
+              </div>
+            }
+          >
+            <Map
+              start={startLocation}
+              destination={destinationLocation}
+              onStartChange={onStartChange}
+              onDestinationChange={onDestinationChange}
+            />
+          </ErrorBoundary>
         )}
         {activeTab !== "routing" && (
           <div className="flex-1 p-4">
