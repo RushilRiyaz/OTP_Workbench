@@ -13,12 +13,12 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
     <aside
       className={`
         h-full bg-zinc-100 dark:bg-zinc-900 border-r border-zinc-300 dark:border-zinc-700
-        transition-all duration-300 ease-in-out overflow-hidden
-        ${isExpanded ? "w-64 min-w-64 p-4" : "w-12 min-w-12 p-2"}
+        transition-all duration-300 ease-in-out overflow-hidden flex flex-col
+        ${isExpanded ? "w-64 min-w-64" : "w-12 min-w-12"}
       `}
     >
       {/* Header with toggle button */}
-      <div className={`flex items-center ${isExpanded ? "justify-between mb-4" : "justify-center"}`}>
+      <div className={`flex-shrink-0 flex items-center ${isExpanded ? "justify-between p-4 pb-0" : "justify-center p-2"}`}>
         {isExpanded && (
           <h2 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
             Parameter area
@@ -45,11 +45,11 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
         </button>
       </div>
 
-      {/* Content - only visible when expanded */}
+      {/* Content - only visible when expanded, scrollable */}
       <div
         className={`
-          transition-opacity duration-300
-          ${isExpanded ? "opacity-100" : "opacity-0 pointer-events-none"}
+          flex-1 overflow-y-auto transition-opacity duration-300
+          ${isExpanded ? "opacity-100 p-4 pt-4" : "opacity-0 pointer-events-none"}
         `}
       >
         {children}
