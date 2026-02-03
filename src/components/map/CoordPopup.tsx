@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Popup } from "react-leaflet";
 
 interface CoordPopupProps {
@@ -9,14 +10,17 @@ interface CoordPopupProps {
 
 // FR8.4-8.5: Popup with copy functionality when both start/dest are filled
 export default function CoordPopup({ coords, onClose }: CoordPopupProps) {
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
   const coordString = `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`;
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(coordString);
-      onClose();
+      setCopyStatus("copied");
+      setTimeout(onClose, 500);
     } catch (error) {
       console.error("Failed to copy coordinates:", error);
+      setCopyStatus("failed");
     }
   };
 
@@ -30,9 +34,16 @@ export default function CoordPopup({ coords, onClose }: CoordPopupProps) {
         <button
           type="button"
           onClick={handleCopy}
-          className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={copyStatus !== "idle"}
+          className={`px-2 py-1 text-xs text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            copyStatus === "failed"
+              ? "bg-red-500"
+              : copyStatus === "copied"
+                ? "bg-green-500"
+                : "bg-blue-500 hover:bg-blue-600"
+          }`}
         >
-          Copy
+          {copyStatus === "failed" ? "Failed" : copyStatus === "copied" ? "Copied!" : "Copy"}
         </button>
       </div>
     </Popup>
