@@ -3,6 +3,7 @@
 import { useMapEvents } from "react-leaflet";
 import type { LocationValue } from "@/components/LocationInput";
 import { COORD_PRECISION } from "./constants";
+import { getCoords } from "./utils";
 
 interface MapEventsProps {
   start: LocationValue | null;
@@ -10,14 +11,6 @@ interface MapEventsProps {
   onStartChange: (loc: LocationValue) => void;
   onDestinationChange: (loc: LocationValue) => void;
   onPopupOpen: (coords: { lat: number; lng: number }) => void;
-}
-
-// Check if location has valid coordinates (either direct or from autocomplete)
-function hasCoords(loc: LocationValue | null): boolean {
-  if (!loc) return false;
-  if (loc.coordinates) return true;
-  if (loc.location?.lat !== undefined && loc.location?.lon !== undefined) return true;
-  return false;
 }
 
 // Create a LocationValue from map click coordinates
@@ -44,13 +37,13 @@ export default function MapEvents({
       const { lat, lng } = e.latlng;
 
       // FR8.2: If start is empty, fill start
-      if (!hasCoords(start)) {
+      if (!getCoords(start)) {
         onStartChange(createCoordsLocation(lat, lng));
         return;
       }
 
       // FR8.3: If start filled but dest empty, fill dest
-      if (!hasCoords(destination)) {
+      if (!getCoords(destination)) {
         onDestinationChange(createCoordsLocation(lat, lng));
         return;
       }
