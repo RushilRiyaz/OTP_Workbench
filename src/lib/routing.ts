@@ -159,6 +159,9 @@ export async function fetchRouting(
     }
   }
 
+  // FR6: Add API key as query parameter (per LVB API spec)
+  queryParams.set("api_key", API_KEY);
+
   const url = `${API_BASE_URL}/otp?${queryParams}`;
 
   // Log request per CLAUDE.md
@@ -175,9 +178,6 @@ export async function fetchRouting(
   try {
     const response = await fetch(url, {
       method: "GET",
-      headers: {
-        "X-API-Key": API_KEY,
-      },
       signal: controller.signal,
     });
 
