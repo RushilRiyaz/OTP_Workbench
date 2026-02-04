@@ -135,6 +135,9 @@ export async function fetchRouting(
   if (routingOptions.optionalParams.accessibility) {
     queryParams.set("accessibility", "1");
   }
+  if (routingOptions.optionalParams.transitOnly) {
+    queryParams.set("transitOnly", "1");
+  }
 
   // Default numItineraries
   if (!queryParams.has("numItineraries")) {

@@ -50,8 +50,8 @@ function serializeLocation(location: LocationValue): string | null {
       return `${LOCATION_PREFIX.stopId}${location.stopId}`;
     case "autocomplete":
       if (!location.location) return null;
-      // Encode id, name, lat, lon - separated by colon
-      return `${LOCATION_PREFIX.autocomplete}${location.location.id}:${encodeURIComponent(location.location.name)}:${location.location.lat},${location.location.lon}`;
+      // Encode id and name (both can contain colons), lat/lon are numeric
+      return `${LOCATION_PREFIX.autocomplete}${encodeURIComponent(location.location.id)}:${encodeURIComponent(location.location.name)}:${location.location.lat},${location.location.lon}`;
     default:
       return null;
   }
@@ -87,11 +87,11 @@ function deserializeLocation(value: string): LocationValue | null {
 
   if (value.startsWith(LOCATION_PREFIX.autocomplete)) {
     const rest = value.slice(LOCATION_PREFIX.autocomplete.length);
-    // Format: id:name:lat,lon
+    // Format: id:name:lat,lon (id and name are encoded, so colons in data become %3A)
     const parts = rest.split(":");
     if (parts.length < 2) return null;
 
-    const id = parts[0];
+    const id = decodeURIComponent(parts[0]);
     const name = decodeURIComponent(parts[1]);
 
     // Parse lat/lon if present
