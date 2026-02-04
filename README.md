@@ -2,8 +2,8 @@
 
 A developer tool for LVB (Leipziger Verkehrsbetriebe) routing developers to test and compare routing APIs across environments.
 
-<!-- CI Badges - Update URLs with your actual repository paths -->
-![GitHub Actions](https://github.com/YOUR_USERNAME/otp-client-v2/actions/workflows/e2e-tests.yml/badge.svg)
+<!-- CI Badges -->
+[![E2E Tests](https://github.com/RushilRiyaz/OTP_Workbench/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/RushilRiyaz/OTP_Workbench/actions/workflows/e2e-tests.yml)
 ![Azure DevOps](https://dev.azure.com/Mobifabrik/Microservices%20MoFa/_apis/build/status%2FOTP-Client-V2%20dev?branchName=dev)
 
 ## Tech Stack
