@@ -31,7 +31,7 @@ cd otp-client-v2
 npm install
 
 # Set up environment variables
-cp .env.example .env.local
+cp .env.local
 # Edit .env.local with your API keys
 ```
 
@@ -40,7 +40,8 @@ cp .env.example .env.local
 Create a `.env.local` file with:
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=https://api.lmservices.mobilityinnovate.net/api
+NEXT_PUBLIC_AUTOCOMPLETE_API_URL=https://api.lmservices.mobilityinnovate.net/api/autocomplete
+NEXT_PUBLIC_OTP_API_URL=https://api.lmservices.mobilityinnovate.net/api/otp
 NEXT_PUBLIC_API_KEY=<your-api-key>
 ```
 

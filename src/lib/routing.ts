@@ -3,7 +3,7 @@
 import { LocationValue } from "@/components/LocationInput";
 import { RoutingOptions } from "@/components/RoutingOptionsForm";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+const API_BASE_URL = process.env.NEXT_PUBLIC_OTP_API_URL || "";
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
 
 // 30s timeout per CLAUDE.md
