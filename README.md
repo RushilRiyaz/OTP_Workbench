@@ -94,7 +94,7 @@ To stop the server, press `Ctrl + C` in the terminal.
 
 Unit tests verify the core logic (validation, URL parameter handling, routing API client, request history, map utilities). They run instantly and do not require the app to be running.
 
-To run all 72 unit tests:
+To run all 159 unit tests:
 
 ```bash
 npm run test
@@ -103,14 +103,18 @@ npm run test
 Expected output (all tests should pass):
 
 ```
+ ✓ src/lib/__tests__/coordinateParsing.test.ts (33 tests)
+ ✓ src/lib/__tests__/locationHistory.test.ts (14 tests)
+ ✓ src/lib/__tests__/autocomplete.test.ts (13 tests)
+ ✓ src/components/__tests__/RoutingOptionsForm.test.ts (27 tests)
  ✓ src/components/map/__tests__/utils.test.ts (5 tests)
  ✓ src/lib/__tests__/validation.test.ts (11 tests)
  ✓ src/lib/__tests__/routing.test.ts (22 tests)
  ✓ src/lib/__tests__/requestHistory.test.ts (13 tests)
  ✓ src/lib/__tests__/urlParams.test.ts (21 tests)
 
- Test Files  5 passed (5)
-      Tests  72 passed (72)
+ Test Files  9 passed (9)
+      Tests  159 passed (159)
 ```
 
 To run tests in watch mode (tests re-run automatically when files change):
@@ -144,16 +148,6 @@ For headless mode (no visible browser):
 ```bash
 npm run test:e2e:ci
 ```
-
-### Unit Test Coverage
-
-| Test File | Tests | What It Covers |
-|-----------|-------|----------------|
-| `validation.test.ts` | 11 | Input validation (start, destination, dateTime, travel modes) |
-| `urlParams.test.ts` | 21 | URL serialization/deserialization for shareable links |
-| `routing.test.ts` | 22 | Routing API client (URL building, response handling, error cases) |
-| `requestHistory.test.ts` | 13 | localStorage request history (add, get, dedup, max size, corruption) |
-| `map/utils.test.ts` | 5 | Coordinate extraction from location values |
 
 ### E2E Test Coverage
 
