@@ -26,6 +26,9 @@ steps:
   - script: npm ci
     displayName: 'Install dependencies'
 
+  - script: npm run test
+    displayName: 'Run unit tests'
+
   - script: |
       wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
       sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
@@ -36,7 +39,7 @@ steps:
   - script: npm run build
     displayName: 'Build Next.js app'
     env:
-      NEXT_PUBLIC_API_BASE_URL: $(NEXT_PUBLIC_API_BASE_URL)
+      NEXT_PUBLIC_OTP_API_URL: $(NEXT_PUBLIC_OTP_API_URL)
       NEXT_PUBLIC_API_KEY: $(NEXT_PUBLIC_API_KEY)
 
   - script: |

@@ -3,8 +3,7 @@
 A developer tool for LVB (Leipziger Verkehrsbetriebe) routing developers to test and compare routing APIs across environments.
 
 <!-- CI Badges -->
-[![E2E Tests](https://github.com/RushilRiyaz/OTP_Workbench/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/RushilRiyaz/OTP_Workbench/actions/workflows/e2e-tests.yml)
-![Azure DevOps](https://dev.azure.com/Mobifabrik/Microservices%20MoFa/_apis/build/status%2FOTP-Client-V2%20dev?branchName=dev)
+[![Tests](https://github.com/RushilRiyaz/OTP_Workbench/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/RushilRiyaz/OTP_Workbench/actions/workflows/e2e-tests.yml)
 
 ## Tech Stack
 
@@ -12,75 +11,133 @@ A developer tool for LVB (Leipziger Verkehrsbetriebe) routing developers to test
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS 4
 - **Maps**: Leaflet + react-leaflet
-- **Testing**: Selenium WebDriver
+- **Unit Testing**: Vitest
+- **E2E Testing**: Selenium WebDriver
 
 ## Prerequisites
 
-- Node.js 20 or later
-- npm 10 or later
-- Google Chrome (for E2E tests)
+Before you begin, make sure you have the following installed on your machine:
 
-## Installation
+1. **Node.js** (version 20 or later) — download from https://nodejs.org/ and install for your platform
+2. **npm** (version 10 or later) — comes bundled with Node.js, no separate install needed
+3. **Git** — download from https://git-scm.com/ and install for your platform
+4. **Google Chrome** — required only for E2E tests, not needed for unit tests
+
+After installing, open a terminal and verify:
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd otp-client-v2
-
-# Install dependencies
-npm install
-
-# Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your API keys
+node -v    # should show v20.x.x or higher
+npm -v     # should show 10.x.x or higher
+git --v    # should show git version 2.x.x or higher
 ```
 
-### Environment Variables
+> **Note**: On Windows, you can use **Git Bash** (installed with Git), **PowerShell**, or **Command Prompt**. On macOS, use the built-in **Terminal** app. On Linux, use your default terminal.
 
-Create a `.env.local` file with:
+## Step-by-Step Setup
+
+### 1. Clone the Repository
+
+Open a terminal and run:
+
+```bash
+git clone <repository-url>
+```
+
+Then navigate into the project folder:
+
+```bash
+cd otp-client-v2
+```
+
+### 2. Install Dependencies
+
+Run the following command. This will download all required packages:
+
+```bash
+npm install
+```
+
+This may take 1-2 minutes. Wait until it finishes completely.
+
+### 3. Environment Variables
+
+The zip file you received should already contain a `.env.local` file in the project root (the same folder as `package.json`) with the correct API URLs and API key. No action needed — skip to the next step.
+
+If the `.env.local` file is missing for any reason, create one in the project root with the following content:
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=https://api.lmservices.mobilityinnovate.net/api
+NEXT_PUBLIC_AUTOCOMPLETE_API_URL=https://api.lmservices.mobilityinnovate.net/api/autocomplete
+NEXT_PUBLIC_OTP_API_URL=https://api.lmservices.mobilityinnovate.net/api/otp
 NEXT_PUBLIC_API_KEY=<your-api-key>
 ```
 
-## Running the App
+Replace `<your-api-key>` with the API key from Eva's email.
+
+
+## Running the Application
+
+To start the development server, run:
 
 ```bash
-# Development server (with hot reload)
 npm run dev
-
-# Production build
-npm run build
-
-# Start production server
-npm run start
-
-# Lint code
-npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Then open your browser and go to: [http://localhost:3000](http://localhost:3000)
 
-## Testing
+The app will automatically reload when you make code changes.
 
-### E2E Tests
+To stop the server, press `Ctrl + C` in the terminal.
 
-The project includes Selenium WebDriver-based end-to-end tests.
+## Running Tests
+
+### Unit Tests (no server needed)
+
+Unit tests verify core logic using [Vitest](https://vitest.dev/). They run instantly in Node and do not require the app to be running.
 
 ```bash
-# Run tests with visible browser (for local development)
-npm run dev          # Terminal 1: Start dev server
-npm run test:e2e:local  # Terminal 2: Run tests
-
-# Run tests headless (CI mode)
-npm run dev          # Terminal 1: Start dev server
-npm run test:e2e:ci     # Terminal 2: Run tests headless
+npm run test          # run all tests once
+npm run test:watch    # re-run on file changes (press q to exit)
 ```
 
-### Test Coverage
+#### Unit Test Coverage
 
-The E2E test suite covers:
+| Test | Description |
+|------|-------------|
+| Coordinate parsing | Parses lat/lon strings, validates ranges, rejects invalid input |
+| Routing options | Travel modes structure, default values, ≥1 mode enforcement |
+| Routing API | Location/date/time formatting, URL param building, error handling |
+| URL params | Serialize/deserialize form state to shareable query strings |
+| Location history | Read/write recent locations, dedup, cap at 10, corrupted data |
+| Autocomplete | Input validation, API URL building, error/cancellation handling |
+| Request history | Display labels, localStorage CRUD, dedup, cap at 20 |
+| Validation | Missing start/dest/dateTime, empty travel modes, per-type checks |
+| Map utils | Extract coordinates from all location types |
+
+### E2E Tests (requires server + Chrome)
+
+E2E tests use Selenium to automate a real browser and test the full application.
+
+**Step 1**: Start the development server in one terminal:
+
+```bash
+npm run dev
+```
+
+**Step 2**: Open a second terminal and run:
+
+```bash
+npm run test:e2e:local
+```
+
+This will open a Chrome window and run through the test suite automatically.
+
+For headless mode (no visible browser):
+
+```bash
+npm run test:e2e:ci
+```
+
+### E2E Test Coverage
 
 | Test | Description |
 |------|-------------|
@@ -95,30 +152,28 @@ The E2E test suite covers:
 
 ## CI/CD
 
+Both unit tests and E2E tests run automatically in CI on every push and pull request.
+
 ### GitHub Actions
 
-E2E tests run automatically on:
+Triggers on:
 - Push to `main`, `dev`, or `feature/**` branches
 - Pull requests to `main` or `dev`
 
+Pipeline: unit tests run first, then build, then E2E tests.
+
 Workflow file: `.github/workflows/e2e-tests.yml`
 
-### Azure DevOps
-
-E2E tests run automatically on:
-- Push to `main`, `dev`, or `feature/*` branches
-- Pull requests to `main` or `dev`
-
-Pipeline file: `azure-pipelines.yml`
-
-## Available Scripts
+## All Available Scripts
 
 | Script | Description |
 |--------|-------------|
-| `npm run dev` | Start development server |
+| `npm run dev` | Start development server with hot reload |
 | `npm run build` | Create production build |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
+| `npm run test` | Run unit tests |
+| `npm run test:watch` | Run unit tests in watch mode |
 | `npm run test:e2e` | Run E2E tests (requires server running) |
 | `npm run test:e2e:ci` | Run E2E tests headless |
 | `npm run test:e2e:local` | Run E2E tests with visible browser |
@@ -128,4 +183,3 @@ Pipeline file: `azure-pipelines.yml`
 - [Ayman Kandouli](https://www.linkedin.com/in/ayman-kandouli-6a493b21a/)
 - [Rushil Riyaz](https://github.com/RushilRiyaz)
 - [Valentino Toscano](https://github.com/ToscanoValentin)
-

@@ -3,7 +3,7 @@
 import { LocationValue } from "@/components/LocationInput";
 import { RoutingOptions } from "@/components/RoutingOptionsForm";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+const API_BASE_URL = process.env.NEXT_PUBLIC_OTP_API_URL || "";
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
 
 // 30s timeout per CLAUDE.md
@@ -75,7 +75,7 @@ export type RoutingResult =
   | { success: false; error: RoutingError };
 
 // Convert LocationValue to API format (lat,lon or stopId)
-function formatLocation(location: LocationValue): string {
+export function formatLocation(location: LocationValue): string {
   if (location.type === "coordinates" && location.coordinates) {
     return `${location.coordinates.lat},${location.coordinates.lon}`;
   }
@@ -89,7 +89,7 @@ function formatLocation(location: LocationValue): string {
 }
 
 // Convert datetime-local (YYYY-MM-DDTHH:mm) to API format
-function formatDate(dateTime: string): string {
+export function formatDate(dateTime: string): string {
   // Input: 2026-02-03T14:30
   // Output: 02-03-2026
   const [datePart] = dateTime.split("T");
@@ -97,7 +97,7 @@ function formatDate(dateTime: string): string {
   return `${month}-${day}-${year}`;
 }
 
-function formatTime(dateTime: string): string {
+export function formatTime(dateTime: string): string {
   // Input: 2026-02-03T14:30
   // Output: 14:30
   const [, timePart] = dateTime.split("T");
