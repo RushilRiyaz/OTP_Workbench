@@ -92,38 +92,26 @@ To stop the server, press `Ctrl + C` in the terminal.
 
 ### Unit Tests (no server needed)
 
-Unit tests verify the core logic (validation, URL parameter handling, routing API client, request history, map utilities). They run instantly and do not require the app to be running.
-
-To run all 159 unit tests:
+Unit tests verify core logic using [Vitest](https://vitest.dev/). They run instantly in Node and do not require the app to be running.
 
 ```bash
-npm run test
+npm run test          # run all tests once
+npm run test:watch    # re-run on file changes (press q to exit)
 ```
 
-Expected output (all tests should pass):
+#### Unit Test Coverage
 
-```
- ✓ src/lib/__tests__/coordinateParsing.test.ts (33 tests)
- ✓ src/lib/__tests__/locationHistory.test.ts (14 tests)
- ✓ src/lib/__tests__/autocomplete.test.ts (13 tests)
- ✓ src/components/__tests__/RoutingOptionsForm.test.ts (27 tests)
- ✓ src/components/map/__tests__/utils.test.ts (5 tests)
- ✓ src/lib/__tests__/validation.test.ts (11 tests)
- ✓ src/lib/__tests__/routing.test.ts (22 tests)
- ✓ src/lib/__tests__/requestHistory.test.ts (13 tests)
- ✓ src/lib/__tests__/urlParams.test.ts (21 tests)
-
- Test Files  9 passed (9)
-      Tests  159 passed (159)
-```
-
-To run tests in watch mode (tests re-run automatically when files change):
-
-```bash
-npm run test:watch
-```
-
-Press `q` to exit watch mode.
+| Test | Description |
+|------|-------------|
+| Coordinate parsing | Parses lat/lon strings, validates ranges, rejects invalid input |
+| Routing options | Travel modes structure, default values, ≥1 mode enforcement |
+| Routing API | Location/date/time formatting, URL param building, error handling |
+| URL params | Serialize/deserialize form state to shareable query strings |
+| Location history | Read/write recent locations, dedup, cap at 10, corrupted data |
+| Autocomplete | Input validation, API URL building, error/cancellation handling |
+| Request history | Display labels, localStorage CRUD, dedup, cap at 20 |
+| Validation | Missing start/dest/dateTime, empty travel modes, per-type checks |
+| Map utils | Extract coordinates from all location types |
 
 ### E2E Tests (requires server + Chrome)
 
