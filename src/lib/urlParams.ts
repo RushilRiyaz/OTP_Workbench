@@ -271,7 +271,7 @@ export function deserializeUrlParams(searchParams: URLSearchParams): Partial<Ser
             typeof item === "object" &&
             item !== null &&
             typeof item.id === "string" &&
-            typeof item.name === "string" &&
+            typeof item.label === "string" &&
             typeof item.url === "string"
         );
         if (validEnvs.length > 0) {
