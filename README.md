@@ -2,35 +2,175 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+<!-- CI Badges -->
+[![Tests](https://github.com/RushilRiyaz/OTP_Workbench/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/RushilRiyaz/OTP_Workbench/actions/workflows/e2e-tests.yml)
+
+## Tech Stack
+
+- **Framework**: Next.js 16 + React 19
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4
+- **Maps**: Leaflet + react-leaflet
+- **Unit Testing**: Vitest
+- **E2E Testing**: Selenium WebDriver
+
+## Prerequisites
+
+Before you begin, make sure you have the following installed on your machine:
+
+1. **Node.js** (version 20 or later) — download from https://nodejs.org/ and install for your platform
+2. **npm** (version 10 or later) — comes bundled with Node.js, no separate install needed
+3. **Git** — download from https://git-scm.com/ and install for your platform
+4. **Google Chrome** — required only for E2E tests, not needed for unit tests
+
+After installing, open a terminal and verify:
+
+```bash
+node -v    # should show v20.x.x or higher
+npm -v     # should show 10.x.x or higher
+git --v    # should show git version 2.x.x or higher
+```
+
+> **Note**: On Windows, you can use **Git Bash** (installed with Git), **PowerShell**, or **Command Prompt**. On macOS, use the built-in **Terminal** app. On Linux, use your default terminal.
+
+## Step-by-Step Setup
+
+### 1. Clone the Repository
+
+Open a terminal and run:
+
+```bash
+git clone <repository-url>
+```
+
+Then navigate into the project folder:
+
+```bash
+cd otp-client-v2
+```
+
+### 2. Install Dependencies
+
+Run the following command. This will download all required packages:
+
+```bash
+npm install
+```
+
+This may take 1-2 minutes. Wait until it finishes completely.
+
+### 3. Environment Variables
+
+The zip file you received should already contain a `.env.local` file in the project root (the same folder as `package.json`) with the correct API URLs and API key. No action needed — skip to the next step.
+
+If the `.env.local` file is missing for any reason, create one in the project root with the following content:
+
+```env
+NEXT_PUBLIC_AUTOCOMPLETE_API_URL=https://api.lmservices.mobilityinnovate.net/api/autocomplete
+NEXT_PUBLIC_OTP_API_URL=https://api.lmservices.mobilityinnovate.net/api/otp
+NEXT_PUBLIC_API_KEY=<your-api-key>
+```
+
+Replace `<your-api-key>` with the API key from Eva's email.
+
+
+## Running the Application
+
+To start the development server, run:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open your browser and go to: [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The app will automatically reload when you make code changes.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+To stop the server, press `Ctrl + C` in the terminal.
 
-## Learn More
+## Running Tests
 
-To learn more about Next.js, take a look at the following resources:
+### Unit Tests (no server needed)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Unit tests verify core logic using [Vitest](https://vitest.dev/). They run instantly in Node and do not require the app to be running.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run test          # run all tests once
+npm run test:watch    # re-run on file changes (press q to exit)
+```
 
-## Deploy on Vercel
+#### Unit Test Coverage
+
+| Test | Description |
+|------|-------------|
+| Coordinate parsing | Parses lat/lon strings, validates ranges, rejects invalid input |
+| Routing options | Travel modes structure, default values, ≥1 mode enforcement |
+| Routing API | Location/date/time formatting, URL param building, error handling |
+| URL params | Serialize/deserialize form state to shareable query strings |
+| Location history | Read/write recent locations, dedup, cap at 10, corrupted data |
+| Autocomplete | Input validation, API URL building, error/cancellation handling |
+| Request history | Display labels, localStorage CRUD, dedup, cap at 20 |
+| Validation | Missing start/dest/dateTime, empty travel modes, per-type checks |
+| Map utils | Extract coordinates from all location types |
+
+### E2E Tests (requires server + Chrome)
+
+E2E tests use Selenium to automate a real browser and test the full application.
+
+**Step 1**: Start the development server in one terminal:
+
+```bash
+npm run dev
+```
+
+**Step 2**: Open a second terminal and run:
+
+```bash
+npm run test:e2e:local
+```
+
+This will open a Chrome window and run through the test suite automatically.
+
+For headless mode (no visible browser):
+
+```bash
+npm run test:e2e:ci
+```
+
+### E2E Test Coverage
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## CI/CD
+
+Both unit tests and E2E tests run automatically in CI on every push and pull request.
+
+### GitHub Actions
+
+Triggers on:
+- Push to `main`, `dev`, or `feature/**` branches
+- Pull requests to `main` or `dev`
+
+Pipeline: unit tests run first, then build, then E2E tests.
+
+Workflow file: `.github/workflows/e2e-tests.yml`
+
+## All Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start development server with hot reload |
+| `npm run build` | Create production build |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+| `npm run test` | Run unit tests |
+| `npm run test:watch` | Run unit tests in watch mode |
+| `npm run test:e2e` | Run E2E tests (requires server running) |
+| `npm run test:e2e:ci` | Run E2E tests headless |
+| `npm run test:e2e:local` | Run E2E tests with visible browser |
+
+## Developers
+
+- [Ayman Kandouli](https://www.linkedin.com/in/ayman-kandouli-6a493b21a/)
+- [Rushil Riyaz](https://github.com/RushilRiyaz)
+- [Valentino Toscano](https://github.com/ToscanoValentin)

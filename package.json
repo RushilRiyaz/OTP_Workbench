@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "wait-on http://localhost:3000 && ts-node --project e2e/tsconfig.json e2e/runner.ts",
+    "test:e2e:ci": "cross-env HEADLESS=true npm run test:e2e",
+    "test:e2e:local": "cross-env HEADLESS=false npm run test:e2e"
   },
   "dependencies": {
     "next": "16.0.6",
@@ -21,6 +26,9 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "typescript": "^5",
+    "vitest": "^4.0.18",
+    "wait-on": "^8.0.2"
   }
 }
