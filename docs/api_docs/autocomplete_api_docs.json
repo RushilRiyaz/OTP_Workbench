@@ -1,0 +1,986 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "Autocomplete",
+    "version": "v20260127"
+  },
+  "paths": {
+    "/status": {
+      "get": {
+        "tags": [
+          "HealthCheck"
+        ],
+        "summary": "Checks the health of the service.",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Limited rate key.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "apiKey"
+            },
+            "example": "bGltaXRlZD0=7TZVONXl3fj1qa8dk55hPDLijl2s42sBTG0LwnQ7"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OldFormatDto"
+                      }
+                    },
+                    {
+                      "$ref": "#/components/schemas/TriasWrapperDto"
+                    }
+                  ]
+                },
+                "examples": {
+                  "oldFormat": {
+                    "summary": "JSON Format",
+                    "description": "`This JSON object list includes all relevant data and is easy to understand. It is recommended for use.`",
+                    "value": [
+                      {
+                        "ExtraOrder": 0,
+                        "data": "Leipzig, Angerbrücke/Straßenbahnhof, Altlindenau, 04177, Leipzig",
+                        "id": "pois_g|0011072",
+                        "landkreis": "Leipzig",
+                        "lat": 51.337894,
+                        "lon": 12.340913,
+                        "name": "Leipzig, Angerbrücke/Straßenbahnhof",
+                        "postalcode": "04177",
+                        "ptype": "S",
+                        "stadt": "Leipzig",
+                        "stadtteil": "Altlindenau",
+                        "streetname": null,
+                        "housenumber": null,
+                        "priority": 1.76,
+                        "sim": 1.58,
+                        "tags": {
+                          "stop_id": "0011072",
+                          "zone_id": "110",
+                          "lvb_gtfs_stop_id": 11072,
+                          "wheelchair_boarding": null
+                        }
+                      }
+                    ]
+                  },
+                  "trias12Format": {
+                    "summary": "TRIAS12 Format",
+                    "description": "`This JSON object contains the relevant data in the TRIAS12 format. It differs from the standard TRIAS format through enhanced data elements and a slightly different presentation of location information.`",
+                    "value": {
+                      "serviceDelivery": {
+                        "deliveryPayload": {
+                          "locationInformationResponse": {
+                            "errorMessage": [],
+                            "locationResult": [
+                              {
+                                "location": {
+                                  "stopPlace": {
+                                    "stopPlaceRef": {
+                                      "value": "pois_g|0011072"
+                                    },
+                                    "stopPlaceName": [
+                                      {
+                                        "textId": "de",
+                                        "text": "Leipzig, Angerbrücke/Straßenbahnhof"
+                                      }
+                                    ],
+                                    "privateCode": [],
+                                    "nameSuffix": []
+                                  },
+                                  "geoPosition": {
+                                    "longitude": 12.340913,
+                                    "latitude": 51.337894
+                                  },
+                                  "attribute": [],
+                                  "extension": {
+                                    "category": [
+                                      "custom",
+                                      "S",
+                                      "lvb_ac"
+                                    ],
+                                    "custom": {
+                                      "external_reference": "",
+                                      "data": "Leipzig, Angerbrücke/Straßenbahnhof, Altlindenau, 04177, Leipzig",
+                                      "postalcode": "04177",
+                                      "district": "Altlindenau",
+                                      "city": "Leipzig",
+                                      "county": "Leipzig",
+                                      "tags": {
+                                        "stop_id": "0011072",
+                                        "zone_id": "110",
+                                        "lvb_gtfs_stop_id": 11072,
+                                        "wheelchair_boarding": null
+                                      },
+                                      "ptype": "S",
+                                      "countryCode": "DE"
+                                    }
+                                  },
+                                  "complete": false,
+                                  "locationName": [
+                                    {
+                                      "language": "de",
+                                      "text": "Leipzig, Angerbrücke/Straßenbahnhof"
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "location": {
+                                  "pointOfInterest": {
+                                    "pointOfInterestCode": "pois_s147724",
+                                    "pointOfInterestName": [
+                                      {
+                                        "text": "Angerbrücke, Straßenbahnhof"
+                                      }
+                                    ],
+                                    "pointOfInterestCategory": [],
+                                    "privateCode": [],
+                                    "nameSuffix": []
+                                  },
+                                  "geoPosition": {
+                                    "longitude": 12.340584,
+                                    "latitude": 51.33759
+                                  },
+                                  "attribute": [],
+                                  "extension": {
+                                    "category": [
+                                      "custom",
+                                      "W",
+                                      "lvb_ac"
+                                    ],
+                                    "custom": {
+                                      "external_reference": "",
+                                      "data": "Angerbrücke, Straßenbahnhof, Altlindenau, 04177, Leipzig",
+                                      "streetName": "Angerbrücke, Straßenbahnhof",
+                                      "postalcode": "04177",
+                                      "district": "Altlindenau",
+                                      "city": "Leipzig",
+                                      "county": "Leipzig",
+                                      "tags": null,
+                                      "ptype": "W",
+                                      "countryCode": "DE"
+                                    }
+                                  },
+                                  "complete": false,
+                                  "locationName": [
+                                    {
+                                      "language": "de",
+                                      "text": "Angerbrücke, Straßenbahnhof"
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "location": {
+                                  "address": {
+                                    "addressCode": "addresses_pol|216549118",
+                                    "addressName": [
+                                      {
+                                        "language": "de",
+                                        "text": "Angerbrücke 1"
+                                      }
+                                    ],
+                                    "privateCode": [],
+                                    "nameSuffix": []
+                                  },
+                                  "geoPosition": {
+                                    "longitude": 10.329822,
+                                    "latitude": 52.27606
+                                  },
+                                  "attribute": [],
+                                  "extension": {
+                                    "category": [
+                                      "custom",
+                                      "N",
+                                      "lvb_ac"
+                                    ],
+                                    "custom": {
+                                      "external_reference": "",
+                                      "data": "Angerbrücke 1, 38159, Vechelde",
+                                      "streetName": "Angerbrücke",
+                                      "streetNumber": "1",
+                                      "postalcode": "38159",
+                                      "district": null,
+                                      "city": "Vechelde",
+                                      "county": "Landkreis Peine",
+                                      "tags": null,
+                                      "ptype": "N",
+                                      "countryCode": "DE"
+                                    }
+                                  },
+                                  "complete": false,
+                                  "locationName": [
+                                    {
+                                      "language": "de",
+                                      "text": "Angerbrücke"
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "version": "1.2"
+                    }
+                  },
+                  "triasFormat": {
+                    "summary": "TRIAS Format",
+                    "description": "`This JSON object is similar to the TRIAS12 object, with slightly different data formats for displaying location information.`",
+                    "value": {
+                      "serviceDelivery": {
+                        "deliveryPayload": {
+                          "locationInformationResponse": {
+                            "errorMessage": [],
+                            "location": [
+                              {
+                                "location": {
+                                  "pointOfInterest": {
+                                    "pointOfInterestCode": "pois_g|0011072",
+                                    "pointOfInterestName": [
+                                      {
+                                        "text": "Leipzig, Angerbrücke/Straßenbahnhof"
+                                      }
+                                    ],
+                                    "pointOfInterestCategory": [],
+                                    "privateCode": [],
+                                    "nameSuffix": []
+                                  },
+                                  "geoPosition": {
+                                    "longitude": 12.340913,
+                                    "latitude": 51.337894
+                                  },
+                                  "attribute": [],
+                                  "extension": {
+                                    "category": [
+                                      "custom",
+                                      "",
+                                      "lvb_ac"
+                                    ],
+                                    "custom": {
+                                      "external_reference": "",
+                                      "data": null,
+                                      "postalcode": null,
+                                      "district": null,
+                                      "city": null,
+                                      "county": null,
+                                      "tags": null,
+                                      "ptype": null,
+                                      "countryCode": "DE"
+                                    }
+                                  },
+                                  "probability": 0.7
+                                },
+                                "complete": true,
+                                "probability": 0.7
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "version": "1.1"
+                    }
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Searches for autocoomplete suggestions for a search substring.",
+        "description": "Example:\n```/search?search=angerbrücke&format=JSON&center=51.3%2C12.6&size=20&pointType=P,S,W&withAddress=false```",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "description": "String to be searched for. Can be space separated words.",
+            "schema": {
+              "type": "string",
+              "example": "angerbrücke"
+            },
+            "example": "angerbrücke"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "Response format, valid options: JSON or TRIAS or TRIAS12",
+            "schema": {
+              "type": "string",
+              "example": "JSON"
+            },
+            "example": "JSON"
+          },
+          {
+            "name": "center",
+            "in": "query",
+            "description": "Coordinate in format lat,lon, that specifies the center to be used to rank the results according to their distance\nto this center point",
+            "schema": {
+              "type": "string",
+              "example": "51.3,12.6"
+            },
+            "example": "51.3,12.6"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Number of maximum entries.",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": 20
+            },
+            "example": 20
+          },
+          {
+            "name": "profile",
+            "in": "query",
+            "description": "Name of your profile as sent to you by Leipziger Verkehrsbetriebe.",
+            "schema": {
+              "type": "string",
+              "example": ""
+            },
+            "example": ""
+          },
+          {
+            "name": "pointType",
+            "in": "query",
+            "description": "List of point types to be searched:\n- `P` = Point of interest\n- `S` = Stop\n- `W` = Way\n- `V` = Virtual stop  (flexa, movemix, absolut)\n- `N` = Address\n\n\nIncludes `N` only if a number is added to the search string.",
+            "schema": {
+              "type": "string",
+              "default": "P,S,W,V,N",
+              "example": "P,S,W"
+            },
+            "example": "P,S,W"
+          },
+          {
+            "name": "withAddress",
+            "in": "query",
+            "description": "If the POI does not have any address info, then address info is filled with closest address info (within max. 40m\nradius).\n Note, that the address might not be completely accurate, e.g. if the point is outside any building\nor within a large building.",
+            "schema": {
+              "type": "boolean",
+              "example": false
+            },
+            "example": false
+          },
+          {
+            "name": "withTags",
+            "in": "query",
+            "description": "If the OSM tags should be included in the response. Default false.",
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "example": false
+            },
+            "example": false
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "description": "Limited rate key.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "apiKey"
+            },
+            "example": "bGltaXRlZD0=7TZVONXl3fj1qa8dk55hPDLijl2s42sBTG0LwnQ7"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON Object containing a list/object of matching records, order descending by relevance score. Use\nthe `Try it out` button to see an example",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OldFormatDto"
+                      }
+                    },
+                    {
+                      "$ref": "#/components/schemas/TriasWrapperDto"
+                    }
+                  ]
+                },
+                "examples": {
+                  "oldFormat": {
+                    "summary": "JSON Format",
+                    "description": "`This JSON object list includes all relevant data and is easy to understand. It is recommended for use.`",
+                    "value": [
+                      {
+                        "ExtraOrder": 0,
+                        "data": "Leipzig, Angerbrücke/Straßenbahnhof, Altlindenau, 04177, Leipzig",
+                        "id": "pois_g|0011072",
+                        "landkreis": "Leipzig",
+                        "lat": 51.337894,
+                        "lon": 12.340913,
+                        "name": "Leipzig, Angerbrücke/Straßenbahnhof",
+                        "postalcode": "04177",
+                        "ptype": "S",
+                        "stadt": "Leipzig",
+                        "stadtteil": "Altlindenau",
+                        "streetname": null,
+                        "housenumber": null,
+                        "priority": 1.76,
+                        "sim": 1.58,
+                        "tags": {
+                          "stop_id": "0011072",
+                          "zone_id": "110",
+                          "lvb_gtfs_stop_id": 11072,
+                          "wheelchair_boarding": null
+                        }
+                      }
+                    ]
+                  },
+                  "trias12Format": {
+                    "summary": "TRIAS12 Format",
+                    "description": "`This JSON object contains the relevant data in the TRIAS12 format. It differs from the standard TRIAS format through enhanced data elements and a slightly different presentation of location information.`",
+                    "value": {
+                      "serviceDelivery": {
+                        "deliveryPayload": {
+                          "locationInformationResponse": {
+                            "errorMessage": [],
+                            "locationResult": [
+                              {
+                                "location": {
+                                  "stopPlace": {
+                                    "stopPlaceRef": {
+                                      "value": "pois_g|0011072"
+                                    },
+                                    "stopPlaceName": [
+                                      {
+                                        "textId": "de",
+                                        "text": "Leipzig, Angerbrücke/Straßenbahnhof"
+                                      }
+                                    ],
+                                    "privateCode": [],
+                                    "nameSuffix": []
+                                  },
+                                  "geoPosition": {
+                                    "longitude": 12.340913,
+                                    "latitude": 51.337894
+                                  },
+                                  "attribute": [],
+                                  "extension": {
+                                    "category": [
+                                      "custom",
+                                      "S",
+                                      "lvb_ac"
+                                    ],
+                                    "custom": {
+                                      "external_reference": "",
+                                      "data": "Leipzig, Angerbrücke/Straßenbahnhof, Altlindenau, 04177, Leipzig",
+                                      "postalcode": "04177",
+                                      "district": "Altlindenau",
+                                      "city": "Leipzig",
+                                      "county": "Leipzig",
+                                      "tags": {
+                                        "stop_id": "0011072",
+                                        "zone_id": "110",
+                                        "lvb_gtfs_stop_id": 11072,
+                                        "wheelchair_boarding": null
+                                      },
+                                      "ptype": "S",
+                                      "countryCode": "DE"
+                                    }
+                                  },
+                                  "complete": false,
+                                  "locationName": [
+                                    {
+                                      "language": "de",
+                                      "text": "Leipzig, Angerbrücke/Straßenbahnhof"
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "location": {
+                                  "pointOfInterest": {
+                                    "pointOfInterestCode": "pois_s147724",
+                                    "pointOfInterestName": [
+                                      {
+                                        "text": "Angerbrücke, Straßenbahnhof"
+                                      }
+                                    ],
+                                    "pointOfInterestCategory": [],
+                                    "privateCode": [],
+                                    "nameSuffix": []
+                                  },
+                                  "geoPosition": {
+                                    "longitude": 12.340584,
+                                    "latitude": 51.33759
+                                  },
+                                  "attribute": [],
+                                  "extension": {
+                                    "category": [
+                                      "custom",
+                                      "W",
+                                      "lvb_ac"
+                                    ],
+                                    "custom": {
+                                      "external_reference": "",
+                                      "data": "Angerbrücke, Straßenbahnhof, Altlindenau, 04177, Leipzig",
+                                      "streetName": "Angerbrücke, Straßenbahnhof",
+                                      "postalcode": "04177",
+                                      "district": "Altlindenau",
+                                      "city": "Leipzig",
+                                      "county": "Leipzig",
+                                      "tags": null,
+                                      "ptype": "W",
+                                      "countryCode": "DE"
+                                    }
+                                  },
+                                  "complete": false,
+                                  "locationName": [
+                                    {
+                                      "language": "de",
+                                      "text": "Angerbrücke, Straßenbahnhof"
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "location": {
+                                  "address": {
+                                    "addressCode": "addresses_pol|216549118",
+                                    "addressName": [
+                                      {
+                                        "language": "de",
+                                        "text": "Angerbrücke 1"
+                                      }
+                                    ],
+                                    "privateCode": [],
+                                    "nameSuffix": []
+                                  },
+                                  "geoPosition": {
+                                    "longitude": 10.329822,
+                                    "latitude": 52.27606
+                                  },
+                                  "attribute": [],
+                                  "extension": {
+                                    "category": [
+                                      "custom",
+                                      "N",
+                                      "lvb_ac"
+                                    ],
+                                    "custom": {
+                                      "external_reference": "",
+                                      "data": "Angerbrücke 1, 38159, Vechelde",
+                                      "streetName": "Angerbrücke",
+                                      "streetNumber": "1",
+                                      "postalcode": "38159",
+                                      "district": null,
+                                      "city": "Vechelde",
+                                      "county": "Landkreis Peine",
+                                      "tags": null,
+                                      "ptype": "N",
+                                      "countryCode": "DE"
+                                    }
+                                  },
+                                  "complete": false,
+                                  "locationName": [
+                                    {
+                                      "language": "de",
+                                      "text": "Angerbrücke"
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "version": "1.2"
+                    }
+                  },
+                  "triasFormat": {
+                    "summary": "TRIAS Format",
+                    "description": "`This JSON object is similar to the TRIAS12 object, with slightly different data formats for displaying location information.`",
+                    "value": {
+                      "serviceDelivery": {
+                        "deliveryPayload": {
+                          "locationInformationResponse": {
+                            "errorMessage": [],
+                            "location": [
+                              {
+                                "location": {
+                                  "pointOfInterest": {
+                                    "pointOfInterestCode": "pois_g|0011072",
+                                    "pointOfInterestName": [
+                                      {
+                                        "text": "Leipzig, Angerbrücke/Straßenbahnhof"
+                                      }
+                                    ],
+                                    "pointOfInterestCategory": [],
+                                    "privateCode": [],
+                                    "nameSuffix": []
+                                  },
+                                  "geoPosition": {
+                                    "longitude": 12.340913,
+                                    "latitude": 51.337894
+                                  },
+                                  "attribute": [],
+                                  "extension": {
+                                    "category": [
+                                      "custom",
+                                      "",
+                                      "lvb_ac"
+                                    ],
+                                    "custom": {
+                                      "external_reference": "",
+                                      "data": null,
+                                      "postalcode": null,
+                                      "district": null,
+                                      "city": null,
+                                      "county": null,
+                                      "tags": null,
+                                      "ptype": null,
+                                      "countryCode": "DE"
+                                    }
+                                  },
+                                  "probability": 0.7
+                                },
+                                "complete": true,
+                                "probability": 0.7
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "version": "1.1"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Returns internal server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CustomExtension": {
+        "type": "object",
+        "properties": {
+          "external_reference": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "string",
+            "nullable": true
+          },
+          "streetName": {
+            "type": "string",
+            "nullable": true
+          },
+          "streetNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "postalcode": {
+            "type": "string",
+            "nullable": true
+          },
+          "district": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "county": {
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "object",
+            "additionalProperties": {},
+            "nullable": true
+          },
+          "ptype": {
+            "type": "string",
+            "nullable": true
+          },
+          "countryCode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DeliveryPayload": {
+        "type": "object",
+        "properties": {
+          "locationInformationResponse": {
+            "$ref": "#/components/schemas/LocationInformationResponse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Extension": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "custom": {
+            "$ref": "#/components/schemas/CustomExtension"
+          }
+        },
+        "additionalProperties": false
+      },
+      "GeoPosition": {
+        "type": "object",
+        "properties": {
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "LocationInformationResponse": {
+        "type": "object",
+        "properties": {
+          "errorMessage": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "location": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TriasLocationElement"
+            },
+            "description": "only set if format is `TRIAS`",
+            "nullable": true
+          },
+          "locationResult": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TriasLocationElement"
+            },
+            "description": "only set if format is `TRIAS12`",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OldFormatDto": {
+        "type": "object",
+        "properties": {
+          "ExtraOrder": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "data": {
+            "type": "string",
+            "nullable": true
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "landkreis": {
+            "type": "string",
+            "nullable": true
+          },
+          "lat": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "lon": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "postalcode": {
+            "type": "string",
+            "nullable": true
+          },
+          "ptype": {
+            "type": "string",
+            "nullable": true
+          },
+          "stadt": {
+            "type": "string",
+            "nullable": true
+          },
+          "stadtteil": {
+            "type": "string",
+            "nullable": true
+          },
+          "streetname": {
+            "type": "string",
+            "nullable": true
+          },
+          "housenumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "priority": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "sim": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "tags": {
+            "type": "object",
+            "additionalProperties": {},
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PoiAddressLocationName": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "nullable": true
+          },
+          "language": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Point": {
+        "type": "object",
+        "properties": {
+          "geoPosition": {
+            "$ref": "#/components/schemas/GeoPosition"
+          },
+          "attribute": {
+            "type": "array",
+            "items": {},
+            "nullable": true
+          },
+          "extension": {
+            "$ref": "#/components/schemas/Extension"
+          },
+          "complete": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "locationName": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PoiAddressLocationName"
+            },
+            "nullable": true
+          },
+          "probability": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ServiceDelivery": {
+        "type": "object",
+        "properties": {
+          "deliveryPayload": {
+            "$ref": "#/components/schemas/DeliveryPayload"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TriasLocationElement": {
+        "required": [
+          "location"
+        ],
+        "type": "object",
+        "properties": {
+          "location": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "complete": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "probability": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TriasWrapperDto": {
+        "type": "object",
+        "properties": {
+          "serviceDelivery": {
+            "$ref": "#/components/schemas/ServiceDelivery"
+          },
+          "version": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.lmservices.mobilityinnovate.net/api/autocomplete"
+    }
+  ]
+}
