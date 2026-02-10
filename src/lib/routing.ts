@@ -17,27 +17,169 @@ export interface RoutingRequestParams {
   routingOptions: RoutingOptions;
 }
 
-// Basic response types (expanded in Sprint 2)
-export interface RoutingResponse {
-  RetStatus: {
-    Value: string;
-    Comments: string;
-  };
-  requestParameters: {
-    From: string;
-    To: string;
-    Travelmode: string;
-    changeSource: string;
-    transitOnly: boolean;
-    mockup: boolean;
-  };
-  plan?: {
-    date: number;
-    from: { name: string; lon: number; lat: number };
-    to: { name: string; lon: number; lat: number };
-    itineraries: Itinerary[];
-  };
+// --- OTP Response Types (per docs/api_docs/otp_routing_api.md) ---
+
+export interface Alert {
+  effectiveStartDate: number;
+  effectiveEndDate: number;
+  alertHeaderText: string | null;
+  alertDescriptionText: string;
+  /** 0=Disruption 1=Delay 2=Winter 3=Info 4=Construction 5=Event 6=Connection unreachable */
+  alertCategory: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  alertUrl?: string | null;
 }
+
+export interface LegGeometry {
+  points: Array<{ lat: number; lon: number }>;
+}
+
+export interface ZoneInfo {
+  zones: string[];
+  orderedZones: string[];
+  shortDistanceTicket: boolean;
+}
+
+export interface BikeInfo {
+  bikeName: string;
+  bikeId: string;
+  bikeTypeName: string | null;
+  type: "station" | "bike";
+}
+
+export interface CarStationInfo {
+  carShareId: string;
+  providerAreaId: string;
+}
+
+export interface Station {
+  name: string;
+  stopId: string;
+  lon: number;
+  lat: number;
+  zoneId: string;
+  wheelchairBoarding: 0 | 1 | 2;
+  /** Spec says Nullable=No but description says "null if unknown" — treating as nullable */
+  track: string | null;
+  scheduledTrack: string | null;
+  cancelled: boolean;
+  arrival?: number;
+  departure?: number;
+  departureDelayedTime?: number;
+  arrivalDelayedTime?: number;
+  departureDelayedTimeHHMM?: string;
+  arrivalDelayedTimeHHMM?: string;
+  /** Delay in MINUTES (unlike FromToLocation which uses seconds) */
+  arrivalDelay?: number;
+  /** Delay in MINUTES (unlike FromToLocation which uses seconds) */
+  departureDelay?: number;
+  boardAlightType?: string;
+  hafas_id?: string;
+  hafas_name?: string;
+  alerts?: Alert[];
+}
+
+export interface FromToLocation {
+  name: string;
+  lon: number;
+  lat: number;
+  arrival?: number;
+  departure?: number;
+  departureDelayedTime?: number;
+  arrivalDelayedTime?: number;
+  departureDelayedTimeHHMM?: string;
+  arrivalDelayedTimeHHMM?: string;
+  /** Delay in SECONDS (unlike Station which uses minutes) */
+  arrivalDelay?: number;
+  /** Delay in SECONDS (unlike Station which uses minutes) */
+  departureDelay?: number;
+  bikeShareId?: string;
+  bikeInfo?: BikeInfo;
+  carStationInfo?: CarStationInfo;
+}
+
+export function isStation(loc: Station | FromToLocation): loc is Station {
+  return "stopId" in loc;
+}
+
+// --- Mode types ---
+
+export type NonTransitMode =
+  | "WALK" | "BIKE" | "BIKERENTAL" | "CAR" | "CARRENTAL"
+  | "TAXI4884" | "BIKE AND TRANSIT" | "BIKERENTAL-TRANSIT";
+
+export type TransitMode =
+  | "BUS" | "TRAM" | "SUBURB" | "TRAIN" | "FLEXA"
+  | "SUBWAY" | "FERRY" | "GONDOLA";
+
+export interface Step {
+  distance: number;
+  relativeDirection: string;
+  absoluteDirection: string;
+  streetName: string;
+  lon: number;
+  lat: number;
+}
+
+// --- Leg types (discriminated union on transitLeg) ---
+
+export interface BaseLeg {
+  startTime: number;
+  endTime: number;
+  /** Delay in seconds (spec doesn't state unit, inferred from departureDelayedTime - startTime) */
+  departureDelay: number;
+  /** Delay in seconds (spec doesn't state unit, inferred from arrivalDelayedTime - endTime) */
+  arrivalDelay: number;
+  realTime: boolean;
+  distance: number;
+  duration: number;
+  departureDelayedTime: number;
+  arrivalDelayedTime: number;
+  legGeometry: LegGeometry;
+  rentedBike: boolean;
+  alerts: Alert[];
+  departureDelayedTimeHHMM?: string;
+  arrivalDelayedTimeHHMM?: string;
+  startTimeHHMM?: string;
+  endTimeHHMM?: string;
+  steps?: Step[];
+}
+
+export interface NonTransitLeg extends BaseLeg {
+  transitLeg: false;
+  mode: NonTransitMode;
+  from: Station | FromToLocation;
+  to: Station | FromToLocation;
+  escooterInfo?: Record<string, unknown>;
+  rentedEscooter?: boolean;
+}
+
+export interface TransitLeg extends BaseLeg {
+  transitLeg: true;
+  mode: TransitMode;
+  from: Station;
+  to: Station;
+  route: string;
+  agencyName: string;
+  agencyUrl?: string;
+  wheelchairAccessible: 0 | 1 | 2;
+  routeColor: string;
+  routeType: number;
+  routeId: string;
+  headsign: string;
+  agencyId: string;
+  tripId: string;
+  serviceDate: string;
+  routeShortName: string;
+  routeLongName: string;
+  intermediateStops: Station[];
+  cancelled: boolean;
+  wheelchairBoardingVehicle: 0 | 1 | 2;
+  flexaProperties?: Record<string, unknown>;
+}
+
+export type Leg = NonTransitLeg | TransitLeg;
+
+// --- Itinerary ---
 
 export interface Itinerary {
   duration: number;
@@ -49,19 +191,41 @@ export interface Itinerary {
   walkDistance: number;
   transfers: number;
   legs: Leg[];
+  zoneInfo: ZoneInfo | null;
+  otpVersion?: string;
+  startTimeHHMM?: string;
+  endTimeHHMM?: string;
+  durationHHMM?: string;
 }
 
-export interface Leg {
-  startTime: number;
-  endTime: number;
-  departureDelay: number;
-  arrivalDelay: number;
-  realTime: boolean;
-  distance: number;
-  mode: string;
-  route: string;
-  from: { name: string; stopId?: string; lat: number; lon: number };
-  to: { name: string; stopId?: string; lat: number; lon: number };
+// --- Response envelope ---
+
+export interface RoutingResponse {
+  RetStatus: {
+    Value: string;
+    Comments: string;
+  };
+  requestParameters: {
+    From: string;
+    To: string;
+    Travelmode: string;
+    date?: string;
+    time?: string;
+    numItineraries?: number;
+    arriveBy?: boolean;
+    accessibility?: boolean;
+    shortWalk?: boolean;
+    lessTransfers?: boolean;
+    transitOnly: boolean;
+    mockup: boolean;
+    changeSource?: string; // undocumented, observed in API responses
+  };
+  plan?: {
+    date: number;
+    from: { name: string; lon: number; lat: number };
+    to: { name: string; lon: number; lat: number };
+    itineraries: Itinerary[];
+  };
 }
 
 export interface RoutingError {
