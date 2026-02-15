@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/e2e/dist
 
 # next.js
 /.next/
@@ -40,3 +41,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /.idea/
+
+/md_files
+
+CLAUDE.md

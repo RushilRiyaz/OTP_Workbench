@@ -1,6 +1,6 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OTP Client v2
 
-## Getting Started
+A developer tool for LVB (Leipziger Verkehrsbetriebe) routing developers to test and compare routing APIs across environments.
 
 <!-- CI Badges -->
 [![Tests](https://github.com/RushilRiyaz/OTP_Workbench/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/RushilRiyaz/OTP_Workbench/actions/workflows/e2e-tests.yml)
@@ -139,7 +139,16 @@ npm run test:e2e:ci
 
 ### E2E Test Coverage
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Test | Description |
+|------|-------------|
+| Page load | Verifies the app loads successfully |
+| Parameter area | Sidebar is visible |
+| Tab navigation | 5 tabs displayed, can switch between them |
+| Environment selection | PROD selected by default, can switch to STAGE/DEV |
+| Location inputs | Can type start/destination locations |
+| Swap functionality | Swap button exchanges start and destination |
+| Map display | Leaflet map is visible |
+| Collapse/expand | Parameter area sidebar toggles correctly |
 
 ## CI/CD
 
