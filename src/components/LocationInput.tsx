@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { searchLocations, AutocompleteResult } from "@/lib/autocomplete";
 import { getLocationHistory, addToLocationHistory } from "@/lib/locationHistory";
+import { reverseGeocode } from "@/lib/reverseGeocode";
 
 export interface LocationValue {
   text: string;
@@ -268,6 +269,14 @@ export default function LocationInput({
     setIsCoordinatesInput(false);
     setParsedCoordinates(null);
     setShowHistory(false);
+
+    // Resolve address in background — update text on success
+    reverseGeocode(coords.lat, coords.lon).then((address) => {
+      if (address) {
+        const updated = { ...locationValue, text: address };
+        onChange(updated);
+      }
+    });
   };
 
   // FR4.7: Handle selection from history

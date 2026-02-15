@@ -69,7 +69,11 @@ body {
   animation: collapsible-open 200ms ease-out;
 }
 
-/* Dark mode datetime-local calendar icon */
+/* Dark mode datetime-local: invert calendar icon + use dark color scheme for native picker */
+.dark input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
 .dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
 }

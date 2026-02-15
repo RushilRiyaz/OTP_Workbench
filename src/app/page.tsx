@@ -13,7 +13,7 @@ import { validateRoutingParams } from "@/lib/validation";
 import { fetchRouting, RoutingResponse, RoutingError } from "@/lib/routing";
 import { getRequestHistory, addToRequestHistory, clearRequestHistory, generateDisplayLabel } from "@/lib/requestHistory";
 import { serializeFormState, deserializeUrlParams } from "@/lib/urlParams";
-import RequestHistoryList from "@/components/RequestHistoryList";
+
 
 export default function Home() {
   // Shared state: active tab
@@ -28,7 +28,9 @@ export default function Home() {
   const [destinationLocation, setDestinationLocation] = useState<LocationValue>(emptyLocationValue);
 
   // FR6: Lifted state from JourneyForm
-  const [dateTime, setDateTime] = useState<string>("");
+  const [dateTime, setDateTime] = useState<string>(() =>
+    new Date().toISOString().slice(0, 16)
+  );
   const [routingOptions, setRoutingOptions] = useState<RoutingOptions>(defaultRoutingOptions);
 
   // FR6: Request state
@@ -277,19 +279,12 @@ export default function Home() {
             isLoading={isLoading}
             onSubmit={handleSubmitRouting}
             routingError={routingError}
+            requestHistory={requestHistory}
+            onLoadRequest={handleLoadRequest}
+            onClearHistory={handleClearHistory}
           />
         </div>
 
-        {/* FR6.4-6.5: Request History */}
-        {requestHistory.length > 0 && (
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3">
-            <RequestHistoryList
-              history={requestHistory}
-              onLoad={handleLoadRequest}
-              onClear={handleClearHistory}
-            />
-          </div>
-        )}
       </ParameterArea>
       <EvaluationArea
         activeTab={activeTab}

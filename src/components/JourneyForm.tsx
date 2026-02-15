@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import LocationInput, { LocationValue } from "./LocationInput";
 import DateTimeInput from "./DateTimeInput";
 import RoutingOptionsForm, { RoutingOptions } from "./RoutingOptionsForm";
-import { ValidationError } from "@/lib/types";
+import { ValidationError, RequestHistoryEntry } from "@/lib/types";
 import { RoutingError } from "@/lib/routing";
 
 interface JourneyFormProps {
@@ -20,6 +21,28 @@ interface JourneyFormProps {
   isLoading: boolean;
   onSubmit: () => void; // FR6.1: Start routing request
   routingError: RoutingError | null; // FR6: API error feedback
+  // Request history
+  requestHistory: RequestHistoryEntry[];
+  onLoadRequest: (entry: RequestHistoryEntry) => void;
+  onClearHistory: () => void;
+}
+
+// Format timestamp as relative time or short date
+function formatTimestamp(timestamp: number): string {
+  const now = Date.now();
+  const diff = now - timestamp;
+
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+
+  const date = new Date(timestamp);
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 export default function JourneyForm({
@@ -35,7 +58,12 @@ export default function JourneyForm({
   isLoading,
   onSubmit,
   routingError,
+  requestHistory,
+  onLoadRequest,
+  onClearHistory,
 }: JourneyFormProps) {
+  const [historyOpen, setHistoryOpen] = useState(false);
+
   // Helper to get error for a field
   const getFieldError = (field: ValidationError["field"]): string | undefined => {
     return validationErrors.find((e) => e.field === field)?.message;
@@ -46,6 +74,12 @@ export default function JourneyForm({
     const tempStart = start;
     onStartChange(destination);
     onDestinationChange(tempStart);
+  };
+
+  const handleClearHistory = () => {
+    if (window.confirm("Clear all request history?")) {
+      onClearHistory();
+    }
   };
 
   return (
@@ -98,6 +132,87 @@ export default function JourneyForm({
         required
         error={getFieldError("dateTime")}
       />
+
+      {/* FR6.4-6.5: Collapsible request history panel */}
+      {requestHistory.length > 0 && (
+        <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setHistoryOpen((prev) => !prev)}
+            className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm bg-zinc-50 dark:bg-zinc-800/60 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-lvb-yellow"
+          >
+            {/* Chevron */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className={`w-4 h-4 text-zinc-400 transition-transform duration-200 ${historyOpen ? "rotate-90" : ""}`}
+            >
+              <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+            </svg>
+            {/* Clock icon */}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-zinc-400">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clipRule="evenodd" />
+            </svg>
+            <span className="font-medium text-zinc-600 dark:text-zinc-300">History</span>
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 font-medium">
+              {requestHistory.length}
+            </span>
+            {/* Spacer + trash button */}
+            <span className="flex-1" />
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClearHistory();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleClearHistory();
+                }
+              }}
+              className="p-1 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+              title="Clear history"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.519.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
+              </svg>
+            </span>
+          </button>
+
+          {historyOpen && (
+            <div className="max-h-48 overflow-y-auto animate-collapsible-open">
+              <ul className="divide-y divide-zinc-100 dark:divide-zinc-700/50">
+                {requestHistory.map((entry) => (
+                  <li key={entry.id}>
+                    <button
+                      type="button"
+                      onClick={() => onLoadRequest(entry)}
+                      title={`${entry.start.text} → ${entry.destination.text}`}
+                      className="w-full px-3 py-2 text-left hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-lvb-yellow"
+                    >
+                      <div className="text-sm text-zinc-700 dark:text-zinc-300 truncate">
+                        {entry.displayLabel}
+                      </div>
+                      <div className="flex items-center justify-between mt-0.5">
+                        <span className="text-xs text-zinc-400">
+                          {formatTimestamp(entry.timestamp)}
+                        </span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 uppercase font-medium">
+                          {entry.selectedEnvironment}
+                        </span>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* FR5: Routing Options */}
       <RoutingOptionsForm
