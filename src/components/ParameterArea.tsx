@@ -1,6 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+
+const DEFAULT_WIDTH = 360;
+const MIN_WIDTH = 260;
+const MAX_WIDTH = 600;
+const COLLAPSED_WIDTH = 48;
 
 interface ParameterAreaProps {
   children?: React.ReactNode;
@@ -8,14 +13,44 @@ interface ParameterAreaProps {
 
 export default function ParameterArea({ children }: ParameterAreaProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [width, setWidth] = useState(DEFAULT_WIDTH);
+  const isResizing = useRef(false);
+  const sidebarRef = useRef<HTMLElement>(null);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizing.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing.current) return;
+      const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, e.clientX));
+      setWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      if (!isResizing.current) return;
+      isResizing.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
 
   return (
     <aside
-      className={`
-        h-full bg-zinc-100 dark:bg-zinc-900 border-r border-zinc-300 dark:border-zinc-700
-        transition-all duration-300 ease-in-out overflow-hidden flex flex-col
-        ${isExpanded ? "w-64 min-w-64" : "w-12 min-w-12"}
-      `}
+      ref={sidebarRef}
+      className="h-full bg-zinc-100 dark:bg-zinc-900 border-r border-zinc-300 dark:border-zinc-700 overflow-hidden flex flex-col relative flex-shrink-0"
+      style={{ width: isExpanded ? width : COLLAPSED_WIDTH }}
     >
       {/* Header with toggle button */}
       <div className={`flex-shrink-0 flex items-center ${isExpanded ? "justify-between p-4 pb-0" : "justify-center p-2"}`}>
@@ -48,12 +83,20 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
       {/* Content - only visible when expanded, scrollable */}
       <div
         className={`
-          flex-1 overflow-y-auto transition-opacity duration-300
+          flex-1 overflow-y-auto
           ${isExpanded ? "opacity-100 p-4 pt-4" : "opacity-0 pointer-events-none"}
         `}
       >
         {children}
       </div>
+
+      {/* Resize handle */}
+      {isExpanded && (
+        <div
+          onMouseDown={handleMouseDown}
+          className="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-lvb-yellow/40 active:bg-lvb-yellow/60 transition-colors"
+        />
+      )}
     </aside>
   );
 }
