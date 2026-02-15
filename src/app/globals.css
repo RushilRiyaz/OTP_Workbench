@@ -50,7 +50,28 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Collapsible section animation */
+@keyframes collapsible-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-collapsible-open {
+  animation: collapsible-open 200ms ease-out;
+}
+
+/* Dark mode datetime-local calendar icon */
+.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
 }
 
 /* Custom scrollbar styling */
@@ -64,6 +85,19 @@ body {
   * {
     scrollbar-color: #3f3f46 transparent;
   }
+}
+
+/* Class-based dark mode scrollbar */
+.dark * {
+  scrollbar-color: #3f3f46 transparent;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
 }
 
 /* Chrome, Edge, Safari */

@@ -48,13 +48,13 @@ export default function RequestHistoryList({
     <div className="flex flex-col gap-2">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+        <h3 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
           Request History
         </h3>
         <button
           type="button"
           onClick={handleClear}
-          className="p-1 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow rounded"
+          className="p-1.5 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow rounded-lg"
           title="Clear history"
         >
           <svg
@@ -80,16 +80,16 @@ export default function RequestHistoryList({
               type="button"
               onClick={() => onLoad(entry)}
               title={`${entry.start.text} → ${entry.destination.text}`}
-              className="w-full p-2 text-left rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+              className="group w-full p-2.5 text-left rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
             >
-              <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+              <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 truncate transition-colors">
                 {entry.displayLabel}
               </div>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-xs text-zinc-500 dark:text-zinc-400">
                   {formatTimestamp(entry.timestamp)}
                 </span>
-                <span className="text-xs px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
+                <span className="text-xs px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
                   {entry.selectedEnvironment.toUpperCase()}
                 </span>
               </div>

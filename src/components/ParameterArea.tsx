@@ -53,10 +53,10 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
       style={{ width: isExpanded ? width : COLLAPSED_WIDTH }}
     >
       {/* Header with toggle button */}
-      <div className={`flex-shrink-0 flex items-center ${isExpanded ? "justify-between p-4 pb-0" : "justify-center p-2"}`}>
+      <div className={`flex-shrink-0 flex items-center ${isExpanded ? "justify-between p-4 pb-3 border-b border-zinc-200 dark:border-zinc-800" : "justify-center p-2"}`}>
         {isExpanded && (
-          <h2 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
-            Parameter area
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+            Parameters
           </h2>
         )}
         <button
@@ -94,7 +94,7 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
       {isExpanded && (
         <div
           onMouseDown={handleMouseDown}
-          className="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-lvb-yellow/40 active:bg-lvb-yellow/60 transition-colors"
+          className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-lvb-yellow/40 active:bg-lvb-yellow/60 transition-colors"
         />
       )}
     </aside>

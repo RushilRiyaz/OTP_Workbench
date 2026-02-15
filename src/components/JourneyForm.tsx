@@ -65,7 +65,7 @@ export default function JourneyForm({
           type="button"
           onClick={handleSwap}
           disabled={isLoading}
-          className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+          className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition-all hover:scale-110 active:scale-95 hover:border-lvb-yellow/50 focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
           title="Swap start and destination"
         >
           <svg
@@ -111,11 +111,11 @@ export default function JourneyForm({
         type="button"
         onClick={onSubmit}
         disabled={isLoading}
-        className="w-full mt-2 px-4 py-2.5 text-sm font-medium text-lvb-dark bg-lvb-yellow hover:bg-lvb-yellow-hover disabled:bg-lvb-yellow/60 disabled:cursor-not-allowed rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow focus:ring-offset-2 dark:focus:ring-offset-zinc-900 flex items-center justify-center gap-2"
+        className="w-full mt-2 px-4 py-3 text-sm font-semibold text-lvb-dark bg-lvb-yellow hover:bg-lvb-yellow-hover disabled:bg-lvb-yellow/60 disabled:cursor-not-allowed rounded-xl shadow-[0_2px_8px_0_rgb(251,193,15,0.35)] hover:shadow-[0_4px_12px_0_rgb(251,193,15,0.45)] active:shadow-none transition-all focus:outline-none focus:ring-2 focus:ring-lvb-yellow focus:ring-offset-2 dark:focus:ring-offset-zinc-900 flex items-center justify-center gap-2"
       >
         {isLoading ? (
           <>
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+            <div className="w-4 h-4 border-2 border-lvb-dark/30 border-t-lvb-dark rounded-full animate-spin" aria-hidden="true" />
             <span>Requesting...</span>
           </>
         ) : (
@@ -125,9 +125,14 @@ export default function JourneyForm({
 
       {/* FR6: API error feedback */}
       {routingError && (
-        <div className="p-3 text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-          <div className="font-medium">Request failed</div>
-          <div className="text-xs mt-1">{routingError.message}</div>
+        <div className="p-3 text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-2.5">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5">
+            <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+          </svg>
+          <div>
+            <div className="font-medium">Request failed</div>
+            <div className="text-xs mt-1">{routingError.message}</div>
+          </div>
         </div>
       )}
     </div>

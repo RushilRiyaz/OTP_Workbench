@@ -215,79 +215,80 @@ export default function Home() {
   return (
     <div className="flex h-[calc(100vh-56px)] w-full">
       <ParameterArea>
-        {/* FR6.6: Copy Link Button */}
-        <div className="flex justify-end mb-2">
-          <button
-            type="button"
-            onClick={handleCopyLink}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
-            title="Copy shareable link"
-          >
-            {linkCopied === "success" ? (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-green-500">
-                  <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                </svg>
-                <span>Copied!</span>
-              </>
-            ) : linkCopied === "error" ? (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-red-500">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                </svg>
-                <span>Failed</span>
-              </>
-            ) : (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                  <path d="M12.232 4.232a2.5 2.5 0 013.536 3.536l-1.225 1.224a.75.75 0 001.061 1.06l1.224-1.224a4 4 0 00-5.656-5.656l-3 3a4 4 0 00.225 5.865.75.75 0 00.977-1.138 2.5 2.5 0 01-.142-3.667l3-3z" />
-                  <path d="M11.603 7.963a.75.75 0 00-.977 1.138 2.5 2.5 0 01.142 3.667l-3 3a2.5 2.5 0 01-3.536-3.536l1.225-1.224a.75.75 0 00-1.061-1.06l-1.224 1.224a4 4 0 105.656 5.656l3-3a4 4 0 00-.225-5.865z" />
-                </svg>
-                <span>Copy Link</span>
-              </>
-            )}
-          </button>
+        {/* Environment Selection - FR3.x */}
+        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
+          <EnvironmentSelector
+            singleSelectMode={singleSelectMode}
+            selectedEnvironments={selectedEnvironments}
+            onSelectionChange={setSelectedEnvironments}
+            customEnvironments={customEnvironments}
+            onAddCustomEnvironment={handleAddCustomEnvironment}
+            onRemoveCustomEnvironment={handleRemoveCustomEnvironment}
+          />
         </div>
 
-        {/* Environment Selection - FR3.x */}
-        <EnvironmentSelector
-          singleSelectMode={singleSelectMode}
-          selectedEnvironments={selectedEnvironments}
-          onSelectionChange={setSelectedEnvironments}
-          customEnvironments={customEnvironments}
-          onAddCustomEnvironment={handleAddCustomEnvironment}
-          onRemoveCustomEnvironment={handleRemoveCustomEnvironment}
-        />
-
-        {/* Divider */}
-        <div className="my-4 border-t border-zinc-300 dark:border-zinc-700" />
-
         {/* Journey Form */}
-        <JourneyForm
-          start={startLocation}
-          destination={destinationLocation}
-          onStartChange={setStartLocation}
-          onDestinationChange={setDestinationLocation}
-          dateTime={dateTime}
-          onDateTimeChange={setDateTime}
-          routingOptions={routingOptions}
-          onRoutingOptionsChange={setRoutingOptions}
-          validationErrors={validationErrors}
-          isLoading={isLoading}
-          onSubmit={handleSubmitRouting}
-          routingError={routingError}
-        />
+        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
+          {/* Section label + Copy Link */}
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">Routing</span>
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+              title="Copy shareable link"
+            >
+              {linkCopied === "success" ? (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-green-500">
+                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                  </svg>
+                  <span>Copied!</span>
+                </>
+              ) : linkCopied === "error" ? (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-red-500">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                  </svg>
+                  <span>Failed</span>
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <path d="M12.232 4.232a2.5 2.5 0 013.536 3.536l-1.225 1.224a.75.75 0 001.061 1.06l1.224-1.224a4 4 0 00-5.656-5.656l-3 3a4 4 0 00.225 5.865.75.75 0 00.977-1.138 2.5 2.5 0 01-.142-3.667l3-3z" />
+                    <path d="M11.603 7.963a.75.75 0 00-.977 1.138 2.5 2.5 0 01.142 3.667l-3 3a2.5 2.5 0 01-3.536-3.536l1.225-1.224a.75.75 0 00-1.061-1.06l-1.224 1.224a4 4 0 105.656 5.656l3-3a4 4 0 00-.225-5.865z" />
+                  </svg>
+                  <span>Copy Link</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          <JourneyForm
+            start={startLocation}
+            destination={destinationLocation}
+            onStartChange={setStartLocation}
+            onDestinationChange={setDestinationLocation}
+            dateTime={dateTime}
+            onDateTimeChange={setDateTime}
+            routingOptions={routingOptions}
+            onRoutingOptionsChange={setRoutingOptions}
+            validationErrors={validationErrors}
+            isLoading={isLoading}
+            onSubmit={handleSubmitRouting}
+            routingError={routingError}
+          />
+        </div>
 
         {/* FR6.4-6.5: Request History */}
         {requestHistory.length > 0 && (
-          <>
-            <div className="my-4 border-t border-zinc-300 dark:border-zinc-700" />
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3">
             <RequestHistoryList
               history={requestHistory}
               onLoad={handleLoadRequest}
               onClear={handleClearHistory}
             />
-          </>
+          </div>
         )}
       </ParameterArea>
       <EvaluationArea

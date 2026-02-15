@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 // FR5: Time & Routing Options
 
 export type TimingMode = "departAt" | "arriveBy";
@@ -71,11 +73,54 @@ interface RoutingOptionsFormProps {
   error?: string; // FR6: Validation error for travel modes
 }
 
+// Collapsible section header
+function SectionHeader({
+  label,
+  badge,
+  isOpen,
+  onToggle,
+}: {
+  label: string;
+  badge?: string;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="w-full flex items-center justify-between py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow rounded"
+    >
+      <span className="flex items-center gap-2">
+        {label}
+        {badge && (
+          <span className="text-xs px-1.5 py-0.5 rounded-full bg-lvb-yellow/20 border border-lvb-yellow/20 text-lvb-yellow-dark dark:text-lvb-yellow font-normal normal-case tracking-normal">
+            {badge}
+          </span>
+        )}
+      </span>
+      <svg
+        className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+  );
+}
+
 export default function RoutingOptionsForm({
   value,
   onChange,
   error,
 }: RoutingOptionsFormProps) {
+  const [travelModesOpen, setTravelModesOpen] = useState(true);
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [customParamsOpen, setCustomParamsOpen] = useState(false);
+
+  const activeOptionsCount = Object.values(value.optionalParams).filter(Boolean).length;
   // FR5.1: Handle timing mode change
   const handleTimingModeChange = (mode: TimingMode) => {
     onChange({ ...value, timingMode: mode });
@@ -122,19 +167,19 @@ export default function RoutingOptionsForm({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* FR5.1: Depart At / Arrive By Toggle */}
+      {/* FR5.1: Depart At / Arrive By Toggle — iOS-style segmented control */}
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+        <label className="block text-xs font-semibold uppercase tracking-wide text-zinc-400 mb-2">
           Timing
         </label>
-        <div className="flex rounded-md overflow-hidden border border-zinc-300 dark:border-zinc-700">
+        <div className="flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-0.5">
           <button
             type="button"
             onClick={() => handleTimingModeChange("departAt")}
-            className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
               value.timingMode === "departAt"
-                ? "bg-lvb-yellow text-lvb-dark"
-                : "bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
+                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
             }`}
           >
             Depart At
@@ -142,10 +187,10 @@ export default function RoutingOptionsForm({
           <button
             type="button"
             onClick={() => handleTimingModeChange("arriveBy")}
-            className={`flex-1 px-4 py-2 text-sm font-medium transition-colors border-l border-zinc-300 dark:border-zinc-700 ${
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
               value.timingMode === "arriveBy"
-                ? "bg-lvb-yellow text-lvb-dark"
-                : "bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
+                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
             }`}
           >
             Arrive By
@@ -153,82 +198,115 @@ export default function RoutingOptionsForm({
         </div>
       </div>
 
-      {/* FR5.2: Travel Mode Selection */}
+      {/* FR5.2: Travel Mode Selection (collapsible) */}
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-          Travel Modes
-        </label>
-        <div className={`flex flex-wrap gap-2 ${error ? "p-2 rounded-md border border-red-500" : ""}`}>
-          {TRAVEL_MODES.map((mode) => {
-            const isSelected = value.travelModes.includes(mode.id);
-            return (
-              <button
-                key={mode.id}
-                type="button"
-                onClick={() => handleTravelModeToggle(mode.id)}
-                className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
-                  isSelected
-                    ? `border-lvb-yellow bg-lvb-yellow-light dark:bg-lvb-yellow/10 text-lvb-yellow-dark dark:text-lvb-yellow ${
-                        isLastSelectedMode(mode.id) ? "cursor-not-allowed opacity-75" : ""
-                      }`
-                    : "border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700"
-                }`}
-                title={isLastSelectedMode(mode.id) ? "At least one travel mode must be selected" : mode.description ?? undefined}
-              >
-{mode.label}
-              </button>
-            );
-          })}
-        </div>
+        <SectionHeader
+          label="Travel Modes"
+          badge={`${value.travelModes.length} selected`}
+          isOpen={travelModesOpen}
+          onToggle={() => setTravelModesOpen(!travelModesOpen)}
+        />
+        {travelModesOpen && (
+          <div className={`mt-2 flex flex-wrap gap-1.5 animate-collapsible-open ${error ? "p-2 rounded-lg border border-red-500" : ""}`}>
+            {TRAVEL_MODES.map((mode) => {
+              const isSelected = value.travelModes.includes(mode.id);
+              return (
+                <button
+                  key={mode.id}
+                  type="button"
+                  onClick={() => handleTravelModeToggle(mode.id)}
+                  className={`px-2.5 py-1 text-xs rounded-full border transition-all ${
+                    isSelected
+                      ? `border-lvb-yellow bg-lvb-yellow-light dark:bg-lvb-yellow/10 text-lvb-yellow-dark dark:text-lvb-yellow shadow-[0_0_0_1px_rgb(251,193,15,0.15)] ${
+                          isLastSelectedMode(mode.id) ? "cursor-not-allowed opacity-75" : ""
+                        }`
+                      : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                  }`}
+                  title={isLastSelectedMode(mode.id) ? "At least one travel mode must be selected" : mode.description ?? undefined}
+                >
+                  {mode.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
         {/* FR6: Validation error message */}
         {error && (
           <p className="text-xs text-red-500 mt-1">{error}</p>
         )}
       </div>
 
-      {/* FR5.5: Optional Parameters */}
+      {/* FR5.5: Optional Parameters (collapsible) */}
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-          Options
-        </label>
-        <div className="flex flex-col gap-2">
-          {OPTIONAL_PARAMS.map((param) => {
-            const isChecked = value.optionalParams[param.id];
-            return (
-              <label
-                key={param.id}
-                className="flex items-center gap-2 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={isChecked}
-                  onChange={() => handleOptionalParamToggle(param.id)}
-                  className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-lvb-yellow accent-lvb-yellow focus:ring-lvb-yellow focus:ring-offset-0 dark:bg-zinc-800"
-                />
-                <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                  {param.label}
-                </span>
-              </label>
-            );
-          })}
-        </div>
+        <SectionHeader
+          label="Options"
+          badge={activeOptionsCount > 0 ? `${activeOptionsCount} active` : undefined}
+          isOpen={optionsOpen}
+          onToggle={() => setOptionsOpen(!optionsOpen)}
+        />
+        {optionsOpen && (
+          <div className="mt-2 flex flex-col gap-1 animate-collapsible-open">
+            {OPTIONAL_PARAMS.map((param) => {
+              const isChecked = value.optionalParams[param.id];
+              return (
+                <label
+                  key={param.id}
+                  className="flex items-center gap-2.5 cursor-pointer px-2 py-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                >
+                  {/* Custom checkbox */}
+                  <div className="relative flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => handleOptionalParamToggle(param.id)}
+                      className="sr-only"
+                    />
+                    <div
+                      className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+                        isChecked
+                          ? "bg-lvb-yellow border-lvb-yellow"
+                          : "border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800"
+                      }`}
+                    >
+                      {isChecked && (
+                        <svg className="w-2.5 h-2.5 text-lvb-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                    {param.label}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* FR5.6: Custom Parameters */}
+      {/* FR5.6: Custom Parameters (collapsible) */}
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-          Custom Parameters
-        </label>
-        <textarea
-          value={value.customParams}
-          onChange={handleCustomParamsChange}
-          placeholder="e.g. numItineraries=3&maxWalkDistance=1000"
-          rows={3}
-          className="w-full px-3 py-2 text-sm rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-lvb-yellow focus:border-transparent transition-colors resize-none"
+        <SectionHeader
+          label="Custom Parameters"
+          badge={value.customParams.trim() ? "set" : undefined}
+          isOpen={customParamsOpen}
+          onToggle={() => setCustomParamsOpen(!customParamsOpen)}
         />
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-          Add extra query parameters (key=value format)
-        </p>
+        {customParamsOpen && (
+          <div className="mt-2 animate-collapsible-open">
+            <textarea
+              value={value.customParams}
+              onChange={handleCustomParamsChange}
+              placeholder="e.g. numItineraries=3&maxWalkDistance=1000"
+              rows={3}
+              className="w-full px-3 py-2 font-mono text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-lvb-yellow focus:border-transparent transition-colors resize-none"
+            />
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              Add extra query parameters (key=value format)
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

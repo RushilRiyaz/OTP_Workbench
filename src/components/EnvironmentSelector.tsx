@@ -105,7 +105,7 @@ export default function EnvironmentSelector({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <label className="block text-xs font-semibold uppercase tracking-widest text-zinc-400">
           Environment{!singleSelectMode && "s"}
         </label>
         {!singleSelectMode && (
@@ -123,10 +123,10 @@ export default function EnvironmentSelector({
             key={env.id}
             disabled={isDisabled(env.id)}
             onClick={() => handleEnvironmentToggle(env.id)}
-            className={`w-full flex items-center justify-between p-2 rounded-md border transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
+            className={`w-full flex items-center justify-between p-2.5 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
               isSelected(env.id)
-                ? "border-lvb-yellow bg-lvb-yellow-light dark:bg-lvb-yellow/10"
-                : "border-zinc-300 dark:border-zinc-600 hover:border-zinc-400 dark:hover:border-zinc-500"
+                ? "border-lvb-yellow/50 bg-lvb-yellow/8 dark:bg-lvb-yellow/10 shadow-[0_0_0_1px_rgb(251,193,15,0.15)]"
+                : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500"
             } ${isDisabled(env.id) ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
           >
             <div className="flex items-center gap-2">
@@ -157,12 +157,12 @@ export default function EnvironmentSelector({
                 )}
               </div>
 
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <span className={`text-sm ${isSelected(env.id) ? "font-semibold text-zinc-900 dark:text-zinc-100" : "font-medium text-zinc-700 dark:text-zinc-300"}`}>
                 {env.label}
               </span>
 
               {env.isCustom && (
-                <span className="text-xs px-1.5 py-0.5 bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400 rounded">
+                <span className="text-xs px-1.5 py-0.5 bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400 rounded-full border border-zinc-300 dark:border-zinc-600">
                   Custom
                 </span>
               )}
@@ -202,7 +202,7 @@ export default function EnvironmentSelector({
       {!showAddForm ? (
         <button
           onClick={() => setShowAddForm(true)}
-          className="w-full flex items-center justify-center gap-1 p-2 text-sm text-lvb-yellow-dark dark:text-lvb-yellow border border-dashed border-zinc-300 dark:border-zinc-600 rounded-md hover:border-lvb-yellow dark:hover:border-lvb-yellow hover:bg-lvb-yellow-light dark:hover:bg-lvb-yellow/10 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+          className="w-full flex items-center justify-center gap-1 p-2 text-sm text-lvb-yellow-dark dark:text-lvb-yellow border border-dashed border-zinc-300 dark:border-zinc-600 rounded-xl hover:border-lvb-yellow dark:hover:border-lvb-yellow hover:bg-lvb-yellow/8 dark:hover:bg-lvb-yellow/10 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
         >
           <svg
             className="w-4 h-4"
@@ -220,26 +220,26 @@ export default function EnvironmentSelector({
           Add Custom Environment
         </button>
       ) : (
-        <div className="p-3 border border-zinc-300 dark:border-zinc-600 rounded-md space-y-2 bg-zinc-50 dark:bg-zinc-800">
+        <div className="p-3 border border-zinc-200 dark:border-zinc-700 rounded-xl space-y-2 bg-zinc-50 dark:bg-zinc-800 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
           <input
             type="text"
             placeholder="Environment name"
             value={customName}
             onChange={(e) => setCustomName(e.target.value)}
-            className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+            className="w-full px-3 py-1.5 text-sm border border-zinc-200 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
           />
           <input
             type="text"
             placeholder="API URL"
             value={customUrl}
             onChange={(e) => setCustomUrl(e.target.value)}
-            className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+            className="w-full px-3 py-1.5 text-sm border border-zinc-200 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
           />
           <div className="flex gap-2">
             <button
               onClick={handleAddCustomEnvironment}
               disabled={!customName.trim() || !customUrl.trim()}
-              className="flex-1 px-3 py-1.5 text-sm font-medium text-lvb-dark bg-lvb-yellow rounded-md hover:bg-lvb-yellow-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+              className="flex-1 px-3 py-1.5 text-sm font-semibold text-lvb-dark bg-lvb-yellow rounded-lg hover:bg-lvb-yellow-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
             >
               Add
             </button>
@@ -249,7 +249,7 @@ export default function EnvironmentSelector({
                 setCustomName("");
                 setCustomUrl("");
               }}
-              className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-600 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+              className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
             >
               Cancel
             </button>

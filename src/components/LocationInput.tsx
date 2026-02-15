@@ -291,7 +291,7 @@ export default function LocationInput({
 
   return (
     <div className="flex flex-col gap-1 relative" ref={wrapperRef}>
-      <label className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+      <label className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
@@ -315,10 +315,10 @@ export default function LocationInput({
             }
           }}
           placeholder={placeholder}
-          className={`w-full px-3 py-2 text-sm rounded-md border bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:border-transparent transition-colors ${value.text ? "pr-8" : ""} ${
+          className={`w-full px-3 py-2.5 text-sm rounded-lg border shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:border-transparent hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors ${value.text ? "pr-8" : ""} ${
             error
               ? "border-red-500 focus:ring-red-500"
-              : "border-zinc-300 dark:border-zinc-700 focus:ring-lvb-yellow"
+              : "border-zinc-200 dark:border-zinc-700 focus:ring-lvb-yellow focus:border-lvb-yellow/50"
           }`}
         />
         {isLoading && (
@@ -347,7 +347,7 @@ export default function LocationInput({
 
       {showDropdown && (
         <ul
-          className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-md shadow-lg max-h-60 overflow-y-auto z-50"
+          className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-lg ring-1 ring-black/5 dark:ring-white/5 max-h-60 overflow-y-auto z-50"
         >
           {showHistory && history.length > 0 ? (
             <>
@@ -363,7 +363,7 @@ export default function LocationInput({
                     type="button"
                     onClick={() => handleSelectFromHistory(item)}
                     className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
-                      highlightedIndex === index ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                      highlightedIndex === index ? "bg-lvb-yellow/8 dark:bg-lvb-yellow/10" : "hover:bg-zinc-50 dark:hover:bg-zinc-700"
                     }`}
                   >
                     <div className="font-medium">{item.text}</div>
@@ -382,7 +382,7 @@ export default function LocationInput({
                 type="button"
                 onClick={() => handleSelectCoordinates(parsedCoordinates)}
                 className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
-                  highlightedIndex === 0 ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                  highlightedIndex === 0 ? "bg-lvb-yellow/8 dark:bg-lvb-yellow/10" : "hover:bg-zinc-50 dark:hover:bg-zinc-700"
                 }`}
               >
                 <div className="font-medium">Use as Coordinates</div>
@@ -397,7 +397,7 @@ export default function LocationInput({
                 type="button"
                 onClick={() => handleSelectStopId(value.text.trim())}
                 className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
-                  highlightedIndex === 0 ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                  highlightedIndex === 0 ? "bg-lvb-yellow/8 dark:bg-lvb-yellow/10" : "hover:bg-zinc-50 dark:hover:bg-zinc-700"
                 }`}
               >
                 <div className="font-medium">Use as Stop ID</div>
@@ -416,7 +416,7 @@ export default function LocationInput({
                   type="button"
                   onClick={() => handleSelectLocation(suggestion)}
                   className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
-                    highlightedIndex === index ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                    highlightedIndex === index ? "bg-lvb-yellow/8 dark:bg-lvb-yellow/10" : "hover:bg-zinc-50 dark:hover:bg-zinc-700"
                   }`}
                 >
                   <div className="font-medium">{suggestion.name}</div>
