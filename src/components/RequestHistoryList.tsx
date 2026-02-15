@@ -54,7 +54,7 @@ export default function RequestHistoryList({
         <button
           type="button"
           onClick={handleClear}
-          className="p-1 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+          className="p-1 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow rounded"
           title="Clear history"
         >
           <svg
@@ -80,7 +80,7 @@ export default function RequestHistoryList({
               type="button"
               onClick={() => onLoad(entry)}
               title={`${entry.start.text} → ${entry.destination.text}`}
-              className="w-full p-2 text-left rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 text-left rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
             >
               <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
                 {entry.displayLabel}

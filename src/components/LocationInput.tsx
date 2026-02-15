@@ -318,12 +318,12 @@ export default function LocationInput({
           className={`w-full px-3 py-2 text-sm rounded-md border bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:border-transparent transition-colors ${value.text ? "pr-8" : ""} ${
             error
               ? "border-red-500 focus:ring-red-500"
-              : "border-zinc-300 dark:border-zinc-700 focus:ring-blue-500"
+              : "border-zinc-300 dark:border-zinc-700 focus:ring-lvb-yellow"
           }`}
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <div className="w-4 h-4 border-2 border-zinc-300 border-t-blue-500 rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-zinc-300 border-t-lvb-yellow rounded-full animate-spin" />
           </div>
         )}
         {/* FR4.8: Clear button */}
@@ -331,7 +331,7 @@ export default function LocationInput({
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow rounded"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -362,7 +362,7 @@ export default function LocationInput({
                   <button
                     type="button"
                     onClick={() => handleSelectFromHistory(item)}
-                    className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
                       highlightedIndex === index ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
                     }`}
                   >
@@ -381,7 +381,7 @@ export default function LocationInput({
               <button
                 type="button"
                 onClick={() => handleSelectCoordinates(parsedCoordinates)}
-                className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
                   highlightedIndex === 0 ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
                 }`}
               >
@@ -396,7 +396,7 @@ export default function LocationInput({
               <button
                 type="button"
                 onClick={() => handleSelectStopId(value.text.trim())}
-                className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
                   highlightedIndex === 0 ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
                 }`}
               >
@@ -415,7 +415,7 @@ export default function LocationInput({
                 <button
                   type="button"
                   onClick={() => handleSelectLocation(suggestion)}
-                  className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 text-left focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
                     highlightedIndex === index ? "bg-zinc-100 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-700"
                   }`}
                 >

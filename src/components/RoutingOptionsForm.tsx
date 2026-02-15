@@ -133,7 +133,7 @@ export default function RoutingOptionsForm({
             onClick={() => handleTimingModeChange("departAt")}
             className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
               value.timingMode === "departAt"
-                ? "bg-blue-500 text-white"
+                ? "bg-lvb-yellow text-lvb-dark"
                 : "bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700"
             }`}
           >
@@ -144,7 +144,7 @@ export default function RoutingOptionsForm({
             onClick={() => handleTimingModeChange("arriveBy")}
             className={`flex-1 px-4 py-2 text-sm font-medium transition-colors border-l border-zinc-300 dark:border-zinc-700 ${
               value.timingMode === "arriveBy"
-                ? "bg-blue-500 text-white"
+                ? "bg-lvb-yellow text-lvb-dark"
                 : "bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700"
             }`}
           >
@@ -168,7 +168,7 @@ export default function RoutingOptionsForm({
                 onClick={() => handleTravelModeToggle(mode.id)}
                 className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
                   isSelected
-                    ? `border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 ${
+                    ? `border-lvb-yellow bg-lvb-yellow-light dark:bg-lvb-yellow/10 text-lvb-yellow-dark dark:text-lvb-yellow ${
                         isLastSelectedMode(mode.id) ? "cursor-not-allowed opacity-75" : ""
                       }`
                     : "border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700"
@@ -203,7 +203,7 @@ export default function RoutingOptionsForm({
                   type="checkbox"
                   checked={isChecked}
                   onChange={() => handleOptionalParamToggle(param.id)}
-                  className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-0 dark:bg-zinc-800"
+                  className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-lvb-yellow accent-lvb-yellow focus:ring-lvb-yellow focus:ring-offset-0 dark:bg-zinc-800"
                 />
                 <span className="text-sm text-zinc-700 dark:text-zinc-300">
                   {param.label}
@@ -224,7 +224,7 @@ export default function RoutingOptionsForm({
           onChange={handleCustomParamsChange}
           placeholder="e.g. numItineraries=3&maxWalkDistance=1000"
           rows={3}
-          className="w-full px-3 py-2 text-sm rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+          className="w-full px-3 py-2 text-sm rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-lvb-yellow focus:border-transparent transition-colors resize-none"
         />
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
           Add extra query parameters (key=value format)

@@ -123,9 +123,9 @@ export default function EnvironmentSelector({
             key={env.id}
             disabled={isDisabled(env.id)}
             onClick={() => handleEnvironmentToggle(env.id)}
-            className={`w-full flex items-center justify-between p-2 rounded-md border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            className={`w-full flex items-center justify-between p-2 rounded-md border transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
               isSelected(env.id)
-                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                ? "border-lvb-yellow bg-lvb-yellow-light dark:bg-lvb-yellow/10"
                 : "border-zinc-300 dark:border-zinc-600 hover:border-zinc-400 dark:hover:border-zinc-500"
             } ${isDisabled(env.id) ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
           >
@@ -134,7 +134,7 @@ export default function EnvironmentSelector({
               <div
                 className={`w-4 h-4 rounded ${singleSelectMode ? "rounded-full" : "rounded"} border-2 flex items-center justify-center ${
                   isSelected(env.id)
-                    ? "border-blue-500 bg-blue-500"
+                    ? "border-lvb-yellow bg-lvb-yellow"
                     : "border-zinc-400 dark:border-zinc-500"
                 }`}
               >
@@ -176,7 +176,7 @@ export default function EnvironmentSelector({
                   e.stopPropagation();
                   handleRemoveCustom(env.id);
                 }}
-                className="p-1 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="p-1 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                 title="Remove custom environment"
               >
                 <svg
@@ -202,7 +202,7 @@ export default function EnvironmentSelector({
       {!showAddForm ? (
         <button
           onClick={() => setShowAddForm(true)}
-          className="w-full flex items-center justify-center gap-1 p-2 text-sm text-blue-600 dark:text-blue-400 border border-dashed border-zinc-300 dark:border-zinc-600 rounded-md hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full flex items-center justify-center gap-1 p-2 text-sm text-lvb-yellow-dark dark:text-lvb-yellow border border-dashed border-zinc-300 dark:border-zinc-600 rounded-md hover:border-lvb-yellow dark:hover:border-lvb-yellow hover:bg-lvb-yellow-light dark:hover:bg-lvb-yellow/10 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
         >
           <svg
             className="w-4 h-4"
@@ -226,20 +226,20 @@ export default function EnvironmentSelector({
             placeholder="Environment name"
             value={customName}
             onChange={(e) => setCustomName(e.target.value)}
-            className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
           />
           <input
             type="text"
             placeholder="API URL"
             value={customUrl}
             onChange={(e) => setCustomUrl(e.target.value)}
-            className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
           />
           <div className="flex gap-2">
             <button
               onClick={handleAddCustomEnvironment}
               disabled={!customName.trim() || !customUrl.trim()}
-              className="flex-1 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-1.5 text-sm font-medium text-lvb-dark bg-lvb-yellow rounded-md hover:bg-lvb-yellow-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
             >
               Add
             </button>
@@ -249,7 +249,7 @@ export default function EnvironmentSelector({
                 setCustomName("");
                 setCustomUrl("");
               }}
-              className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-600 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-600 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
             >
               Cancel
             </button>

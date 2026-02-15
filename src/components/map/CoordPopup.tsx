@@ -36,12 +36,12 @@ export default function CoordPopup({ coords, onClose }: CoordPopupProps) {
           type="button"
           onClick={handleCopy}
           disabled={copyStatus !== "idle"}
-          className={`px-2 py-1 text-xs text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          className={`px-2 py-1 text-xs rounded focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
             copyStatus === "failed"
-              ? "bg-red-500"
+              ? "bg-red-500 text-white"
               : copyStatus === "copied"
-                ? "bg-green-500"
-                : "bg-blue-500 hover:bg-blue-600"
+                ? "bg-green-500 text-white"
+                : "bg-lvb-yellow text-lvb-dark hover:bg-lvb-yellow-hover"
           }`}
         >
           {copyStatus === "failed" ? "Failed" : copyStatus === "copied" ? "Copied!" : "Copy"}
