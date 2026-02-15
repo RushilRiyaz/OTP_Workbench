@@ -14,12 +14,14 @@ interface ParameterAreaProps {
 export default function ParameterArea({ children }: ParameterAreaProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [width, setWidth] = useState(DEFAULT_WIDTH);
+  const [isDragging, setIsDragging] = useState(false);
   const isResizing = useRef(false);
   const sidebarRef = useRef<HTMLElement>(null);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     isResizing.current = true;
+    setIsDragging(true);
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
   }, []);
@@ -34,6 +36,7 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
     const handleMouseUp = () => {
       if (!isResizing.current) return;
       isResizing.current = false;
+      setIsDragging(false);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
     };
@@ -50,15 +53,20 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
     <aside
       ref={sidebarRef}
       className="h-full bg-zinc-100 dark:bg-zinc-900 border-r border-zinc-300 dark:border-zinc-700 overflow-hidden flex flex-col relative flex-shrink-0"
-      style={{ width: isExpanded ? width : COLLAPSED_WIDTH }}
+      style={{
+        width: isExpanded ? width : COLLAPSED_WIDTH,
+        transition: isDragging ? "none" : "width 250ms cubic-bezier(0.4, 0, 0.2, 1)",
+      }}
     >
       {/* Header with toggle button */}
-      <div className={`flex-shrink-0 flex items-center ${isExpanded ? "justify-between p-4 pb-3 border-b border-zinc-200 dark:border-zinc-800" : "justify-center p-2"}`}>
-        {isExpanded && (
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-            Parameters
-          </h2>
-        )}
+      <div className={`flex-shrink-0 flex items-center transition-all duration-250 ${isExpanded ? "justify-between p-4 pb-3 border-b border-zinc-200 dark:border-zinc-800" : "justify-center p-2"}`}>
+        <h2
+          className={`text-xs font-semibold uppercase tracking-widest text-zinc-400 whitespace-nowrap transition-all duration-250 overflow-hidden ${
+            isExpanded ? "max-w-40 opacity-100" : "max-w-0 opacity-0"
+          }`}
+        >
+          Parameters
+        </h2>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
@@ -83,8 +91,8 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
       {/* Content - only visible when expanded, scrollable */}
       <div
         className={`
-          flex-1 overflow-y-auto
-          ${isExpanded ? "opacity-100 p-4 pt-4" : "opacity-0 pointer-events-none"}
+          flex-1 overflow-y-auto transition-opacity duration-250
+          ${isExpanded ? "opacity-100 p-4 pt-4 delay-100" : "opacity-0 pointer-events-none"}
         `}
       >
         {children}
