@@ -213,7 +213,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen w-full">
+    <div className="flex h-[calc(100vh-56px)] w-full">
       <ParameterArea>
         {/* FR6.6: Copy Link Button */}
         <div className="flex justify-end mb-2">

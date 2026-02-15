@@ -8,10 +8,10 @@
   --foreground: #171717;
 
   /* LVB Brand Colors */
-  --lvb-yellow: #EFC335;
-  --lvb-yellow-hover: #D4AC2B;
-  --lvb-yellow-light: #FDF6E0;
-  --lvb-yellow-dark: #A8891F;
+  --lvb-yellow: #FBC10F;
+  --lvb-yellow-hover: #E0AD0D;
+  --lvb-yellow-light: #FEF7E0;
+  --lvb-yellow-dark: #C49A0C;
   --lvb-dark: #1a1a1a;
   --lvb-gray: #4a4a4a;
 }

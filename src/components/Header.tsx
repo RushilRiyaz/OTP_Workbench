@@ -7,9 +7,7 @@ export default function Header() {
     <header className="h-14 bg-lvb-yellow flex items-center justify-between px-4 shadow-sm">
       {/* LVB Logo and Title */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center justify-center w-10 h-10 bg-lvb-dark rounded-lg">
-          <span className="text-lvb-yellow font-bold text-lg">L</span>
-        </div>
+        <img src="/lvb-logo.png" alt="LVB Logo" className="h-10 w-10 rounded-lg object-contain" />
         <div className="flex flex-col">
           <span className="text-lvb-dark font-bold text-lg leading-tight">
             OTP Workbench
