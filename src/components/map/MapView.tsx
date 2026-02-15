@@ -6,7 +6,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 import type { LocationValue } from "@/components/LocationInput";
-import { LEIPZIG_HBF, DEFAULT_ZOOM, TILE_URL, TILE_URL_DARK, TILE_ATTRIBUTION, TILE_ATTRIBUTION_DARK } from "./constants";
+import { LEIPZIG_HBF, DEFAULT_ZOOM, TILE_URL, TILE_ATTRIBUTION } from "./constants";
 import MapEvents from "./MapEvents";
 import MapMarkers from "./MapMarkers";
 import CursorTracker from "./CursorTracker";
@@ -37,7 +37,7 @@ export default function MapView({
   const [popupCoords, setPopupCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isDark, setIsDark] = useState(false);
 
-  // Observe dark mode class on <html> to swap tile layers
+  // Observe dark mode class on <html> to apply CSS filter to map tiles
   useEffect(() => {
     const html = document.documentElement;
     setIsDark(html.classList.contains("dark"));
@@ -58,17 +58,16 @@ export default function MapView({
   }, []);
 
   return (
-    <div className="relative h-full w-full">
+    <div
+      className="relative h-full w-full transition-[filter] duration-300"
+      style={isDark ? { filter: "invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)" } : undefined}
+    >
       <MapContainer
         center={[LEIPZIG_HBF.lat, LEIPZIG_HBF.lng]}
         zoom={DEFAULT_ZOOM}
         className="h-full w-full"
       >
-        <TileLayer
-          key={isDark ? "dark" : "light"}
-          url={isDark ? TILE_URL_DARK : TILE_URL}
-          attribution={isDark ? TILE_ATTRIBUTION_DARK : TILE_ATTRIBUTION}
-        />
+        <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
 
         <MapEvents
           start={start}
