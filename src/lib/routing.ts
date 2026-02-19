@@ -270,7 +270,8 @@ export function formatTime(dateTime: string): string {
 
 export async function fetchRouting(
   params: RoutingRequestParams,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  options?: { baseUrl?: string; apiKey?: string }
 ): Promise<RoutingResult> {
   const { start, destination, dateTime, routingOptions } = params;
 
@@ -327,9 +328,11 @@ export async function fetchRouting(
   }
 
   // FR6: Add API key as query parameter (per LVB API spec)
-  queryParams.set("api_key", API_KEY);
+  const resolvedApiKey = options?.apiKey || API_KEY;
+  const resolvedBaseUrl = options?.baseUrl || API_BASE_URL;
+  queryParams.set("api_key", resolvedApiKey);
 
-  const url = `${API_BASE_URL}/otp?${queryParams}`;
+  const url = `${resolvedBaseUrl}/otp?${queryParams}`;
 
   // Log request per CLAUDE.md
   console.log("[Routing API] Request:", url);

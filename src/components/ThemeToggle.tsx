@@ -16,9 +16,11 @@ export default function ThemeToggle() {
       document.documentElement.classList.toggle("dark", savedTheme === "dark");
       document.documentElement.classList.toggle("light", savedTheme === "light");
     } else {
-      // Use system preference
+      // Use system preference and apply the class so CSS and observers work
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       setIsDark(prefersDark);
+      document.documentElement.classList.toggle("dark", prefersDark);
+      document.documentElement.classList.toggle("light", !prefersDark);
     }
   }, []);
 

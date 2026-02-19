@@ -79,29 +79,42 @@ export default function JourneyForm({
 
   return (
     <div className="flex flex-col gap-4">
-      <LocationInput
-        label="Start"
-        value={start}
-        onChange={onStartChange}
-        placeholder="Enter start location"
-        required
-        error={getFieldError("start")}
-      />
+      {/* Start & Destination row: inputs + swap button */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1 flex flex-col gap-1.5 min-w-0">
+          <LocationInput
+            label="Start"
+            value={start}
+            onChange={onStartChange}
+            placeholder="Enter start location"
+            required
 
-      {/* FR4.9: Swap button */}
-      <div className="flex justify-center -my-1">
+            error={getFieldError("start")}
+          />
+          <LocationInput
+            label="Destination"
+            value={destination}
+            onChange={onDestinationChange}
+            placeholder="Enter destination"
+            required
+
+            error={getFieldError("destination")}
+          />
+        </div>
+
+        {/* FR4.9: Swap button */}
         <button
           type="button"
           onClick={handleSwap}
           disabled={isLoading}
-          className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition-all hover:scale-110 active:scale-95 hover:border-lvb-yellow/50 focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+          className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition-all hover:scale-110 active:scale-95 hover:border-lvb-yellow/50 focus:outline-none focus:ring-2 focus:ring-lvb-yellow flex-shrink-0"
           title="Swap start and destination"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
             fill="currentColor"
-            className="w-5 h-5"
+            className="w-4 h-4"
           >
             <path
               fillRule="evenodd"
@@ -111,15 +124,6 @@ export default function JourneyForm({
           </svg>
         </button>
       </div>
-
-      <LocationInput
-        label="Destination"
-        value={destination}
-        onChange={onDestinationChange}
-        placeholder="Enter destination"
-        required
-        error={getFieldError("destination")}
-      />
       <DateTimeInput
         label="Date & Time"
         value={dateTime}

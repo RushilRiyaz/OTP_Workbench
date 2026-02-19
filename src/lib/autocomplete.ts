@@ -27,7 +27,10 @@ interface SearchParams {
 
 const REQUEST_TIMEOUT_MS = 5000;
 
-export async function searchLocations(params: SearchParams): Promise<AutocompleteResult[]> {
+export async function searchLocations(
+  params: SearchParams,
+  options?: { baseUrl?: string; apiKey?: string }
+): Promise<AutocompleteResult[]> {
   const { search, size = 10, center = "51.3,12.6", pointType = "P,S,W,V,N", signal } = params;
   
 
@@ -52,10 +55,12 @@ export async function searchLocations(params: SearchParams): Promise<Autocomplet
   signal?.addEventListener("abort", onExternalAbort);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/search?${queryParams}`, {
+    const resolvedBaseUrl = options?.baseUrl || API_BASE_URL;
+    const resolvedApiKey = options?.apiKey || API_KEY;
+    const response = await fetch(`${resolvedBaseUrl}/search?${queryParams}`, {
       method: "GET",
       headers: {
-        "X-API-Key": API_KEY,
+        "X-API-Key": resolvedApiKey,
       },
       signal: controller.signal,
     });

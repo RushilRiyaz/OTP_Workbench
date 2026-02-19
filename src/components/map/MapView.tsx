@@ -20,6 +20,21 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "/leaflet/marker-shadow.png",
 });
 
+// CSS filter chain to approximate the Leipzig MOVE dark map palette:
+//   Background ≈ #1A2746 (dark navy)   Roads ≈ #404D5D (blue-grey)
+//   Parks      ≈ #56988D (teal-green)   Water ≈ #558C9B (teal-blue)
+//
+// 1. invert(1)           – flip light tiles to a dark base
+// 2. sepia(0.2)          – add warm tone as raw material for hue rotation
+// 3. hue-rotate(200deg)  – 20° past neutral pushes everything toward
+//                          blue/teal, giving the navy BG and teal-green parks
+// 4. saturate(0.55)      – enough colour for teal parks & blue water
+//                          without oversaturation
+// 5. brightness(0.8)     – lift from pure-dark to the reference's charcoal-navy
+// 6. contrast(1.1)       – sharpen roads/labels for readability
+const DARK_MAP_FILTER =
+  "invert(1) sepia(0.2) hue-rotate(200deg) saturate(0.55) brightness(0.8) contrast(1.1)";
+
 interface MapViewProps {
   start: LocationValue | null;
   destination: LocationValue | null;
@@ -27,7 +42,6 @@ interface MapViewProps {
   onDestinationChange: (loc: LocationValue) => void;
 }
 
-// FR8: Main map component
 export default function MapView({
   start,
   destination,
@@ -37,16 +51,22 @@ export default function MapView({
   const [popupCoords, setPopupCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isDark, setIsDark] = useState(false);
 
-  // Observe dark mode class on <html> to apply CSS filter to map tiles
   useEffect(() => {
     const html = document.documentElement;
-    setIsDark(html.classList.contains("dark"));
-
-    const observer = new MutationObserver(() => {
-      setIsDark(html.classList.contains("dark"));
-    });
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const check = () => {
+      const hasDark = html.classList.contains("dark");
+      const hasLight = html.classList.contains("light");
+      setIsDark(hasDark || (mediaQuery.matches && !hasLight));
+    };
+    check();
+    const observer = new MutationObserver(check);
     observer.observe(html, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
+    mediaQuery.addEventListener("change", check);
+    return () => {
+      observer.disconnect();
+      mediaQuery.removeEventListener("change", check);
+    };
   }, []);
 
   const handlePopupOpen = useCallback((coords: { lat: number; lng: number } | null) => {
@@ -60,7 +80,7 @@ export default function MapView({
   return (
     <div
       className="relative h-full w-full transition-[filter] duration-300"
-      style={isDark ? { filter: "invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)" } : undefined}
+      style={isDark ? { filter: DARK_MAP_FILTER } : undefined}
     >
       <MapContainer
         center={[LEIPZIG_HBF.lat, LEIPZIG_HBF.lng]}

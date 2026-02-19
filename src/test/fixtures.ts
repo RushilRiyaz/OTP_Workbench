@@ -101,6 +101,7 @@ export function historyEntry(overrides?: Partial<RequestHistoryEntry>): RequestH
     dateTime: "2026-02-03T14:30",
     routingOptions: defaultOptions(),
     selectedEnvironment: "prod",
+    selectedAutocompleteEnv: "prod",
     displayLabel: "51.34, 12.37 → Augustusplatz",
     ...overrides,
   };

@@ -22,6 +22,7 @@ describe("urlParams", () => {
         dateTime: "",
         routingOptions: defaultOptions(),
         selectedEnvironment: "prod",
+        selectedAutocompleteEnv: "prod",
         customEnvironments: [],
       };
       const serialized = serializeFormState(state);
@@ -42,6 +43,7 @@ describe("urlParams", () => {
         dateTime: "",
         routingOptions: defaultOptions(),
         selectedEnvironment: "prod",
+        selectedAutocompleteEnv: "prod",
         customEnvironments: [],
       };
       const serialized = serializeFormState(state);
@@ -62,6 +64,7 @@ describe("urlParams", () => {
         dateTime: "",
         routingOptions: defaultOptions(),
         selectedEnvironment: "prod",
+        selectedAutocompleteEnv: "prod",
         customEnvironments: [],
       };
       const serialized = serializeFormState(state);
@@ -83,6 +86,7 @@ describe("urlParams", () => {
         dateTime: "",
         routingOptions: defaultOptions(),
         selectedEnvironment: "prod",
+        selectedAutocompleteEnv: "prod",
         customEnvironments: [],
       };
       const serialized = serializeFormState(state);
@@ -102,6 +106,7 @@ describe("urlParams", () => {
         dateTime: "",
         routingOptions: defaultOptions(),
         selectedEnvironment: "prod",
+        selectedAutocompleteEnv: "prod",
         customEnvironments: [],
       };
       const serialized = serializeFormState(state);
@@ -119,6 +124,7 @@ describe("urlParams", () => {
         dateTime: "",
         routingOptions: defaultOptions(),
         selectedEnvironment: "prod",
+        selectedAutocompleteEnv: "prod",
         customEnvironments: [],
       };
       const params = new URLSearchParams(serializeFormState(state));
@@ -163,6 +169,7 @@ describe("urlParams", () => {
           customParams: "numItineraries=5",
         }),
         selectedEnvironment: "stage",
+        selectedAutocompleteEnv: "stage",
         customEnvironments: [],
       };
       const params = new URLSearchParams(serializeFormState(state));
@@ -186,6 +193,7 @@ describe("urlParams", () => {
         dateTime: "2026-02-03T14:30",
         routingOptions: defaultOptions(),
         selectedEnvironment: "prod",
+        selectedAutocompleteEnv: "prod",
         customEnvironments: [],
       };
       const params = new URLSearchParams(serializeFormState(state));
@@ -199,6 +207,7 @@ describe("urlParams", () => {
         dateTime: "",
         routingOptions: defaultOptions({ timingMode: "arriveBy" }),
         selectedEnvironment: "prod",
+        selectedAutocompleteEnv: "prod",
         customEnvironments: [],
       };
       const params = new URLSearchParams(serializeFormState(state));
@@ -212,6 +221,7 @@ describe("urlParams", () => {
         dateTime: "",
         routingOptions: defaultOptions(),
         selectedEnvironment: "prod",
+        selectedAutocompleteEnv: "prod",
         customEnvironments: [],
       };
       const params = new URLSearchParams(serializeFormState(state));
@@ -228,6 +238,7 @@ describe("urlParams", () => {
         dateTime: "",
         routingOptions: defaultOptions(),
         selectedEnvironment: "prod",
+        selectedAutocompleteEnv: "prod",
         customEnvironments: [],
       };
       const params = new URLSearchParams(serializeFormState(state));
@@ -241,6 +252,7 @@ describe("urlParams", () => {
         dateTime: "",
         routingOptions: defaultOptions(),
         selectedEnvironment: "dev",
+        selectedAutocompleteEnv: "dev",
         customEnvironments: [],
       };
       const params = new URLSearchParams(serializeFormState(state));
@@ -254,7 +266,8 @@ describe("urlParams", () => {
         dateTime: "",
         routingOptions: defaultOptions(),
         selectedEnvironment: "prod",
-        customEnvironments: [{ id: "custom-1", label: "My Env", url: "http://example.com", isCustom: true }],
+        selectedAutocompleteEnv: "prod",
+        customEnvironments: [{ id: "custom-1", label: "My Env", otpUrl: "http://example.com", autocompleteUrl: "", apiKey: "", isCustom: true }],
       };
       const params = new URLSearchParams(serializeFormState(state));
       const cenvs = JSON.parse(params.get("cenvs")!);
@@ -307,8 +320,8 @@ describe("urlParams", () => {
 
     it("filters custom envs missing required fields", () => {
       const cenvs = JSON.stringify([
-        { id: "ok", label: "OK", url: "http://example.com", isCustom: true },
-        { id: "bad" },  // missing label/url
+        { id: "ok", label: "OK", otpUrl: "http://example.com", autocompleteUrl: "", apiKey: "", isCustom: true },
+        { id: "bad" },  // missing label/otpUrl
       ]);
       const params = new URLSearchParams({ cenvs });
       const result = deserializeUrlParams(params);

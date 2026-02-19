@@ -21,6 +21,7 @@
   --background: #0a0a0a;
   --foreground: #ededed;
   --lvb-yellow-light: #3d3500;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -44,7 +45,13 @@
     --background: #0a0a0a;
     --foreground: #ededed;
     --lvb-yellow-light: #3d3500;
+    color-scheme: dark;
   }
+}
+
+html {
+  /* Scales from ~15px on 14" screens (1366px) to ~18px on 27" screens (2048px+) */
+  font-size: clamp(15px, 0.44vw + 9px, 18px);
 }
 
 body {
@@ -67,15 +74,6 @@ body {
 
 .animate-collapsible-open {
   animation: collapsible-open 200ms ease-out;
-}
-
-/* Dark mode datetime-local: invert calendar icon + use dark color scheme for native picker */
-.dark input[type="datetime-local"] {
-  color-scheme: dark;
-}
-
-.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
 }
 
 /* Custom scrollbar styling */

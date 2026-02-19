@@ -2,10 +2,11 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 
-const DEFAULT_WIDTH = 360;
-const MIN_WIDTH = 260;
-const MAX_WIDTH = 600;
-const COLLAPSED_WIDTH = 48;
+// Width values as percentage of viewport width
+const DEFAULT_WIDTH_PERCENT = 28; // Start between 1/4 (25%) and 1/3 (33%)
+const MIN_WIDTH_PERCENT = 12;
+const MAX_WIDTH_PERCENT = 50;
+const COLLAPSED_WIDTH = 48; // Keep collapsed width in pixels
 
 interface ParameterAreaProps {
   children?: React.ReactNode;
@@ -13,7 +14,7 @@ interface ParameterAreaProps {
 
 export default function ParameterArea({ children }: ParameterAreaProps) {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [width, setWidth] = useState(DEFAULT_WIDTH);
+  const [widthPercent, setWidthPercent] = useState(DEFAULT_WIDTH_PERCENT);
   const [isDragging, setIsDragging] = useState(false);
   const isResizing = useRef(false);
   const sidebarRef = useRef<HTMLElement>(null);
@@ -29,8 +30,10 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing.current) return;
-      const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, e.clientX));
-      setWidth(newWidth);
+      // Convert clientX to percentage of viewport width
+      const newWidthPercent = (e.clientX / window.innerWidth) * 100;
+      const clampedPercent = Math.min(MAX_WIDTH_PERCENT, Math.max(MIN_WIDTH_PERCENT, newWidthPercent));
+      setWidthPercent(clampedPercent);
     };
 
     const handleMouseUp = () => {
@@ -54,7 +57,7 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
       ref={sidebarRef}
       className="h-full bg-zinc-100 dark:bg-zinc-900 border-r border-zinc-300 dark:border-zinc-700 overflow-hidden flex flex-col relative flex-shrink-0"
       style={{
-        width: isExpanded ? width : COLLAPSED_WIDTH,
+        width: isExpanded ? `${widthPercent}vw` : COLLAPSED_WIDTH,
         transition: isDragging ? "none" : "width 250ms cubic-bezier(0.4, 0, 0.2, 1)",
       }}
     >

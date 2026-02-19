@@ -2,11 +2,18 @@
 
 import { useState } from "react";
 
-// Predefined environments
+// Predefined OTP environments
 const PREDEFINED_ENVIRONMENTS = [
-  { id: "prod", label: "PROD", url: "" },
-  { id: "stage", label: "STAGE", url: "" },
-  { id: "dev", label: "DEV", url: "" },
+  { id: "prod", label: "PROD", otpUrl: "", autocompleteUrl: "", apiKey: "" },
+  { id: "stage", label: "STAGE", otpUrl: "", autocompleteUrl: "", apiKey: "" },
+  { id: "dev", label: "DEV", otpUrl: "", autocompleteUrl: "", apiKey: "" },
+] as const;
+
+// Predefined autocomplete environments
+export const AUTOCOMPLETE_ENVIRONMENTS = [
+  { id: "prod", label: "PROD", url: "", apiKey: "" },
+  { id: "stage", label: "STAGE", url: "", apiKey: "" },
+  { id: "dev", label: "DEV", url: "", apiKey: "" },
 ] as const;
 
 export type PredefinedEnvId = (typeof PREDEFINED_ENVIRONMENTS)[number]["id"];
@@ -14,7 +21,9 @@ export type PredefinedEnvId = (typeof PREDEFINED_ENVIRONMENTS)[number]["id"];
 export interface Environment {
   id: string;
   label: string;
-  url: string;
+  otpUrl: string;
+  autocompleteUrl: string;
+  apiKey: string;
   isCustom: boolean;
 }
 
@@ -31,6 +40,10 @@ interface EnvironmentSelectorProps {
   onAddCustomEnvironment: (env: Environment) => void;
   /** Callback to remove a custom environment */
   onRemoveCustomEnvironment: (envId: string) => void;
+  /** Currently selected autocomplete environment ID */
+  selectedAutocompleteEnv: string;
+  /** Callback when autocomplete environment changes */
+  onAutocompleteEnvChange: (id: string) => void;
 }
 
 export default function EnvironmentSelector({
@@ -40,9 +53,12 @@ export default function EnvironmentSelector({
   customEnvironments,
   onAddCustomEnvironment,
   onRemoveCustomEnvironment,
+  selectedAutocompleteEnv,
+  onAutocompleteEnvChange,
 }: EnvironmentSelectorProps) {
   const [customName, setCustomName] = useState("");
-  const [customUrl, setCustomUrl] = useState("");
+  const [customOtpUrl, setCustomOtpUrl] = useState("");
+  const [customAutocompleteUrl, setCustomAutocompleteUrl] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [isListOpen, setIsListOpen] = useState(false);
 
@@ -63,8 +79,6 @@ export default function EnvironmentSelector({
   const handleEnvironmentToggle = (envId: string) => {
     if (singleSelectMode) {
       onSelectionChange([envId]);
-      // Auto-collapse after selection
-      setIsListOpen(false);
     } else {
       if (selectedEnvironments.includes(envId)) {
         onSelectionChange(selectedEnvironments.filter((id) => id !== envId));
@@ -77,18 +91,21 @@ export default function EnvironmentSelector({
   };
 
   const handleAddCustomEnvironment = () => {
-    if (!customName.trim() || !customUrl.trim()) return;
+    if (!customName.trim() || !customOtpUrl.trim()) return;
 
     const newEnv: Environment = {
       id: `custom-${Date.now()}`,
       label: customName.trim(),
-      url: customUrl.trim(),
+      otpUrl: customOtpUrl.trim(),
+      autocompleteUrl: customAutocompleteUrl.trim(),
+      apiKey: "",
       isCustom: true,
     };
 
     onAddCustomEnvironment(newEnv);
     setCustomName("");
-    setCustomUrl("");
+    setCustomOtpUrl("");
+    setCustomAutocompleteUrl("");
     setShowAddForm(false);
   };
 
@@ -104,6 +121,9 @@ export default function EnvironmentSelector({
     !singleSelectMode &&
     !isSelected(envId) &&
     selectedEnvironments.length >= 3;
+
+  // Resolve autocomplete label for display
+  const acLabel = AUTOCOMPLETE_ENVIRONMENTS.find((e) => e.id === selectedAutocompleteEnv)?.label || selectedAutocompleteEnv.toUpperCase();
 
   // In single-select mode with a selection, show collapsed view by default
   const showCollapsed = singleSelectMode && selectedEnvObjects.length > 0 && !isListOpen;
@@ -122,7 +142,7 @@ export default function EnvironmentSelector({
       </div>
 
       {showCollapsed ? (
-        /* Collapsed view: show active environment + change button */
+        /* Collapsed view: show active environment + autocomplete badge + change button */
         <button
           type="button"
           onClick={() => setIsListOpen(true)}
@@ -144,6 +164,14 @@ export default function EnvironmentSelector({
                 Custom
               </span>
             )}
+
+            {/* Autocomplete environment badge */}
+            <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-full border border-zinc-200 dark:border-zinc-700">
+              <svg className="w-2.5 h-2.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              {acLabel}
+            </span>
           </div>
 
           <span className="flex items-center gap-1 text-xs font-medium text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors">
@@ -158,83 +186,112 @@ export default function EnvironmentSelector({
         <>
           <div className="space-y-1.5 animate-collapsible-open">
             {allEnvironments.map((env) => (
-              <button
-                type="button"
-                key={env.id}
-                disabled={isDisabled(env.id)}
-                onClick={() => handleEnvironmentToggle(env.id)}
-                className={`w-full flex items-center justify-between p-2.5 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
-                  isSelected(env.id)
-                    ? "border-lvb-yellow/50 bg-lvb-yellow/8 dark:bg-lvb-yellow/10 shadow-[0_0_0_1px_rgb(251,193,15,0.15)]"
-                    : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500"
-                } ${isDisabled(env.id) ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-              >
-                <div className="flex items-center gap-2">
-                  {/* Checkbox/Radio indicator */}
-                  <div
-                    className={`w-4 h-4 rounded ${singleSelectMode ? "rounded-full" : "rounded"} border-2 flex items-center justify-center ${
-                      isSelected(env.id)
-                        ? "border-lvb-yellow bg-lvb-yellow"
-                        : "border-zinc-400 dark:border-zinc-500"
-                    }`}
-                  >
-                    {isSelected(env.id) && (
-                      <svg
-                        className="w-2.5 h-2.5 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        {singleSelectMode ? (
-                          <circle cx="10" cy="10" r="5" />
-                        ) : (
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        )}
-                      </svg>
+              <div key={env.id}>
+                <button
+                  type="button"
+                  disabled={isDisabled(env.id)}
+                  onClick={() => handleEnvironmentToggle(env.id)}
+                  className={`w-full flex items-center justify-between p-2.5 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
+                    isSelected(env.id)
+                      ? "border-lvb-yellow/50 bg-lvb-yellow/8 dark:bg-lvb-yellow/10 shadow-[0_0_0_1px_rgb(251,193,15,0.15)]"
+                      : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500"
+                  } ${isDisabled(env.id) ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                >
+                  <div className="flex items-center gap-2">
+                    {/* Checkbox/Radio indicator */}
+                    <div
+                      className={`w-4 h-4 rounded ${singleSelectMode ? "rounded-full" : "rounded"} border-2 flex items-center justify-center ${
+                        isSelected(env.id)
+                          ? "border-lvb-yellow bg-lvb-yellow"
+                          : "border-zinc-400 dark:border-zinc-500"
+                      }`}
+                    >
+                      {isSelected(env.id) && (
+                        <svg
+                          className="w-2.5 h-2.5 text-white"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          {singleSelectMode ? (
+                            <circle cx="10" cy="10" r="5" />
+                          ) : (
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
+                          )}
+                        </svg>
+                      )}
+                    </div>
+
+                    <span className={`text-sm ${isSelected(env.id) ? "font-semibold text-zinc-900 dark:text-zinc-100" : "font-medium text-zinc-700 dark:text-zinc-300"}`}>
+                      {env.label}
+                    </span>
+
+                    {env.isCustom && (
+                      <span className="text-xs px-1.5 py-0.5 bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400 rounded-full border border-zinc-300 dark:border-zinc-600">
+                        Custom
+                      </span>
                     )}
                   </div>
 
-                  <span className={`text-sm ${isSelected(env.id) ? "font-semibold text-zinc-900 dark:text-zinc-100" : "font-medium text-zinc-700 dark:text-zinc-300"}`}>
-                    {env.label}
-                  </span>
-
+                  {/* Remove button for custom environments */}
                   {env.isCustom && (
-                    <span className="text-xs px-1.5 py-0.5 bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400 rounded-full border border-zinc-300 dark:border-zinc-600">
-                      Custom
-                    </span>
-                  )}
-                </div>
-
-                {/* Remove button for custom environments */}
-                {env.isCustom && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveCustom(env.id);
-                    }}
-                    className="p-1 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
-                    title="Remove custom environment"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveCustom(env.id);
+                      }}
+                      className="p-1 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+                      title="Remove custom environment"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </button>
+
+                {/* Inline autocomplete service picker for selected environment */}
+                {isSelected(env.id) && (
+                  <div className="mt-1.5 ml-6 space-y-1">
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">
+                      Autocomplete Service
+                    </span>
+                    <div className="inline-flex p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/60 dark:border-zinc-700/60">
+                      {AUTOCOMPLETE_ENVIRONMENTS.map((acEnv) => (
+                        <button
+                          key={acEnv.id}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAutocompleteEnvChange(acEnv.id);
+                          }}
+                          className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all ${
+                            selectedAutocompleteEnv === acEnv.id
+                              ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
+                              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                          }`}
+                        >
+                          {acEnv.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 )}
-              </button>
+              </div>
             ))}
           </div>
 
@@ -270,15 +327,22 @@ export default function EnvironmentSelector({
               />
               <input
                 type="text"
-                placeholder="API URL"
-                value={customUrl}
-                onChange={(e) => setCustomUrl(e.target.value)}
+                placeholder="OTP API URL"
+                value={customOtpUrl}
+                onChange={(e) => setCustomOtpUrl(e.target.value)}
+                className="w-full px-3 py-1.5 text-sm border border-zinc-200 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+              />
+              <input
+                type="text"
+                placeholder="Autocomplete API URL"
+                value={customAutocompleteUrl}
+                onChange={(e) => setCustomAutocompleteUrl(e.target.value)}
                 className="w-full px-3 py-1.5 text-sm border border-zinc-200 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
               />
               <div className="flex gap-2">
                 <button
                   onClick={handleAddCustomEnvironment}
-                  disabled={!customName.trim() || !customUrl.trim()}
+                  disabled={!customName.trim() || !customOtpUrl.trim()}
                   className="flex-1 px-3 py-1.5 text-sm font-semibold text-lvb-dark bg-lvb-yellow rounded-lg hover:bg-lvb-yellow-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                 >
                   Add
@@ -287,7 +351,8 @@ export default function EnvironmentSelector({
                   onClick={() => {
                     setShowAddForm(false);
                     setCustomName("");
-                    setCustomUrl("");
+                    setCustomOtpUrl("");
+                    setCustomAutocompleteUrl("");
                   }}
                   className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                 >
@@ -297,17 +362,17 @@ export default function EnvironmentSelector({
             </div>
           )}
 
-          {/* Collapse button in single-select mode */}
+          {/* Confirm button in single-select mode */}
           {singleSelectMode && selectedEnvObjects.length > 0 && (
             <button
               type="button"
               onClick={() => { setIsListOpen(false); setShowAddForm(false); }}
-              className="w-full flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow rounded-lg"
+              className="w-full flex items-center justify-center gap-1.5 py-2 text-sm font-semibold text-lvb-dark bg-lvb-yellow rounded-xl hover:bg-lvb-yellow-hover transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-zinc-900 shadow-sm"
             >
-              <svg className="w-3.5 h-3.5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
               </svg>
-              Collapse
+              Confirm
             </button>
           )}
         </>

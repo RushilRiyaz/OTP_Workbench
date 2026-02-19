@@ -340,7 +340,7 @@ export default function LocationInput({
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow rounded"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow rounded"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

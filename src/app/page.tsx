@@ -22,15 +22,20 @@ export default function Home() {
   // Environment selection state
   const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>(["prod"]); // FR3.6: PROD preselected
   const [customEnvironments, setCustomEnvironments] = useState<Environment[]>([]);
+  const [selectedAutocompleteEnv, setSelectedAutocompleteEnv] = useState<string>("prod");
 
   // Journey state - lifted from JourneyForm for map interaction (FR8)
   const [startLocation, setStartLocation] = useState<LocationValue>(emptyLocationValue);
   const [destinationLocation, setDestinationLocation] = useState<LocationValue>(emptyLocationValue);
 
   // FR6: Lifted state from JourneyForm
-  const [dateTime, setDateTime] = useState<string>(() =>
-    new Date().toISOString().slice(0, 16)
-  );
+  const [dateTime, setDateTime] = useState<string>(() => {
+    // Use Europe/Berlin (GMT+1/+2) instead of UTC
+    const now = new Date();
+    const berlinStr = now.toLocaleString("sv-SE", { timeZone: "Europe/Berlin" });
+    // sv-SE locale produces "yyyy-MM-dd HH:mm:ss" — take the first 16 chars for datetime-local
+    return berlinStr.slice(0, 16).replace(" ", "T");
+  });
   const [routingOptions, setRoutingOptions] = useState<RoutingOptions>(defaultRoutingOptions);
 
   // FR6: Request state
@@ -58,6 +63,16 @@ export default function Home() {
     }
   }, [singleSelectMode]);
 
+  // Auto-sync autocomplete env when OTP env changes (for predefined envs)
+  const handleEnvironmentChange = useCallback((selectedIds: string[]) => {
+    setSelectedEnvironments(selectedIds);
+    const newEnvId = selectedIds[0];
+    // Auto-match autocomplete to OTP selection for predefined envs
+    if (newEnvId && ["prod", "stage", "dev"].includes(newEnvId)) {
+      setSelectedAutocompleteEnv(newEnvId);
+    }
+  }, []);
+
   // FR6.4: Load request history from localStorage on mount
   useEffect(() => {
     setRequestHistory(getRequestHistory());
@@ -76,6 +91,7 @@ export default function Home() {
       if (parsed.dateTime) setDateTime(parsed.dateTime);
       if (parsed.routingOptions) setRoutingOptions(parsed.routingOptions);
       if (parsed.selectedEnvironment) setSelectedEnvironments([parsed.selectedEnvironment]);
+      if (parsed.selectedAutocompleteEnv) setSelectedAutocompleteEnv(parsed.selectedAutocompleteEnv);
       if (parsed.customEnvironments) setCustomEnvironments(parsed.customEnvironments);
     }
 
@@ -100,6 +116,7 @@ export default function Home() {
         dateTime,
         routingOptions,
         selectedEnvironment: selectedEnvironments[0] || "prod",
+        selectedAutocompleteEnv,
         customEnvironments,
       });
 
@@ -115,7 +132,7 @@ export default function Home() {
         clearTimeout(urlUpdateTimeoutRef.current);
       }
     };
-  }, [urlInitialized, startLocation, destinationLocation, dateTime, routingOptions, selectedEnvironments, customEnvironments]);
+  }, [urlInitialized, startLocation, destinationLocation, dateTime, routingOptions, selectedEnvironments, selectedAutocompleteEnv, customEnvironments]);
 
   // FR6.6: Copy link to clipboard
   const handleCopyLink = useCallback(async () => {
@@ -182,6 +199,7 @@ export default function Home() {
           dateTime,
           routingOptions,
           selectedEnvironment: selectedEnvironments[0] || "prod",
+          selectedAutocompleteEnv,
           displayLabel: generateDisplayLabel(startLocation, destinationLocation),
         };
         addToRequestHistory(historyEntry);
@@ -202,6 +220,7 @@ export default function Home() {
     setDateTime(entry.dateTime);
     setRoutingOptions(entry.routingOptions);
     setSelectedEnvironments([entry.selectedEnvironment]);
+    setSelectedAutocompleteEnv(entry.selectedAutocompleteEnv || entry.selectedEnvironment);
     // Clear any previous errors/results
     setValidationErrors([]);
     setRoutingError(null);
@@ -222,10 +241,12 @@ export default function Home() {
           <EnvironmentSelector
             singleSelectMode={singleSelectMode}
             selectedEnvironments={selectedEnvironments}
-            onSelectionChange={setSelectedEnvironments}
+            onSelectionChange={handleEnvironmentChange}
             customEnvironments={customEnvironments}
             onAddCustomEnvironment={handleAddCustomEnvironment}
             onRemoveCustomEnvironment={handleRemoveCustomEnvironment}
+            selectedAutocompleteEnv={selectedAutocompleteEnv}
+            onAutocompleteEnvChange={setSelectedAutocompleteEnv}
           />
         </div>
 
