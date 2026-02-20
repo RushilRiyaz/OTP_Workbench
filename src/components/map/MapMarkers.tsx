@@ -29,8 +29,8 @@ const createMarkerIcon = (color: string, highlightColor: string) =>
             <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/>
           </filter>
         </defs>
-        <path d="M12.5 0C5.6 0 0 5.6 0 12.5c0 9.4 12.5 28.5 12.5 28.5S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0z" fill="url(#grad-${color.replace("#", "")})" stroke="white" stroke-width="1.5" filter="url(#shadow-${color.replace("#", "")})"/>
-        <circle cx="12.5" cy="12.5" r="4.5" fill="white" opacity="0.9"/>
+        <path d="M12.5 0C5.6 0 0 5.6 0 12.5c0 9.4 12.5 28.5 12.5 28.5S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0z" fill="url(#grad-${color.replace("#", "")})" stroke="#1a1a1a" stroke-width="1.5" filter="url(#shadow-${color.replace("#", "")})"/>
+        <circle cx="12.5" cy="12.5" r="4.5" fill="#1a1a1a" opacity="0.85"/>
       </svg>
     `,
   });

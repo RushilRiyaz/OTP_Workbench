@@ -69,9 +69,9 @@ export default function RoutePolylines({ itinerary }: RoutePolylinesProps) {
             key={i}
             positions={positions}
             pathOptions={{
-              color: "#6b7280",
-              weight: 4,
-              opacity: 0.7,
+              color: "#374151",
+              weight: 5,
+              opacity: 0.9,
               dashArray: "2 10",
               lineCap: "round",
               lineJoin: "round",
