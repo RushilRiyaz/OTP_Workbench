@@ -25,6 +25,8 @@ interface JourneyFormProps {
   requestHistory: RequestHistoryEntry[];
   onLoadRequest: (entry: RequestHistoryEntry) => void;
   onClearHistory: () => void;
+  // Environment config for autocomplete
+  autocompleteEnvId?: string;
 }
 
 // Format a datetime-local string (e.g. "2026-02-15T14:30") as "Feb 15, 14:30"
@@ -55,6 +57,7 @@ export default function JourneyForm({
   requestHistory,
   onLoadRequest,
   onClearHistory,
+  autocompleteEnvId,
 }: JourneyFormProps) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [confirmEntryId, setConfirmEntryId] = useState<string | null>(null);
@@ -88,8 +91,8 @@ export default function JourneyForm({
             onChange={onStartChange}
             placeholder="Enter start location"
             required
-
             error={getFieldError("start")}
+            autocompleteEnvId={autocompleteEnvId}
           />
           <LocationInput
             label="Destination"
@@ -97,8 +100,8 @@ export default function JourneyForm({
             onChange={onDestinationChange}
             placeholder="Enter destination"
             required
-
             error={getFieldError("destination")}
+            autocompleteEnvId={autocompleteEnvId}
           />
         </div>
 

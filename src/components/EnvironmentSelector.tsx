@@ -2,21 +2,67 @@
 
 import { useState } from "react";
 
-// Predefined OTP environments
+// Predefined OTP environments — populated from .env
 const PREDEFINED_ENVIRONMENTS = [
-  { id: "prod", label: "PROD", otpUrl: "", autocompleteUrl: "", apiKey: "" },
-  { id: "stage", label: "STAGE", otpUrl: "", autocompleteUrl: "", apiKey: "" },
-  { id: "dev", label: "DEV", otpUrl: "", autocompleteUrl: "", apiKey: "" },
-] as const;
+  {
+    id: "prod" as const,
+    label: "PROD",
+    otpUrl: process.env.NEXT_PUBLIC_PROD_OTP_URL || "",
+    autocompleteUrl: process.env.NEXT_PUBLIC_PROD_AUTOCOMPLETE_URL || "",
+    apiKey: process.env.NEXT_PUBLIC_PROD_API_KEY || "",
+  },
+  {
+    id: "stage" as const,
+    label: "STAGE",
+    otpUrl: process.env.NEXT_PUBLIC_STAGE_OTP_URL || "",
+    autocompleteUrl: process.env.NEXT_PUBLIC_STAGE_AUTOCOMPLETE_URL || "",
+    apiKey: process.env.NEXT_PUBLIC_STAGE_API_KEY || "",
+  },
+  {
+    id: "dev" as const,
+    label: "DEV",
+    otpUrl: process.env.NEXT_PUBLIC_DEV_OTP_URL || "",
+    autocompleteUrl: process.env.NEXT_PUBLIC_DEV_AUTOCOMPLETE_URL || "",
+    apiKey: process.env.NEXT_PUBLIC_DEV_API_KEY || "",
+  },
+];
 
-// Predefined autocomplete environments
+// Predefined autocomplete environments — populated from .env
 export const AUTOCOMPLETE_ENVIRONMENTS = [
-  { id: "prod", label: "PROD", url: "", apiKey: "" },
-  { id: "stage", label: "STAGE", url: "", apiKey: "" },
-  { id: "dev", label: "DEV", url: "", apiKey: "" },
-] as const;
+  { id: "prod" as const, label: "PROD", url: process.env.NEXT_PUBLIC_PROD_AUTOCOMPLETE_URL || "", apiKey: process.env.NEXT_PUBLIC_PROD_API_KEY || "" },
+  { id: "stage" as const, label: "STAGE", url: process.env.NEXT_PUBLIC_STAGE_AUTOCOMPLETE_URL || "", apiKey: process.env.NEXT_PUBLIC_STAGE_API_KEY || "" },
+  { id: "dev" as const, label: "DEV", url: process.env.NEXT_PUBLIC_DEV_AUTOCOMPLETE_URL || "", apiKey: process.env.NEXT_PUBLIC_DEV_API_KEY || "" },
+];
 
-export type PredefinedEnvId = (typeof PREDEFINED_ENVIRONMENTS)[number]["id"];
+export type PredefinedEnvId = "prod" | "stage" | "dev";
+
+/** Resolve OTP + autocomplete config for a given environment ID */
+export function getEnvironmentConfig(
+  envId: string,
+  customEnvironments: Environment[] = []
+): { otpUrl: string; autocompleteUrl: string; apiKey: string } {
+  const predefined = PREDEFINED_ENVIRONMENTS.find((e) => e.id === envId);
+  if (predefined) {
+    return { otpUrl: predefined.otpUrl, autocompleteUrl: predefined.autocompleteUrl, apiKey: predefined.apiKey };
+  }
+  const custom = customEnvironments.find((e) => e.id === envId);
+  if (custom) {
+    return { otpUrl: custom.otpUrl, autocompleteUrl: custom.autocompleteUrl, apiKey: custom.apiKey };
+  }
+  // Fallback to first predefined (PROD)
+  return {
+    otpUrl: PREDEFINED_ENVIRONMENTS[0].otpUrl,
+    autocompleteUrl: PREDEFINED_ENVIRONMENTS[0].autocompleteUrl,
+    apiKey: PREDEFINED_ENVIRONMENTS[0].apiKey,
+  };
+}
+
+/** Resolve autocomplete config for a given autocomplete environment ID */
+export function getAutocompleteConfig(envId: string): { url: string; apiKey: string } {
+  const acEnv = AUTOCOMPLETE_ENVIRONMENTS.find((e) => e.id === envId);
+  if (acEnv) return { url: acEnv.url, apiKey: acEnv.apiKey };
+  return { url: AUTOCOMPLETE_ENVIRONMENTS[0].url, apiKey: AUTOCOMPLETE_ENVIRONMENTS[0].apiKey };
+}
 
 export interface Environment {
   id: string;

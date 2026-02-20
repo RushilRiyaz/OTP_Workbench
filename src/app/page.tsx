@@ -13,6 +13,7 @@ import { validateRoutingParams } from "@/lib/validation";
 import { fetchRouting, RoutingResponse, RoutingError, Itinerary } from "@/lib/routing";
 import { getRequestHistory, addToRequestHistory, clearRequestHistory, generateDisplayLabel } from "@/lib/requestHistory";
 import { serializeFormState, deserializeUrlParams } from "@/lib/urlParams";
+import { getEnvironmentConfig, getAutocompleteConfig } from "@/components/EnvironmentSelector";
 
 
 export default function Home() {
@@ -183,12 +184,17 @@ export default function Home() {
     setRoutingResult(null);
 
     try {
-      const result = await fetchRouting({
-        start: startLocation,
-        destination: destinationLocation,
-        dateTime,
-        routingOptions,
-      });
+      const envConfig = getEnvironmentConfig(selectedEnvironments[0] || "prod", customEnvironments);
+      const result = await fetchRouting(
+        {
+          start: startLocation,
+          destination: destinationLocation,
+          dateTime,
+          routingOptions,
+        },
+        undefined,
+        { baseUrl: envConfig.otpUrl, apiKey: envConfig.apiKey }
+      );
 
       if (result.success) {
         setRoutingResult(result.data);
@@ -237,6 +243,12 @@ export default function Home() {
     setRequestHistory([]);
   };
 
+  // Clear routing results and return to map-only view
+  const handleClearResults = useCallback(() => {
+    setRoutingResult(null);
+    setSelectedItineraryIndex(0);
+  }, []);
+
   // FR12.5: Load earlier/later itineraries
   const handleLoadMore = useCallback(async (direction: "earlier" | "later") => {
     if (!routingResult?.plan?.itineraries?.length) return;
@@ -258,12 +270,17 @@ export default function Home() {
       ? { ...routingOptions, timingMode: "arriveBy" as const }
       : { ...routingOptions, timingMode: "departAt" as const };
 
-    const result = await fetchRouting({
-      start: startLocation,
-      destination: destinationLocation,
-      dateTime: adjustedDateTime,
-      routingOptions: modifiedOptions,
-    });
+    const envConfig = getEnvironmentConfig(selectedEnvironments[0] || "prod", customEnvironments);
+    const result = await fetchRouting(
+      {
+        start: startLocation,
+        destination: destinationLocation,
+        dateTime: adjustedDateTime,
+        routingOptions: modifiedOptions,
+      },
+      undefined,
+      { baseUrl: envConfig.otpUrl, apiKey: envConfig.apiKey }
+    );
 
     if (!result.success || !result.data.plan?.itineraries?.length) return;
 
@@ -295,7 +312,7 @@ export default function Home() {
       const offset = capped.length - itineraries.length;
       setSelectedItineraryIndex((prev) => Math.min(prev + offset, capped.length - 1));
     }
-  }, [routingResult, startLocation, destinationLocation, routingOptions]);
+  }, [routingResult, startLocation, destinationLocation, routingOptions, selectedEnvironments, customEnvironments]);
 
   return (
     <div className="flex h-[calc(100vh-56px)] w-full">
@@ -367,6 +384,7 @@ export default function Home() {
             requestHistory={requestHistory}
             onLoadRequest={handleLoadRequest}
             onClearHistory={handleClearHistory}
+            autocompleteEnvId={selectedAutocompleteEnv}
           />
         </div>
 
@@ -382,6 +400,7 @@ export default function Home() {
         selectedItineraryIndex={selectedItineraryIndex}
         onSelectItinerary={setSelectedItineraryIndex}
         onLoadMore={handleLoadMore}
+        onClearResults={handleClearResults}
       />
     </div>
   );

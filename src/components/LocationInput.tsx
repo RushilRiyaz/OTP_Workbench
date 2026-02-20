@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { searchLocations, AutocompleteResult } from "@/lib/autocomplete";
 import { getLocationHistory, addToLocationHistory } from "@/lib/locationHistory";
 import { reverseGeocode } from "@/lib/reverseGeocode";
+import { getAutocompleteConfig } from "@/components/EnvironmentSelector";
 
 export interface LocationValue {
   text: string;
@@ -28,6 +29,7 @@ interface LocationInputProps {
   placeholder?: string;
   required?: boolean;
   error?: string; // FR6: Validation error message
+  autocompleteEnvId?: string;
 }
 
 function isStopId(input: string): boolean {
@@ -70,6 +72,7 @@ export default function LocationInput({
   placeholder,
   required = false,
   error,
+  autocompleteEnvId,
 }: LocationInputProps) {
   const [suggestions, setSuggestions] = useState<AutocompleteResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -205,10 +208,14 @@ export default function LocationInput({
 
       setIsLoading(true);
       try {
-        const results = await searchLocations({
-          search: text,
-          signal: abortControllerRef.current.signal,
-        });
+        const acConfig = autocompleteEnvId ? getAutocompleteConfig(autocompleteEnvId) : undefined;
+        const results = await searchLocations(
+          {
+            search: text,
+            signal: abortControllerRef.current.signal,
+          },
+          acConfig ? { baseUrl: acConfig.url, apiKey: acConfig.apiKey } : undefined
+        );
         setSuggestions(results);
         setShowDropdown(results.length > 0);
       } catch (error) {
