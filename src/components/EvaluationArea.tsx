@@ -4,6 +4,8 @@ import Tabs, { TabId } from "./Tabs";
 import { LocationValue } from "./LocationInput";
 import Map from "./map/DynamicMapLoader";
 import ErrorBoundary from "./ErrorBoundary";
+import RoutingResults from "./RoutingResults";
+import type { RoutingResponse, Itinerary } from "@/lib/routing";
 
 interface EvaluationAreaProps {
   activeTab: TabId;
@@ -12,6 +14,9 @@ interface EvaluationAreaProps {
   destinationLocation: LocationValue;
   onStartChange: (value: LocationValue) => void;
   onDestinationChange: (value: LocationValue) => void;
+  routingResult?: RoutingResponse | null;
+  selectedItineraryIndex?: number;
+  onSelectItinerary?: (index: number) => void;
   children?: React.ReactNode;
 }
 
@@ -22,29 +27,54 @@ export default function EvaluationArea({
   destinationLocation,
   onStartChange,
   onDestinationChange,
+  routingResult,
+  selectedItineraryIndex = 0,
+  onSelectItinerary,
   children,
 }: EvaluationAreaProps) {
+  const itineraries = routingResult?.plan?.itineraries ?? [];
+  const selectedItinerary: Itinerary | null =
+    itineraries[selectedItineraryIndex] ?? null;
+  const hasResults = itineraries.length > 0;
+
   return (
     <main className="flex-1 flex flex-col h-full bg-white dark:bg-zinc-950">
       <Tabs activeTab={activeTab} onTabChange={onTabChange} />
       <div className="flex-1 flex flex-col min-h-0">
         {activeTab === "routing" && (
-          <ErrorBoundary
-            fallback={
-              <div className="flex items-center justify-center h-full bg-zinc-100 dark:bg-zinc-900">
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Map failed to load. Try refreshing.
-                </p>
+          <div className="flex flex-col h-full">
+            {/* Map section — takes full height when no results, 60% when results present */}
+            <div className={hasResults ? "h-[60%] min-h-0" : "flex-1"}>
+              <ErrorBoundary
+                fallback={
+                  <div className="flex items-center justify-center h-full bg-zinc-100 dark:bg-zinc-900">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Map failed to load. Try refreshing.
+                    </p>
+                  </div>
+                }
+              >
+                <Map
+                  start={startLocation}
+                  destination={destinationLocation}
+                  onStartChange={onStartChange}
+                  onDestinationChange={onDestinationChange}
+                  selectedItinerary={selectedItinerary}
+                />
+              </ErrorBoundary>
+            </div>
+
+            {/* Results section — 40% height when results present */}
+            {hasResults && (
+              <div className="h-[40%] min-h-0 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950">
+                <RoutingResults
+                  routingResult={routingResult ?? null}
+                  selectedIndex={selectedItineraryIndex}
+                  onSelectItinerary={onSelectItinerary ?? (() => {})}
+                />
               </div>
-            }
-          >
-            <Map
-              start={startLocation}
-              destination={destinationLocation}
-              onStartChange={onStartChange}
-              onDestinationChange={onDestinationChange}
-            />
-          </ErrorBoundary>
+            )}
+          </div>
         )}
         {activeTab !== "routing" && (
           <div className="flex-1 flex items-center justify-center p-4">

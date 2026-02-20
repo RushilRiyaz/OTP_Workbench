@@ -6,11 +6,13 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 import type { LocationValue } from "@/components/LocationInput";
+import type { Itinerary } from "@/lib/routing";
 import { LEIPZIG_HBF, DEFAULT_ZOOM, TILE_URL, TILE_ATTRIBUTION } from "./constants";
 import MapEvents from "./MapEvents";
 import MapMarkers from "./MapMarkers";
 import CursorTracker from "./CursorTracker";
 import CoordPopup from "./CoordPopup";
+import RoutePolylines from "./RoutePolylines";
 
 // Fix Leaflet default icon paths for Next.js
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
@@ -40,6 +42,7 @@ interface MapViewProps {
   destination: LocationValue | null;
   onStartChange: (loc: LocationValue) => void;
   onDestinationChange: (loc: LocationValue) => void;
+  selectedItinerary?: Itinerary | null;
 }
 
 export default function MapView({
@@ -47,6 +50,7 @@ export default function MapView({
   destination,
   onStartChange,
   onDestinationChange,
+  selectedItinerary,
 }: MapViewProps) {
   const [popupCoords, setPopupCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isDark, setIsDark] = useState(false);
@@ -98,6 +102,8 @@ export default function MapView({
         />
 
         <MapMarkers start={start} destination={destination} />
+
+        <RoutePolylines itinerary={selectedItinerary ?? null} />
 
         <CursorTracker />
 

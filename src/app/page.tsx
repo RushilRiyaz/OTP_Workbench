@@ -44,6 +44,9 @@ export default function Home() {
   const [routingResult, setRoutingResult] = useState<RoutingResponse | null>(null);
   const [routingError, setRoutingError] = useState<RoutingError | null>(null);
 
+  // Selected itinerary index for results display
+  const [selectedItineraryIndex, setSelectedItineraryIndex] = useState<number>(0);
+
   // FR6.4: Request history (loaded from localStorage)
   const [requestHistory, setRequestHistory] = useState<RequestHistoryEntry[]>([]);
 
@@ -189,6 +192,7 @@ export default function Home() {
 
       if (result.success) {
         setRoutingResult(result.data);
+        setSelectedItineraryIndex(0);
 
         // FR6.4: Save to request history
         const historyEntry: RequestHistoryEntry = {
@@ -314,6 +318,9 @@ export default function Home() {
         destinationLocation={destinationLocation}
         onStartChange={setStartLocation}
         onDestinationChange={setDestinationLocation}
+        routingResult={routingResult}
+        selectedItineraryIndex={selectedItineraryIndex}
+        onSelectItinerary={setSelectedItineraryIndex}
       />
     </div>
   );
