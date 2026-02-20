@@ -102,9 +102,9 @@ export default function MapView({
           onPopupOpen={handlePopupOpen}
         />
 
-        <MapMarkers start={start} destination={destination} />
+        <MapMarkers start={start} destination={destination} isDark={isDark} />
 
-        <RoutePolylines itinerary={selectedItinerary ?? null} />
+        <RoutePolylines itinerary={selectedItinerary ?? null} isDark={isDark} />
 
         <CursorTracker />
 

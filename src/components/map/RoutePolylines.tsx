@@ -28,9 +28,10 @@ function getLegColor(leg: Leg): string {
 
 interface RoutePolylinesProps {
   itinerary: Itinerary | null;
+  isDark?: boolean;
 }
 
-export default function RoutePolylines({ itinerary }: RoutePolylinesProps) {
+export default function RoutePolylines({ itinerary, isDark = false }: RoutePolylinesProps) {
   const map = useMap();
 
   // Auto-fit bounds when itinerary changes
@@ -64,12 +65,12 @@ export default function RoutePolylines({ itinerary }: RoutePolylinesProps) {
         const isWalk = DASHED_MODES.has(leg.mode);
 
         return isWalk ? (
-          // Google Maps-style dotted walking line: grey dots with round caps
+          // Google Maps-style dotted walking line, theme-aware
           <Polyline
             key={i}
             positions={positions}
             pathOptions={{
-              color: "#374151",
+              color: isDark ? "#ffffff" : "#1a1a1a",
               weight: 5,
               opacity: 0.9,
               dashArray: "2 10",

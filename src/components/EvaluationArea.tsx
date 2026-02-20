@@ -21,6 +21,7 @@ interface EvaluationAreaProps {
   selectedItineraryIndex?: number;
   onSelectItinerary?: (index: number) => void;
   onLoadMore?: (direction: "earlier" | "later") => Promise<void>;
+  onClearResults?: () => void;
   children?: React.ReactNode;
 }
 
@@ -50,6 +51,7 @@ export default function EvaluationArea({
   selectedItineraryIndex = 0,
   onSelectItinerary,
   onLoadMore,
+  onClearResults,
   children,
 }: EvaluationAreaProps) {
   const itineraries = routingResult?.plan?.itineraries ?? [];
@@ -59,6 +61,7 @@ export default function EvaluationArea({
 
   const [layout, setLayout] = useState<SplitLayout>("vertical");
   const [mapPct, setMapPct] = useState(DEFAULT_MAP_PCT);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
 
@@ -120,7 +123,20 @@ export default function EvaluationArea({
           <div className="flex flex-col h-full">
             {/* Layout toggle button — only show when results present */}
             {hasResults && (
-              <div className="flex items-center justify-end px-2 py-1 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+              <div className="flex items-center justify-between px-2 py-1 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+                {/* Clear results */}
+                <button
+                  type="button"
+                  onClick={() => setShowClearConfirm(true)}
+                  className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+                  title="Clear results"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span>Clear</span>
+                </button>
+                {/* Layout toggle */}
                 <button
                   type="button"
                   onClick={toggleLayout}
@@ -233,6 +249,39 @@ export default function EvaluationArea({
           </div>
         )}
       </div>
+
+      {/* Clear confirmation dialog */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-700 p-5 max-w-sm w-full mx-4">
+            <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+              Clear routing results?
+            </h3>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5">
+              This will remove all itineraries and return to the map view.
+            </p>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowClearConfirm(false)}
+                className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowClearConfirm(false);
+                  onClearResults?.();
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

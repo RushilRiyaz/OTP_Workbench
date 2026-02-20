@@ -1,7 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Itinerary, Leg, TransitLeg, Station } from "@/lib/routing";
+
+function useIsDark(): boolean {
+  const [isDark, setIsDark] = useState(false);
+  useEffect(() => {
+    const html = document.documentElement;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const check = () => {
+      setIsDark(html.classList.contains("dark") || (mq.matches && !html.classList.contains("light")));
+    };
+    check();
+    const obs = new MutationObserver(check);
+    obs.observe(html, { attributes: true, attributeFilter: ["class"] });
+    mq.addEventListener("change", check);
+    return () => { obs.disconnect(); mq.removeEventListener("change", check); };
+  }, []);
+  return isDark;
+}
 
 // --- Mode display config ---
 
@@ -87,12 +104,14 @@ function formatDelay(delaySeconds: number | undefined): string | null {
 // --- Leg detail components ---
 
 function WalkLegDetail({ leg }: { leg: Leg }) {
+  const isDark = useIsDark();
+  const walkColor = isDark ? "#ffffff" : "#1a1a1a";
   const dist = leg.distance >= 1000
     ? `${(leg.distance / 1000).toFixed(1)} km`
     : `${Math.round(leg.distance)} m`;
 
   return (
-    <div className="flex items-center gap-2 py-1.5 px-2 text-xs text-zinc-500 dark:text-zinc-400">
+    <div className="flex items-center gap-2 py-1.5 px-2 text-xs" style={{ color: walkColor, opacity: 0.7 }}>
       <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
       </svg>
@@ -279,6 +298,9 @@ interface ItineraryCardProps {
 }
 
 export default function ItineraryCard({ itinerary, index, isSelected, onSelect }: ItineraryCardProps) {
+  const isDark = useIsDark();
+  const walkColor = isDark ? "#ffffff" : "#1a1a1a";
+
   const depTime = itinerary.startTimeHHMM ?? formatTime(itinerary.startTime);
   const arrTime = itinerary.endTimeHHMM ?? formatTime(itinerary.endTime);
   const duration = itinerary.durationHHMM ?? formatDuration(itinerary.duration);
@@ -313,14 +335,15 @@ export default function ItineraryCard({ itinerary, index, isSelected, onSelect }
       <div className="flex h-2 rounded-full overflow-hidden mb-2 bg-zinc-100 dark:bg-zinc-800">
         {itinerary.legs.map((leg, i) => {
           const pct = Math.max((leg.duration / totalDuration) * 100, 2);
+          const isWalk = !leg.transitLeg;
           return (
             <div
               key={i}
               className="h-full"
               style={{
                 width: `${pct}%`,
-                backgroundColor: getLegColor(leg),
-                opacity: leg.mode === "WALK" ? 0.5 : 1,
+                backgroundColor: isWalk ? walkColor : getLegColor(leg),
+                opacity: isWalk ? 0.7 : 1,
               }}
               title={`${MODE_LABELS[leg.mode] ?? leg.mode}${leg.transitLeg ? ` ${leg.routeShortName}` : ""}`}
             />
