@@ -61,7 +61,23 @@ export default function RoutePolylines({ itinerary }: RoutePolylinesProps) {
 
         if (positions.length < 2) return null;
 
-        return (
+        const isWalk = DASHED_MODES.has(leg.mode);
+
+        return isWalk ? (
+          // Google Maps-style dotted walking line: grey dots with round caps
+          <Polyline
+            key={i}
+            positions={positions}
+            pathOptions={{
+              color: "#6b7280",
+              weight: 4,
+              opacity: 0.7,
+              dashArray: "2 10",
+              lineCap: "round",
+              lineJoin: "round",
+            }}
+          />
+        ) : (
           <Polyline
             key={i}
             positions={positions}
@@ -69,7 +85,6 @@ export default function RoutePolylines({ itinerary }: RoutePolylinesProps) {
               color: getLegColor(leg),
               weight: 4,
               opacity: 0.85,
-              dashArray: DASHED_MODES.has(leg.mode) ? "6 8" : undefined,
             }}
           />
         );

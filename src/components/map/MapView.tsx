@@ -82,10 +82,11 @@ export default function MapView({
   }, []);
 
   return (
-    <div
-      className="relative h-full w-full transition-[filter] duration-300"
-      style={isDark ? { filter: DARK_MAP_FILTER } : undefined}
-    >
+    <div className="relative h-full w-full">
+      {/* Apply dark filter only to map tiles, not polylines/markers */}
+      {isDark && (
+        <style>{`.leaflet-tile-pane { filter: ${DARK_MAP_FILTER}; transition: filter 300ms; }`}</style>
+      )}
       <MapContainer
         center={[LEIPZIG_HBF.lat, LEIPZIG_HBF.lng]}
         zoom={DEFAULT_ZOOM}
