@@ -20,6 +20,7 @@ interface EvaluationAreaProps {
   routingResult?: RoutingResponse | null;
   selectedItineraryIndex?: number;
   onSelectItinerary?: (index: number) => void;
+  onLoadMore?: (direction: "earlier" | "later") => Promise<void>;
   children?: React.ReactNode;
 }
 
@@ -48,6 +49,7 @@ export default function EvaluationArea({
   routingResult,
   selectedItineraryIndex = 0,
   onSelectItinerary,
+  onLoadMore,
   children,
 }: EvaluationAreaProps) {
   const itineraries = routingResult?.plan?.itineraries ?? [];
@@ -209,6 +211,7 @@ export default function EvaluationArea({
                     routingResult={routingResult ?? null}
                     selectedIndex={selectedItineraryIndex}
                     onSelectItinerary={onSelectItinerary ?? (() => {})}
+                    onLoadMore={onLoadMore}
                   />
                 </div>
               )}

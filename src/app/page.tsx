@@ -10,7 +10,7 @@ import { LocationValue, emptyLocationValue } from "@/components/LocationInput";
 import { RoutingOptions, defaultRoutingOptions } from "@/components/RoutingOptionsForm";
 import { ValidationError, RequestHistoryEntry } from "@/lib/types";
 import { validateRoutingParams } from "@/lib/validation";
-import { fetchRouting, RoutingResponse, RoutingError } from "@/lib/routing";
+import { fetchRouting, RoutingResponse, RoutingError, Itinerary } from "@/lib/routing";
 import { getRequestHistory, addToRequestHistory, clearRequestHistory, generateDisplayLabel } from "@/lib/requestHistory";
 import { serializeFormState, deserializeUrlParams } from "@/lib/urlParams";
 
@@ -237,6 +237,66 @@ export default function Home() {
     setRequestHistory([]);
   };
 
+  // FR12.5: Load earlier/later itineraries
+  const handleLoadMore = useCallback(async (direction: "earlier" | "later") => {
+    if (!routingResult?.plan?.itineraries?.length) return;
+
+    const itineraries = routingResult.plan.itineraries;
+    const refItinerary = direction === "earlier"
+      ? itineraries[0]
+      : itineraries[itineraries.length - 1];
+
+    // Shift time by 1 minute in the appropriate direction
+    const refTime = direction === "earlier" ? refItinerary.startTime : refItinerary.endTime;
+    const shiftedDate = new Date(refTime + (direction === "later" ? 60000 : -60000));
+
+    const berlinStr = shiftedDate.toLocaleString("sv-SE", { timeZone: "Europe/Berlin" });
+    const adjustedDateTime = berlinStr.slice(0, 16).replace(" ", "T");
+
+    // Build modified routing options for earlier (arriveBy)
+    const modifiedOptions = direction === "earlier"
+      ? { ...routingOptions, timingMode: "arriveBy" as const }
+      : { ...routingOptions, timingMode: "departAt" as const };
+
+    const result = await fetchRouting({
+      start: startLocation,
+      destination: destinationLocation,
+      dateTime: adjustedDateTime,
+      routingOptions: modifiedOptions,
+    });
+
+    if (!result.success || !result.data.plan?.itineraries?.length) return;
+
+    const newItineraries = result.data.plan.itineraries;
+
+    // Deduplicate by startTime+endTime fingerprint
+    const existingKeys = new Set(
+      itineraries.map((it: Itinerary) => `${it.startTime}-${it.endTime}`)
+    );
+    const unique = newItineraries.filter(
+      (it: Itinerary) => !existingKeys.has(`${it.startTime}-${it.endTime}`)
+    );
+
+    if (unique.length === 0) return;
+
+    // Merge and sort by startTime
+    const merged = [...itineraries, ...unique].sort((a, b) => a.startTime - b.startTime);
+
+    // Cap at 20 itineraries
+    const capped = merged.slice(0, 20);
+
+    setRoutingResult({
+      ...routingResult,
+      plan: { ...routingResult.plan!, itineraries: capped },
+    });
+
+    // Adjust selected index if we prepended
+    if (direction === "earlier") {
+      const offset = capped.length - itineraries.length;
+      setSelectedItineraryIndex((prev) => Math.min(prev + offset, capped.length - 1));
+    }
+  }, [routingResult, startLocation, destinationLocation, routingOptions]);
+
   return (
     <div className="flex h-[calc(100vh-56px)] w-full">
       <ParameterArea>
@@ -321,6 +381,7 @@ export default function Home() {
         routingResult={routingResult}
         selectedItineraryIndex={selectedItineraryIndex}
         onSelectItinerary={setSelectedItineraryIndex}
+        onLoadMore={handleLoadMore}
       />
     </div>
   );
