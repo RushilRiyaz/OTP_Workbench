@@ -52,13 +52,21 @@ jobs:
         env:
           NEXT_PUBLIC_OTP_API_URL: ${{ secrets.NEXT_PUBLIC_OTP_API_URL }}
           NEXT_PUBLIC_API_KEY: ${{ secrets.NEXT_PUBLIC_API_KEY }}
+          NEXT_PUBLIC_AUTOCOMPLETE_API_URL: ${{ secrets.NEXT_PUBLIC_AUTOCOMPLETE_API_URL }}
+          NEXT_PUBLIC_PROD_OTP_URL: ${{ secrets.NEXT_PUBLIC_PROD_OTP_URL }}
+          NEXT_PUBLIC_PROD_AUTOCOMPLETE_URL: ${{ secrets.NEXT_PUBLIC_PROD_AUTOCOMPLETE_URL }}
+          NEXT_PUBLIC_PROD_API_KEY: ${{ secrets.NEXT_PUBLIC_PROD_API_KEY }}
+          NEXT_PUBLIC_STAGE_OTP_URL: ${{ secrets.NEXT_PUBLIC_STAGE_OTP_URL }}
+          NEXT_PUBLIC_STAGE_AUTOCOMPLETE_URL: ${{ secrets.NEXT_PUBLIC_STAGE_AUTOCOMPLETE_URL }}
+          NEXT_PUBLIC_STAGE_API_KEY: ${{ secrets.NEXT_PUBLIC_STAGE_API_KEY }}
+          NEXT_PUBLIC_DEV_OTP_URL: ${{ secrets.NEXT_PUBLIC_DEV_OTP_URL }}
+          NEXT_PUBLIC_DEV_AUTOCOMPLETE_URL: ${{ secrets.NEXT_PUBLIC_DEV_AUTOCOMPLETE_URL }}
+          NEXT_PUBLIC_DEV_API_KEY: ${{ secrets.NEXT_PUBLIC_DEV_API_KEY }}
 
       - name: Start server in background
         run: npm run start &
         env:
           PORT: 3000
-          NEXT_PUBLIC_OTP_API_URL: ${{ secrets.NEXT_PUBLIC_OTP_API_URL }}
-          NEXT_PUBLIC_API_KEY: ${{ secrets.NEXT_PUBLIC_API_KEY }}
 
       - name: Wait for server to be ready
         run: npx wait-on http://localhost:3000 --timeout 60000
