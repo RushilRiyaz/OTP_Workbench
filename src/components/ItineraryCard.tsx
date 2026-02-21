@@ -188,7 +188,7 @@ function StopRow({
         {indicator === "board" || indicator === "alight" ? (
           <div
             className="w-2.5 h-2.5 rounded-full border-2 -ml-[7px]"
-            style={{ borderColor: color, backgroundColor: indicator === "board" ? color : "white" }}
+            style={{ borderColor: color, backgroundColor: indicator === "board" ? color : "transparent" }}
           />
         ) : (
           <div
