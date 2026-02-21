@@ -88,9 +88,9 @@ export interface FromToLocation {
   arrivalDelayedTime?: number;
   departureDelayedTimeHHMM?: string;
   arrivalDelayedTimeHHMM?: string;
-  /** Delay in SECONDS (unlike Station which uses minutes) */
+  /** Delay in seconds */
   arrivalDelay?: number;
-  /** Delay in SECONDS (unlike Station which uses minutes) */
+  /** Delay in seconds */
   departureDelay?: number;
   bikeShareId?: string;
   bikeInfo?: BikeInfo;
