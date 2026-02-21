@@ -6,7 +6,6 @@ import { isStation } from "@/lib/routing";
 import { useIsDark } from "@/lib/useIsDark";
 import {
   MODE_LABELS,
-  MODE_COLORS,
   formatTimestamp,
   formatDuration,
   getLegColor,
