@@ -17,8 +17,7 @@ import {
 
 // --- Leg detail components ---
 
-function WalkLegDetail({ leg }: { leg: Leg }) {
-  const isDark = useIsDark();
+function WalkLegDetail({ leg, isDark }: { leg: Leg; isDark: boolean }) {
   const walkColor = isDark ? "#ffffff" : "#1a1a1a";
   const fromStopId = isStation(leg.from) ? leg.from.stopId : undefined;
   const toStopId = isStation(leg.to) ? leg.to.stopId : undefined;
@@ -397,7 +396,7 @@ export default function ItineraryCard({ itinerary, index, isSelected, onSelect, 
               {leg.transitLeg ? (
                 <TransitLegDetail leg={leg} />
               ) : (
-                <WalkLegDetail leg={leg} />
+                <WalkLegDetail leg={leg} isDark={isDark} />
               )}
             </div>
           ))}
