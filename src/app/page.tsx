@@ -256,6 +256,7 @@ export default function Home() {
   const handleClearResults = useCallback(() => {
     setRoutingResult(null);
     setSelectedItineraryIndex(0);
+    setHoveredLegIndex(null);
   }, []);
 
   // FR12.5: Load earlier/later itineraries
