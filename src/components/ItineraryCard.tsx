@@ -98,6 +98,7 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
             color={color}
             indicator="board"
             stopId={leg.from.stopId}
+            zoneId={leg.from.zoneId}
           />
 
           {/* Intermediate stops */}
@@ -114,6 +115,7 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
               color={color}
               indicator="intermediate"
               stopId={stop.stopId}
+              zoneId={stop.zoneId}
             />
           ))}
 
@@ -129,6 +131,7 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
             color={color}
             indicator="alight"
             stopId={leg.to.stopId}
+            zoneId={leg.to.zoneId}
           />
         </div>
       )}
@@ -147,6 +150,7 @@ function StopRow({
   color,
   indicator,
   stopId,
+  zoneId,
 }: {
   name: string;
   time?: string;
@@ -158,6 +162,7 @@ function StopRow({
   color: string;
   indicator: "board" | "alight" | "intermediate";
   stopId?: string;
+  zoneId?: string;
 }) {
   const delayStr = formatDelay(delay);
   const trackChanged = track && scheduledTrack && track !== scheduledTrack;
@@ -201,6 +206,12 @@ function StopRow({
         {/* FR11.1/FR11.2: Stop ID */}
         {stopId && (
           <span className="ml-1.5 font-mono text-[10px] text-zinc-400 dark:text-zinc-500">{stopId}</span>
+        )}
+        {/* FR11.5: Tariff zone */}
+        {zoneId && (
+          <span className="ml-1.5 inline-flex items-center px-1 py-0 rounded text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
+            Zone {zoneId}
+          </span>
         )}
         {indicator === "board" && (
           <span className="ml-1.5 text-[10px] font-semibold uppercase text-green-600 dark:text-green-400">Board</span>
