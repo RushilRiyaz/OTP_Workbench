@@ -11,9 +11,10 @@ const DASHED_MODES = new Set(["WALK"]);
 interface RoutePolylinesProps {
   itinerary: Itinerary | null;
   isDark?: boolean;
+  hoveredLegIndex?: number | null;
 }
 
-export default function RoutePolylines({ itinerary, isDark = false }: RoutePolylinesProps) {
+export default function RoutePolylines({ itinerary, isDark = false, hoveredLegIndex = null }: RoutePolylinesProps) {
   const map = useMap();
 
   // Auto-fit bounds when itinerary changes
@@ -46,6 +47,10 @@ export default function RoutePolylines({ itinerary, isDark = false }: RoutePolyl
 
         const isWalk = DASHED_MODES.has(leg.mode);
 
+        // FR11.8: Hover highlighting — hovered leg gets emphasis, others dim
+        const isHovered = hoveredLegIndex === i;
+        const hasHover = hoveredLegIndex !== null;
+
         return isWalk ? (
           // Google Maps-style dotted walking line, theme-aware
           <Polyline
@@ -53,8 +58,8 @@ export default function RoutePolylines({ itinerary, isDark = false }: RoutePolyl
             positions={positions}
             pathOptions={{
               color: isDark ? "#ffffff" : "#1a1a1a",
-              weight: 5,
-              opacity: 0.9,
+              weight: isHovered ? 7 : 5,
+              opacity: hasHover ? (isHovered ? 1 : 0.3) : 0.9,
               dashArray: "2 10",
               lineCap: "round",
               lineJoin: "round",
@@ -66,8 +71,8 @@ export default function RoutePolylines({ itinerary, isDark = false }: RoutePolyl
             positions={positions}
             pathOptions={{
               color: getLegColor(leg),
-              weight: 4,
-              opacity: 0.85,
+              weight: isHovered ? 7 : 4,
+              opacity: hasHover ? (isHovered ? 1 : 0.3) : 0.85,
             }}
           />
         );

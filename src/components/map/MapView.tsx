@@ -43,6 +43,7 @@ interface MapViewProps {
   onStartChange: (loc: LocationValue) => void;
   onDestinationChange: (loc: LocationValue) => void;
   selectedItinerary?: Itinerary | null;
+  hoveredLegIndex?: number | null;
 }
 
 export default function MapView({
@@ -51,6 +52,7 @@ export default function MapView({
   onStartChange,
   onDestinationChange,
   selectedItinerary,
+  hoveredLegIndex,
 }: MapViewProps) {
   const [popupCoords, setPopupCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isDark, setIsDark] = useState(false);
@@ -104,7 +106,7 @@ export default function MapView({
 
         <MapMarkers start={start} destination={destination} isDark={isDark} />
 
-        <RoutePolylines itinerary={selectedItinerary ?? null} isDark={isDark} />
+        <RoutePolylines itinerary={selectedItinerary ?? null} isDark={isDark} hoveredLegIndex={hoveredLegIndex ?? null} />
 
         <CursorTracker />
 

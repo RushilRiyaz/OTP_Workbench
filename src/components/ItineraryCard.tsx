@@ -290,9 +290,10 @@ interface ItineraryCardProps {
   index: number;
   isSelected: boolean;
   onSelect: (index: number) => void;
+  onHoverLeg?: (index: number | null) => void;
 }
 
-export default function ItineraryCard({ itinerary, index, isSelected, onSelect }: ItineraryCardProps) {
+export default function ItineraryCard({ itinerary, index, isSelected, onSelect, onHoverLeg }: ItineraryCardProps) {
   const isDark = useIsDark();
   const walkColor = isDark ? "#ffffff" : "#1a1a1a";
 
@@ -387,13 +388,20 @@ export default function ItineraryCard({ itinerary, index, isSelected, onSelect }
       {/* Row 5: Expandable leg details (only when selected) */}
       {isSelected && (
         <div className="mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-700 space-y-0.5">
-          {itinerary.legs.map((leg, i) =>
-            leg.transitLeg ? (
-              <TransitLegDetail key={i} leg={leg} />
-            ) : (
-              <WalkLegDetail key={i} leg={leg} />
-            )
-          )}
+          {itinerary.legs.map((leg, i) => (
+            // FR11.8: Hover to highlight map polyline
+            <div
+              key={i}
+              onMouseEnter={() => onHoverLeg?.(i)}
+              onMouseLeave={() => onHoverLeg?.(null)}
+            >
+              {leg.transitLeg ? (
+                <TransitLegDetail leg={leg} />
+              ) : (
+                <WalkLegDetail leg={leg} />
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
