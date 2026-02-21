@@ -1,121 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { Itinerary, Leg, TransitLeg, Station } from "@/lib/routing";
-
-function useIsDark(): boolean {
-  const [isDark, setIsDark] = useState(false);
-  useEffect(() => {
-    const html = document.documentElement;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const check = () => {
-      setIsDark(html.classList.contains("dark") || (mq.matches && !html.classList.contains("light")));
-    };
-    check();
-    const obs = new MutationObserver(check);
-    obs.observe(html, { attributes: true, attributeFilter: ["class"] });
-    mq.addEventListener("change", check);
-    return () => { obs.disconnect(); mq.removeEventListener("change", check); };
-  }, []);
-  return isDark;
-}
-
-// --- Mode display config ---
-
-const MODE_LABELS: Record<string, string> = {
-  WALK: "Walk",
-  BUS: "Bus",
-  TRAM: "Tram",
-  SUBURB: "S-Bahn",
-  TRAIN: "Train",
-  BIKE: "Bike",
-  BIKERENTAL: "Bike",
-  SUBWAY: "U-Bahn",
-  FERRY: "Ferry",
-  FLEXA: "Flexa",
-};
-
-const MODE_COLORS: Record<string, string> = {
-  WALK: "#9ca3af",
-  BUS: "#7c3aed",
-  TRAM: "#dc2626",
-  SUBURB: "#16a34a",
-  TRAIN: "#1e3a5f",
-  BIKE: "#ea580c",
-  BIKERENTAL: "#ea580c",
-  SUBWAY: "#2563eb",
-  FERRY: "#0891b2",
-  FLEXA: "#d97706",
-};
-
-// --- Helpers ---
-
-function formatTime(ts: number): string {
-  const d = new Date(ts);
-  return d.toLocaleTimeString("de-DE", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Europe/Berlin",
-  });
-}
-
-function formatDuration(seconds: number): string {
-  const mins = Math.round(seconds / 60);
-  if (mins < 60) return `${mins} min`;
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return m > 0 ? `${h}h ${m}min` : `${h}h`;
-}
-
-function getLegColor(leg: Leg): string {
-  if (leg.transitLeg && leg.routeColor) {
-    const c = leg.routeColor.startsWith("#") ? leg.routeColor : `#${leg.routeColor}`;
-    if (c.length >= 4) return c;
-  }
-  return MODE_COLORS[leg.mode] ?? "#3b82f6";
-}
-
-function getUniqueProducts(legs: Leg[]): { mode: string; label: string; routeName?: string; color: string }[] {
-  const seen = new Set<string>();
-  const products: { mode: string; label: string; routeName?: string; color: string }[] = [];
-
-  for (const leg of legs) {
-    if (!leg.transitLeg) continue;
-    const key = `${leg.mode}-${leg.routeShortName}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    products.push({
-      mode: leg.mode,
-      label: MODE_LABELS[leg.mode] ?? leg.mode,
-      routeName: leg.routeShortName,
-      color: getLegColor(leg),
-    });
-  }
-  return products;
-}
-
-function formatDelay(delaySeconds: number | undefined): string | null {
-  if (delaySeconds === undefined || delaySeconds === 0) return null;
-  const mins = Math.round(delaySeconds / 60);
-  if (mins === 0) return null;
-  return mins > 0 ? `+${mins}` : `${mins}`;
-}
+import { useState } from "react";
+import type { Itinerary, Leg, TransitLeg } from "@/lib/routing";
+import { useIsDark } from "@/lib/useIsDark";
+import {
+  MODE_LABELS,
+  MODE_COLORS,
+  formatTimestamp,
+  formatDuration,
+  getLegColor,
+  getUniqueProducts,
+  formatDelay,
+  formatDistance,
+} from "@/lib/legUtils";
 
 // --- Leg detail components ---
 
 function WalkLegDetail({ leg }: { leg: Leg }) {
   const isDark = useIsDark();
   const walkColor = isDark ? "#ffffff" : "#1a1a1a";
-  const dist = leg.distance >= 1000
-    ? `${(leg.distance / 1000).toFixed(1)} km`
-    : `${Math.round(leg.distance)} m`;
 
   return (
     <div className="flex items-center gap-2 py-1.5 px-2 text-xs" style={{ color: walkColor, opacity: 0.7 }}>
       <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
       </svg>
-      <span>{MODE_LABELS[leg.mode] ?? leg.mode} {dist} ({formatDuration(leg.duration)})</span>
+      <span>{MODE_LABELS[leg.mode] ?? leg.mode} {formatDistance(leg.distance)} ({formatDuration(leg.duration)})</span>
     </div>
   );
 }
@@ -126,8 +36,8 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
   const label = MODE_LABELS[leg.mode] ?? leg.mode;
   const stopCount = leg.intermediateStops?.length ?? 0;
 
-  const depTime = leg.startTimeHHMM ?? formatTime(leg.startTime);
-  const arrTime = leg.endTimeHHMM ?? formatTime(leg.endTime);
+  const depTime = leg.startTimeHHMM ?? formatTimestamp(leg.startTime);
+  const arrTime = leg.endTimeHHMM ?? formatTimestamp(leg.endTime);
 
   return (
     <div className="text-xs">
@@ -183,7 +93,7 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
             <StopRow
               key={i}
               name={stop.name}
-              time={stop.departureDelayedTimeHHMM ?? (stop.departure ? formatTime(stop.departure) : undefined)}
+              time={stop.departureDelayedTimeHHMM ?? (stop.departure ? formatTimestamp(stop.departure) : undefined)}
               delayedTime={stop.departureDelayedTimeHHMM}
               delay={stop.departureDelay}
               track={stop.track}
@@ -301,8 +211,8 @@ export default function ItineraryCard({ itinerary, index, isSelected, onSelect }
   const isDark = useIsDark();
   const walkColor = isDark ? "#ffffff" : "#1a1a1a";
 
-  const depTime = itinerary.startTimeHHMM ?? formatTime(itinerary.startTime);
-  const arrTime = itinerary.endTimeHHMM ?? formatTime(itinerary.endTime);
+  const depTime = itinerary.startTimeHHMM ?? formatTimestamp(itinerary.startTime);
+  const arrTime = itinerary.endTimeHHMM ?? formatTimestamp(itinerary.endTime);
   const duration = itinerary.durationHHMM ?? formatDuration(itinerary.duration);
   const products = getUniqueProducts(itinerary.legs);
   const zones = itinerary.zoneInfo?.orderedZones ?? [];

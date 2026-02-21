@@ -3,28 +3,10 @@
 import { useEffect } from "react";
 import { Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
-import type { Itinerary, Leg } from "@/lib/routing";
-
-const MODE_COLORS: Record<string, string> = {
-  WALK: "#9ca3af",
-  BUS: "#7c3aed",
-  TRAM: "#dc2626",
-  SUBURB: "#16a34a",
-  TRAIN: "#1e3a5f",
-  BIKE: "#ea580c",
-  BIKERENTAL: "#ea580c",
-};
+import type { Itinerary } from "@/lib/routing";
+import { getLegColor } from "@/lib/legUtils";
 
 const DASHED_MODES = new Set(["WALK"]);
-
-function getLegColor(leg: Leg): string {
-  if (leg.transitLeg && leg.routeColor) {
-    // Use the route's own color if available (e.g. "#E3000F")
-    const c = leg.routeColor.startsWith("#") ? leg.routeColor : `#${leg.routeColor}`;
-    if (c.length >= 4) return c;
-  }
-  return MODE_COLORS[leg.mode] ?? "#3b82f6";
-}
 
 interface RoutePolylinesProps {
   itinerary: Itinerary | null;
