@@ -338,6 +338,8 @@ describe("normalizeStationDelays", () => {
     const result = normalizeStationDelays(response);
     const leg = result.plan!.itineraries[0].legs[0];
     if (leg.transitLeg) throw new Error("expected non-transit leg");
+    expect(isStation(leg.from)).toBe(true);
+    expect(isStation(leg.to)).toBe(true);
     if (isStation(leg.from)) expect(leg.from.departureDelay).toBe(120);
     if (isStation(leg.to)) expect(leg.to.arrivalDelay).toBe(240);
   });
@@ -364,6 +366,8 @@ describe("normalizeStationDelays", () => {
     const result = normalizeStationDelays(response);
     const leg = result.plan!.itineraries[0].legs[0];
     if (leg.transitLeg) throw new Error("expected non-transit leg");
+    expect(isStation(leg.from)).toBe(false);
+    expect(isStation(leg.to)).toBe(false);
     if (!isStation(leg.from)) expect(leg.from.departureDelay).toBe(120);
     if (!isStation(leg.to)) expect(leg.to.arrivalDelay).toBe(60);
   });
