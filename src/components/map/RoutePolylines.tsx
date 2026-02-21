@@ -23,6 +23,7 @@ export default function RoutePolylines({ itinerary, isDark = false, hoveredLegIn
 
     const allPoints: L.LatLngExpression[] = [];
     for (const leg of itinerary.legs) {
+      if (!leg.legGeometry?.points) continue;
       for (const pt of leg.legGeometry.points) {
         allPoints.push([pt.lat, pt.lon]);
       }
@@ -39,6 +40,7 @@ export default function RoutePolylines({ itinerary, isDark = false, hoveredLegIn
   return (
     <>
       {itinerary.legs.map((leg, i) => {
+        if (!leg.legGeometry?.points) return null;
         const positions: L.LatLngExpression[] = leg.legGeometry.points.map(
           (pt) => [pt.lat, pt.lon] as L.LatLngExpression
         );
