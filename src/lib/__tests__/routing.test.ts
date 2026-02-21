@@ -4,6 +4,8 @@ import {
   formatDate,
   formatTime,
   fetchRouting,
+  normalizeStationDelays,
+  isStation,
 } from "@/lib/routing";
 import type { RoutingRequestParams, RoutingResponse } from "@/lib/routing";
 import {
@@ -12,6 +14,12 @@ import {
   autocompleteLocation,
   emptyLocation,
   defaultOptions,
+  createRoutingResponse,
+  createItinerary,
+  createTransitLeg,
+  createNonTransitLeg,
+  createStation,
+  createFromToLocation,
 } from "@/test/fixtures";
 
 // --- Pure helper tests ---
@@ -243,5 +251,126 @@ describe("fetchRouting", () => {
     if (!result.success) {
       expect(result.error.type).toBe("timeout");
     }
+  });
+});
+
+// --- normalizeStationDelays ---
+
+describe("normalizeStationDelays", () => {
+  it("converts TransitLeg Station delays from minutes to seconds", () => {
+    const response = createRoutingResponse({
+      plan: {
+        date: 0,
+        from: { name: "A", lon: 12, lat: 51 },
+        to: { name: "B", lon: 12, lat: 51 },
+        itineraries: [
+          createItinerary({
+            legs: [
+              createTransitLeg({
+                from: createStation({ departureDelay: 3 }),
+                to: createStation({ arrivalDelay: 5 }),
+                intermediateStops: [
+                  createStation({ departureDelay: 2, arrivalDelay: 1 }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      },
+    });
+
+    const result = normalizeStationDelays(response);
+    const leg = result.plan!.itineraries[0].legs[0];
+    if (!leg.transitLeg) throw new Error("expected transit leg");
+
+    expect(leg.from.departureDelay).toBe(180);
+    expect(leg.to.arrivalDelay).toBe(300);
+    expect(leg.intermediateStops[0].departureDelay).toBe(120);
+    expect(leg.intermediateStops[0].arrivalDelay).toBe(60);
+  });
+
+  it("leaves undefined delays untouched", () => {
+    const response = createRoutingResponse({
+      plan: {
+        date: 0,
+        from: { name: "A", lon: 12, lat: 51 },
+        to: { name: "B", lon: 12, lat: 51 },
+        itineraries: [
+          createItinerary({
+            legs: [
+              createTransitLeg({
+                from: createStation(),
+                to: createStation(),
+                intermediateStops: [],
+              }),
+            ],
+          }),
+        ],
+      },
+    });
+
+    const result = normalizeStationDelays(response);
+    const leg = result.plan!.itineraries[0].legs[0];
+    if (!leg.transitLeg) throw new Error("expected transit leg");
+    expect(leg.from.departureDelay).toBeUndefined();
+    expect(leg.to.arrivalDelay).toBeUndefined();
+  });
+
+  it("converts NonTransitLeg Station from/to delays", () => {
+    const response = createRoutingResponse({
+      plan: {
+        date: 0,
+        from: { name: "A", lon: 12, lat: 51 },
+        to: { name: "B", lon: 12, lat: 51 },
+        itineraries: [
+          createItinerary({
+            legs: [
+              createNonTransitLeg({
+                from: createStation({ departureDelay: 2 }),
+                to: createStation({ arrivalDelay: 4 }),
+              }),
+            ],
+          }),
+        ],
+      },
+    });
+
+    const result = normalizeStationDelays(response);
+    const leg = result.plan!.itineraries[0].legs[0];
+    if (leg.transitLeg) throw new Error("expected non-transit leg");
+    if (isStation(leg.from)) expect(leg.from.departureDelay).toBe(120);
+    if (isStation(leg.to)) expect(leg.to.arrivalDelay).toBe(240);
+  });
+
+  it("does not convert FromToLocation delays", () => {
+    const response = createRoutingResponse({
+      plan: {
+        date: 0,
+        from: { name: "A", lon: 12, lat: 51 },
+        to: { name: "B", lon: 12, lat: 51 },
+        itineraries: [
+          createItinerary({
+            legs: [
+              createNonTransitLeg({
+                from: createFromToLocation({ departureDelay: 120 }),
+                to: createFromToLocation({ arrivalDelay: 60 }),
+              }),
+            ],
+          }),
+        ],
+      },
+    });
+
+    const result = normalizeStationDelays(response);
+    const leg = result.plan!.itineraries[0].legs[0];
+    if (leg.transitLeg) throw new Error("expected non-transit leg");
+    if (!isStation(leg.from)) expect(leg.from.departureDelay).toBe(120);
+    if (!isStation(leg.to)) expect(leg.to.arrivalDelay).toBe(60);
+  });
+
+  it("returns response unchanged when no plan", () => {
+    const response = createRoutingResponse({ plan: undefined });
+    const result = normalizeStationDelays(response);
+    expect(result.plan).toBeUndefined();
   });
 });

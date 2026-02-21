@@ -68,9 +68,9 @@ export interface Station {
   arrivalDelayedTime?: number;
   departureDelayedTimeHHMM?: string;
   arrivalDelayedTimeHHMM?: string;
-  /** Delay in MINUTES (unlike FromToLocation which uses seconds) */
+  /** Delay in seconds (API returns minutes; normalizeStationDelays converts to seconds) */
   arrivalDelay?: number;
-  /** Delay in MINUTES (unlike FromToLocation which uses seconds) */
+  /** Delay in seconds (API returns minutes; normalizeStationDelays converts to seconds) */
   departureDelay?: number;
   boardAlightType?: string;
   hafas_id?: string;
@@ -99,6 +99,41 @@ export interface FromToLocation {
 
 export function isStation(loc: Station | FromToLocation): loc is Station {
   return "stopId" in loc;
+}
+
+// --- Station delay normalization ---
+// API returns Station delays in minutes but FromToLocation/BaseLeg delays in seconds.
+// normalizeStationDelays converts Station delays to seconds at the API boundary
+// so the entire app uses a uniform seconds unit.
+
+function convertStationDelay(station: Station): void {
+  if (station.departureDelay !== undefined) {
+    station.departureDelay = station.departureDelay * 60;
+  }
+  if (station.arrivalDelay !== undefined) {
+    station.arrivalDelay = station.arrivalDelay * 60;
+  }
+}
+
+export function normalizeStationDelays(response: RoutingResponse): RoutingResponse {
+  if (!response.plan?.itineraries) return response;
+
+  for (const itinerary of response.plan.itineraries) {
+    for (const leg of itinerary.legs) {
+      if (leg.transitLeg) {
+        convertStationDelay(leg.from);
+        convertStationDelay(leg.to);
+        for (const stop of leg.intermediateStops) {
+          convertStationDelay(stop);
+        }
+      } else {
+        if (isStation(leg.from)) convertStationDelay(leg.from);
+        if (isStation(leg.to)) convertStationDelay(leg.to);
+      }
+    }
+  }
+
+  return response;
 }
 
 // --- Mode types ---
@@ -391,7 +426,7 @@ export async function fetchRouting(
       };
     }
 
-    return { success: true, data };
+    return { success: true, data: normalizeStationDelays(data) };
   } catch (err) {
     if (err instanceof Error) {
       if (err.name === "AbortError") {
