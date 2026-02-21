@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Itinerary, Leg, TransitLeg } from "@/lib/routing";
+import { isStation } from "@/lib/routing";
 import { useIsDark } from "@/lib/useIsDark";
 import {
   MODE_LABELS,
@@ -19,13 +20,23 @@ import {
 function WalkLegDetail({ leg }: { leg: Leg }) {
   const isDark = useIsDark();
   const walkColor = isDark ? "#ffffff" : "#1a1a1a";
+  const fromStopId = isStation(leg.from) ? leg.from.stopId : undefined;
+  const toStopId = isStation(leg.to) ? leg.to.stopId : undefined;
 
   return (
-    <div className="flex items-center gap-2 py-1.5 px-2 text-xs" style={{ color: walkColor, opacity: 0.7 }}>
-      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-      </svg>
-      <span>{MODE_LABELS[leg.mode] ?? leg.mode} {formatDistance(leg.distance)} ({formatDuration(leg.duration)})</span>
+    <div className="py-1.5 px-2 text-xs" style={{ color: walkColor, opacity: 0.7 }}>
+      <div className="flex items-center gap-2">
+        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+        <span>{MODE_LABELS[leg.mode] ?? leg.mode} {formatDistance(leg.distance)} ({formatDuration(leg.duration)})</span>
+      </div>
+      {/* FR11.1: Walk leg from/to with stop IDs */}
+      <div className="ml-5.5 mt-0.5 text-[10px] text-zinc-400 dark:text-zinc-500">
+        <span>{leg.from.name}{fromStopId && <span className="ml-1 font-mono">{fromStopId}</span>}</span>
+        <span className="mx-1">&rarr;</span>
+        <span>{leg.to.name}{toStopId && <span className="ml-1 font-mono">{toStopId}</span>}</span>
+      </div>
     </div>
   );
 }
@@ -86,6 +97,7 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
             cancelled={"cancelled" in leg.from ? leg.from.cancelled : false}
             color={color}
             indicator="board"
+            stopId={leg.from.stopId}
           />
 
           {/* Intermediate stops */}
@@ -101,6 +113,7 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
               cancelled={stop.cancelled}
               color={color}
               indicator="intermediate"
+              stopId={stop.stopId}
             />
           ))}
 
@@ -115,6 +128,7 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
             cancelled={"cancelled" in leg.to ? leg.to.cancelled : false}
             color={color}
             indicator="alight"
+            stopId={leg.to.stopId}
           />
         </div>
       )}
@@ -132,6 +146,7 @@ function StopRow({
   cancelled,
   color,
   indicator,
+  stopId,
 }: {
   name: string;
   time?: string;
@@ -142,6 +157,7 @@ function StopRow({
   cancelled?: boolean;
   color: string;
   indicator: "board" | "alight" | "intermediate";
+  stopId?: string;
 }) {
   const delayStr = formatDelay(delay);
   const trackChanged = track && scheduledTrack && track !== scheduledTrack;
@@ -182,6 +198,10 @@ function StopRow({
         <span className={`${cancelled ? "line-through" : ""} text-zinc-700 dark:text-zinc-300`}>
           {name}
         </span>
+        {/* FR11.1/FR11.2: Stop ID */}
+        {stopId && (
+          <span className="ml-1.5 font-mono text-[10px] text-zinc-400 dark:text-zinc-500">{stopId}</span>
+        )}
         {indicator === "board" && (
           <span className="ml-1.5 text-[10px] font-semibold uppercase text-green-600 dark:text-green-400">Board</span>
         )}
