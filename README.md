@@ -3,7 +3,7 @@
 A developer tool for LVB (Leipziger Verkehrsbetriebe) routing developers to test and compare routing APIs across environments.
 
 <!-- CI Badges -->
-[![Tests](https://github.com/RushilRiyaz/OTP_Workbench/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/RushilRiyaz/OTP_Workbench/actions/workflows/e2e-tests.yml)
+[![CI](https://github.com/RushilRiyaz/OTP_Workbench/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/RushilRiyaz/OTP_Workbench/actions/workflows/e2e-tests.yml)
 
 ## Tech Stack
 
