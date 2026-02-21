@@ -29,6 +29,10 @@ function WalkLegDetail({ leg }: { leg: Leg }) {
         <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
+        {/* FR11.3: Walk leg departure/arrival times */}
+        <span className="font-mono tabular-nums">{leg.startTimeHHMM ?? formatTimestamp(leg.startTime)}</span>
+        <span>&ndash;</span>
+        <span className="font-mono tabular-nums">{leg.endTimeHHMM ?? formatTimestamp(leg.endTime)}</span>
         <span>{MODE_LABELS[leg.mode] ?? leg.mode} {formatDistance(leg.distance)} ({formatDuration(leg.duration)})</span>
       </div>
       {/* FR11.1: Walk leg from/to with stop IDs */}
@@ -107,7 +111,7 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
             <StopRow
               key={i}
               name={stop.name}
-              time={stop.departureDelayedTimeHHMM ?? (stop.departure ? formatTimestamp(stop.departure) : undefined)}
+              time={stop.departure ? formatTimestamp(stop.departure) : undefined}
               delayedTime={stop.departureDelayedTimeHHMM}
               delay={stop.departureDelay}
               track={stop.track}
@@ -185,17 +189,26 @@ function StopRow({
         )}
       </div>
 
-      {/* Time */}
-      <span className="flex-shrink-0 w-10 text-zinc-600 dark:text-zinc-300 font-mono tabular-nums">
-        {time ?? "—"}
-      </span>
-
-      {/* Delay indicator */}
-      {delayStr && (
-        <span className={`flex-shrink-0 font-mono text-[10px] tabular-nums ${
-          delayStr.startsWith("+") ? "text-red-500" : "text-green-500"
-        }`}>
-          {delayStr}
+      {/* FR11.3: Planned vs realtime times */}
+      {delayStr && delayedTime ? (
+        <div className="flex-shrink-0 flex items-baseline gap-1">
+          <span className="w-10 font-mono tabular-nums text-zinc-400 dark:text-zinc-500 line-through">
+            {time ?? "—"}
+          </span>
+          <span className={`font-mono tabular-nums font-medium ${
+            delayStr.startsWith("+") ? "text-red-500" : "text-green-500"
+          }`}>
+            {delayedTime}
+          </span>
+          <span className={`font-mono text-[10px] tabular-nums ${
+            delayStr.startsWith("+") ? "text-red-500" : "text-green-500"
+          }`}>
+            {delayStr}
+          </span>
+        </div>
+      ) : (
+        <span className="flex-shrink-0 w-10 text-zinc-600 dark:text-zinc-300 font-mono tabular-nums">
+          {time ?? "—"}
         </span>
       )}
 
