@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { useIsDark } from "@/lib/useIsDark";
 import { MapContainer, TileLayer } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -55,25 +56,7 @@ export default function MapView({
   hoveredLegIndex,
 }: MapViewProps) {
   const [popupCoords, setPopupCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const html = document.documentElement;
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const check = () => {
-      const hasDark = html.classList.contains("dark");
-      const hasLight = html.classList.contains("light");
-      setIsDark(hasDark || (mediaQuery.matches && !hasLight));
-    };
-    check();
-    const observer = new MutationObserver(check);
-    observer.observe(html, { attributes: true, attributeFilter: ["class"] });
-    mediaQuery.addEventListener("change", check);
-    return () => {
-      observer.disconnect();
-      mediaQuery.removeEventListener("change", check);
-    };
-  }, []);
+  const isDark = useIsDark();
 
   const handlePopupOpen = useCallback((coords: { lat: number; lng: number } | null) => {
     setPopupCoords(coords);
