@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Itinerary, Leg, TransitLeg } from "@/lib/routing";
+import type { Itinerary, Leg, TransitLeg, Alert } from "@/lib/routing";
 import { isStation } from "@/lib/routing";
 import { useIsDark } from "@/lib/useIsDark";
 import {
@@ -13,6 +13,7 @@ import {
   getUniqueProducts,
   formatDelay,
   formatDistance,
+  formatAlertCategory,
 } from "@/lib/legUtils";
 
 // --- Leg detail components ---
@@ -138,6 +139,16 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
             stopId={leg.to.stopId}
             zoneId={leg.to.zoneId}
           />
+
+          {/* FR11.6: Trip ID */}
+          <div className="mt-1.5 pt-1.5 border-t border-zinc-100 dark:border-zinc-800 text-[10px] text-zinc-400 dark:text-zinc-500">
+            Trip: <span className="font-mono">{leg.tripId}</span>
+          </div>
+
+          {/* FR11.6: Alerts */}
+          {leg.alerts && leg.alerts.length > 0 && (
+            <AlertList alerts={leg.alerts} />
+          )}
         </div>
       )}
     </div>
@@ -239,6 +250,35 @@ function StopRow({
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+// FR11.6: Alert category color mapping
+const ALERT_CATEGORY_STYLES: Record<number, string> = {
+  0: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",           // Disruption
+  1: "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400", // Delay
+  2: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400",       // Winter
+  3: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",        // Info
+  4: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",    // Construction
+  5: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400", // Event
+  6: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",            // Unreachable
+};
+
+function AlertList({ alerts }: { alerts: Alert[] }) {
+  if (alerts.length === 0) return null;
+  return (
+    <div className="space-y-1 mt-1.5">
+      {alerts.map((alert, i) => {
+        const style = ALERT_CATEGORY_STYLES[alert.alertCategory] ?? ALERT_CATEGORY_STYLES[3];
+        return (
+          <div key={i} className={`rounded px-2 py-1.5 text-[11px] ${style}`}>
+            <span className="font-semibold">{formatAlertCategory(alert.alertCategory)}</span>
+            {alert.alertHeaderText && <span className="font-medium">: {alert.alertHeaderText}</span>}
+            <p className="mt-0.5 opacity-80">{alert.alertDescriptionText}</p>
+          </div>
+        );
+      })}
     </div>
   );
 }
