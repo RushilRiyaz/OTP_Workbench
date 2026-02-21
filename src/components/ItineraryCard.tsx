@@ -71,9 +71,10 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
           &rarr; {leg.headsign}
         </span>
 
-        {/* Stop count + expand chevron */}
+        {/* FR11.4: Duration + stop count + expand chevron */}
         <span className="text-zinc-400 dark:text-zinc-500 flex-shrink-0 flex items-center gap-1">
-          {stopCount > 0 && <span>{stopCount} stop{stopCount !== 1 ? "s" : ""}</span>}
+          <span>{formatDuration(leg.duration)}</span>
+          {stopCount > 0 && <span>&middot; {stopCount} stop{stopCount !== 1 ? "s" : ""}</span>}
           <svg
             className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : ""}`}
             fill="none" stroke="currentColor" viewBox="0 0 24 24"
