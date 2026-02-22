@@ -130,3 +130,45 @@ body {
     background: #52525b; /* zinc-600 */
   }
 }
+
+/* Permanent marker labels — strip default Leaflet tooltip chrome */
+.leaflet-tooltip.marker-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+  text-shadow:
+    -1px -1px 0 #fff,
+     1px -1px 0 #fff,
+    -1px  1px 0 #fff,
+     1px  1px 0 #fff;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.leaflet-tooltip.marker-label::before {
+  display: none;
+}
+
+.dark .leaflet-tooltip.marker-label {
+  color: #e2e8f0;
+  text-shadow:
+    -1px -1px 0 #0f172a,
+     1px -1px 0 #0f172a,
+    -1px  1px 0 #0f172a,
+     1px  1px 0 #0f172a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .leaflet-tooltip.marker-label {
+    color: #e2e8f0;
+    text-shadow:
+      -1px -1px 0 #0f172a,
+       1px -1px 0 #0f172a,
+      -1px  1px 0 #0f172a,
+       1px  1px 0 #0f172a;
+  }
+}
