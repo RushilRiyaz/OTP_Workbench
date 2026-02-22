@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from "react";
 
+/** Current Berlin time as a datetime-local string ("YYYY-MM-DDTHH:mm"). */
+export function getBerlinNow(): string {
+  const berlinStr = new Date().toLocaleString("sv-SE", { timeZone: "Europe/Berlin" });
+  return berlinStr.slice(0, 16).replace(" ", "T");
+}
+
 interface DateTimeInputProps {
   label: string;
   value: string;
@@ -69,12 +75,21 @@ export default function DateTimeInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           style={{ colorScheme: isDark ? "dark" : "light" }}
-          className={`w-full px-3 py-2.5 text-sm rounded-lg border shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:border-transparent hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors ${
+          className={`w-full pr-20 px-3 py-2.5 text-sm rounded-lg border shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:border-transparent hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors ${
             error
               ? "border-red-500 focus:ring-red-500"
               : "border-zinc-200 dark:border-zinc-700 focus:ring-lvb-yellow focus:border-lvb-yellow/50"
           }`}
         />
+        {/* "Now" button — resets dateTime to current Berlin time */}
+        <button
+          type="button"
+          onClick={() => onChange(getBerlinNow())}
+          className="absolute right-8 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs font-medium rounded-md text-zinc-500 hover:text-lvb-yellow-dark dark:text-zinc-400 dark:hover:text-lvb-yellow bg-zinc-100 dark:bg-zinc-700 hover:bg-lvb-yellow/15 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+          title="Set to current time"
+        >
+          Now
+        </button>
         {/* Custom calendar icon — pointer-events-none so the invisible native indicator above handles clicks */}
         <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
           <svg

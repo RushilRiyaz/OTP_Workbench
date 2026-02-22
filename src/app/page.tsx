@@ -48,6 +48,15 @@ export default function Home() {
   // Selected itinerary index for results display
   const [selectedItineraryIndex, setSelectedItineraryIndex] = useState<number>(0);
 
+  // FR11.8: Hovered leg index for map polyline highlighting
+  const [hoveredLegIndex, setHoveredLegIndex] = useState<number | null>(null);
+
+  // Reset hover when itinerary selection changes
+  const handleSelectItinerary = useCallback((index: number) => {
+    setSelectedItineraryIndex(index);
+    setHoveredLegIndex(null);
+  }, []);
+
   // FR6.4: Request history (loaded from localStorage)
   const [requestHistory, setRequestHistory] = useState<RequestHistoryEntry[]>([]);
 
@@ -247,6 +256,7 @@ export default function Home() {
   const handleClearResults = useCallback(() => {
     setRoutingResult(null);
     setSelectedItineraryIndex(0);
+    setHoveredLegIndex(null);
   }, []);
 
   // FR12.5: Load earlier/later itineraries
@@ -398,9 +408,11 @@ export default function Home() {
         onDestinationChange={setDestinationLocation}
         routingResult={routingResult}
         selectedItineraryIndex={selectedItineraryIndex}
-        onSelectItinerary={setSelectedItineraryIndex}
+        onSelectItinerary={handleSelectItinerary}
         onLoadMore={handleLoadMore}
         onClearResults={handleClearResults}
+        hoveredLegIndex={hoveredLegIndex}
+        onHoverLeg={setHoveredLegIndex}
       />
     </div>
   );

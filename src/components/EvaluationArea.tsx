@@ -22,6 +22,8 @@ interface EvaluationAreaProps {
   onSelectItinerary?: (index: number) => void;
   onLoadMore?: (direction: "earlier" | "later") => Promise<void>;
   onClearResults?: () => void;
+  hoveredLegIndex?: number | null;
+  onHoverLeg?: (index: number | null) => void;
   children?: React.ReactNode;
 }
 
@@ -52,6 +54,8 @@ export default function EvaluationArea({
   onSelectItinerary,
   onLoadMore,
   onClearResults,
+  hoveredLegIndex,
+  onHoverLeg,
   children,
 }: EvaluationAreaProps) {
   const itineraries = routingResult?.plan?.itineraries ?? [];
@@ -190,6 +194,7 @@ export default function EvaluationArea({
                     onStartChange={onStartChange}
                     onDestinationChange={onDestinationChange}
                     selectedItinerary={selectedItinerary}
+                    hoveredLegIndex={hoveredLegIndex ?? null}
                   />
                 </ErrorBoundary>
               </div>
@@ -228,6 +233,7 @@ export default function EvaluationArea({
                     selectedIndex={selectedItineraryIndex}
                     onSelectItinerary={onSelectItinerary ?? (() => {})}
                     onLoadMore={onLoadMore}
+                    onHoverLeg={onHoverLeg}
                   />
                 </div>
               )}

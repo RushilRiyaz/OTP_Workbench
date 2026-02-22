@@ -68,9 +68,9 @@ export interface Station {
   arrivalDelayedTime?: number;
   departureDelayedTimeHHMM?: string;
   arrivalDelayedTimeHHMM?: string;
-  /** Delay in MINUTES (unlike FromToLocation which uses seconds) */
+  /** Delay in seconds */
   arrivalDelay?: number;
-  /** Delay in MINUTES (unlike FromToLocation which uses seconds) */
+  /** Delay in seconds */
   departureDelay?: number;
   boardAlightType?: string;
   hafas_id?: string;
@@ -88,9 +88,9 @@ export interface FromToLocation {
   arrivalDelayedTime?: number;
   departureDelayedTimeHHMM?: string;
   arrivalDelayedTimeHHMM?: string;
-  /** Delay in SECONDS (unlike Station which uses minutes) */
+  /** Delay in seconds */
   arrivalDelay?: number;
-  /** Delay in SECONDS (unlike Station which uses minutes) */
+  /** Delay in seconds */
   departureDelay?: number;
   bikeShareId?: string;
   bikeInfo?: BikeInfo;

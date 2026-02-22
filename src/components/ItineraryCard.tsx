@@ -1,121 +1,45 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { Itinerary, Leg, TransitLeg, Station } from "@/lib/routing";
-
-function useIsDark(): boolean {
-  const [isDark, setIsDark] = useState(false);
-  useEffect(() => {
-    const html = document.documentElement;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const check = () => {
-      setIsDark(html.classList.contains("dark") || (mq.matches && !html.classList.contains("light")));
-    };
-    check();
-    const obs = new MutationObserver(check);
-    obs.observe(html, { attributes: true, attributeFilter: ["class"] });
-    mq.addEventListener("change", check);
-    return () => { obs.disconnect(); mq.removeEventListener("change", check); };
-  }, []);
-  return isDark;
-}
-
-// --- Mode display config ---
-
-const MODE_LABELS: Record<string, string> = {
-  WALK: "Walk",
-  BUS: "Bus",
-  TRAM: "Tram",
-  SUBURB: "S-Bahn",
-  TRAIN: "Train",
-  BIKE: "Bike",
-  BIKERENTAL: "Bike",
-  SUBWAY: "U-Bahn",
-  FERRY: "Ferry",
-  FLEXA: "Flexa",
-};
-
-const MODE_COLORS: Record<string, string> = {
-  WALK: "#9ca3af",
-  BUS: "#7c3aed",
-  TRAM: "#dc2626",
-  SUBURB: "#16a34a",
-  TRAIN: "#1e3a5f",
-  BIKE: "#ea580c",
-  BIKERENTAL: "#ea580c",
-  SUBWAY: "#2563eb",
-  FERRY: "#0891b2",
-  FLEXA: "#d97706",
-};
-
-// --- Helpers ---
-
-function formatTime(ts: number): string {
-  const d = new Date(ts);
-  return d.toLocaleTimeString("de-DE", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Europe/Berlin",
-  });
-}
-
-function formatDuration(seconds: number): string {
-  const mins = Math.round(seconds / 60);
-  if (mins < 60) return `${mins} min`;
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return m > 0 ? `${h}h ${m}min` : `${h}h`;
-}
-
-function getLegColor(leg: Leg): string {
-  if (leg.transitLeg && leg.routeColor) {
-    const c = leg.routeColor.startsWith("#") ? leg.routeColor : `#${leg.routeColor}`;
-    if (c.length >= 4) return c;
-  }
-  return MODE_COLORS[leg.mode] ?? "#3b82f6";
-}
-
-function getUniqueProducts(legs: Leg[]): { mode: string; label: string; routeName?: string; color: string }[] {
-  const seen = new Set<string>();
-  const products: { mode: string; label: string; routeName?: string; color: string }[] = [];
-
-  for (const leg of legs) {
-    if (!leg.transitLeg) continue;
-    const key = `${leg.mode}-${leg.routeShortName}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    products.push({
-      mode: leg.mode,
-      label: MODE_LABELS[leg.mode] ?? leg.mode,
-      routeName: leg.routeShortName,
-      color: getLegColor(leg),
-    });
-  }
-  return products;
-}
-
-function formatDelay(delaySeconds: number | undefined): string | null {
-  if (delaySeconds === undefined || delaySeconds === 0) return null;
-  const mins = Math.round(delaySeconds / 60);
-  if (mins === 0) return null;
-  return mins > 0 ? `+${mins}` : `${mins}`;
-}
+import { useState } from "react";
+import type { Itinerary, Leg, TransitLeg, Alert } from "@/lib/routing";
+import { isStation } from "@/lib/routing";
+import { useIsDark } from "@/lib/useIsDark";
+import {
+  MODE_LABELS,
+  formatTimestamp,
+  formatDuration,
+  getLegColor,
+  getUniqueProducts,
+  formatDelay,
+  formatDistance,
+  formatAlertCategory,
+} from "@/lib/legUtils";
 
 // --- Leg detail components ---
 
-function WalkLegDetail({ leg }: { leg: Leg }) {
-  const isDark = useIsDark();
+function WalkLegDetail({ leg, isDark }: { leg: Leg; isDark: boolean }) {
   const walkColor = isDark ? "#ffffff" : "#1a1a1a";
-  const dist = leg.distance >= 1000
-    ? `${(leg.distance / 1000).toFixed(1)} km`
-    : `${Math.round(leg.distance)} m`;
+  const fromStopId = isStation(leg.from) ? leg.from.stopId : undefined;
+  const toStopId = isStation(leg.to) ? leg.to.stopId : undefined;
 
   return (
-    <div className="flex items-center gap-2 py-1.5 px-2 text-xs" style={{ color: walkColor, opacity: 0.7 }}>
-      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-      </svg>
-      <span>{MODE_LABELS[leg.mode] ?? leg.mode} {dist} ({formatDuration(leg.duration)})</span>
+    <div className="py-1.5 px-2 text-xs" style={{ color: walkColor, opacity: 0.7 }}>
+      <div className="flex items-center gap-2">
+        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+        {/* FR11.3: Walk leg departure/arrival times */}
+        <span className="font-mono tabular-nums">{leg.startTimeHHMM ?? formatTimestamp(leg.startTime)}</span>
+        <span>&ndash;</span>
+        <span className="font-mono tabular-nums">{leg.endTimeHHMM ?? formatTimestamp(leg.endTime)}</span>
+        <span>{MODE_LABELS[leg.mode] ?? leg.mode} {formatDistance(leg.distance)} ({formatDuration(leg.duration)})</span>
+      </div>
+      {/* FR11.1: Walk leg from/to with stop IDs */}
+      <div className="ml-5.5 mt-0.5 text-[10px] text-zinc-400 dark:text-zinc-500">
+        <span>{leg.from.name}{fromStopId && <span className="ml-1 font-mono">{fromStopId}</span>}</span>
+        <span className="mx-1">&rarr;</span>
+        <span>{leg.to.name}{toStopId && <span className="ml-1 font-mono">{toStopId}</span>}</span>
+      </div>
     </div>
   );
 }
@@ -126,8 +50,8 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
   const label = MODE_LABELS[leg.mode] ?? leg.mode;
   const stopCount = leg.intermediateStops?.length ?? 0;
 
-  const depTime = leg.startTimeHHMM ?? formatTime(leg.startTime);
-  const arrTime = leg.endTimeHHMM ?? formatTime(leg.endTime);
+  const depTime = leg.startTimeHHMM ?? formatTimestamp(leg.startTime);
+  const arrTime = leg.endTimeHHMM ?? formatTimestamp(leg.endTime);
 
   return (
     <div className="text-xs">
@@ -150,9 +74,10 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
           &rarr; {leg.headsign}
         </span>
 
-        {/* Stop count + expand chevron */}
+        {/* FR11.4: Duration + stop count + expand chevron */}
         <span className="text-zinc-400 dark:text-zinc-500 flex-shrink-0 flex items-center gap-1">
-          {stopCount > 0 && <span>{stopCount} stop{stopCount !== 1 ? "s" : ""}</span>}
+          <span>{formatDuration(leg.duration)}</span>
+          {stopCount > 0 && <span>&middot; {stopCount} stop{stopCount !== 1 ? "s" : ""}</span>}
           <svg
             className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : ""}`}
             fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -176,6 +101,8 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
             cancelled={"cancelled" in leg.from ? leg.from.cancelled : false}
             color={color}
             indicator="board"
+            stopId={leg.from.stopId}
+            zoneId={leg.from.zoneId}
           />
 
           {/* Intermediate stops */}
@@ -183,7 +110,7 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
             <StopRow
               key={i}
               name={stop.name}
-              time={stop.departureDelayedTimeHHMM ?? (stop.departure ? formatTime(stop.departure) : undefined)}
+              time={stop.departure ? formatTimestamp(stop.departure) : undefined}
               delayedTime={stop.departureDelayedTimeHHMM}
               delay={stop.departureDelay}
               track={stop.track}
@@ -191,6 +118,8 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
               cancelled={stop.cancelled}
               color={color}
               indicator="intermediate"
+              stopId={stop.stopId}
+              zoneId={stop.zoneId}
             />
           ))}
 
@@ -205,7 +134,19 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
             cancelled={"cancelled" in leg.to ? leg.to.cancelled : false}
             color={color}
             indicator="alight"
+            stopId={leg.to.stopId}
+            zoneId={leg.to.zoneId}
           />
+
+          {/* FR11.6: Trip ID */}
+          <div className="mt-1.5 pt-1.5 border-t border-zinc-100 dark:border-zinc-800 text-[10px] text-zinc-400 dark:text-zinc-500">
+            Trip: <span className="font-mono">{leg.tripId}</span>
+          </div>
+
+          {/* FR11.6: Alerts */}
+          {leg.alerts && leg.alerts.length > 0 && (
+            <AlertList alerts={leg.alerts} />
+          )}
         </div>
       )}
     </div>
@@ -222,6 +163,8 @@ function StopRow({
   cancelled,
   color,
   indicator,
+  stopId,
+  zoneId,
 }: {
   name: string;
   time?: string;
@@ -232,6 +175,8 @@ function StopRow({
   cancelled?: boolean;
   color: string;
   indicator: "board" | "alight" | "intermediate";
+  stopId?: string;
+  zoneId?: string;
 }) {
   const delayStr = formatDelay(delay);
   const trackChanged = track && scheduledTrack && track !== scheduledTrack;
@@ -243,7 +188,7 @@ function StopRow({
         {indicator === "board" || indicator === "alight" ? (
           <div
             className="w-2.5 h-2.5 rounded-full border-2 -ml-[7px]"
-            style={{ borderColor: color, backgroundColor: indicator === "board" ? color : "white" }}
+            style={{ borderColor: color, backgroundColor: indicator === "board" ? color : "transparent" }}
           />
         ) : (
           <div
@@ -253,17 +198,26 @@ function StopRow({
         )}
       </div>
 
-      {/* Time */}
-      <span className="flex-shrink-0 w-10 text-zinc-600 dark:text-zinc-300 font-mono tabular-nums">
-        {time ?? "—"}
-      </span>
-
-      {/* Delay indicator */}
-      {delayStr && (
-        <span className={`flex-shrink-0 font-mono text-[10px] tabular-nums ${
-          delayStr.startsWith("+") ? "text-red-500" : "text-green-500"
-        }`}>
-          {delayStr}
+      {/* FR11.3: Planned vs realtime times */}
+      {delayStr && delayedTime ? (
+        <div className="flex-shrink-0 flex items-baseline gap-1">
+          <span className="w-10 font-mono tabular-nums text-zinc-400 dark:text-zinc-500 line-through">
+            {time ?? "—"}
+          </span>
+          <span className={`font-mono tabular-nums font-medium ${
+            delayStr.startsWith("+") ? "text-red-500" : "text-green-500"
+          }`}>
+            {delayedTime}
+          </span>
+          <span className={`font-mono text-[10px] tabular-nums ${
+            delayStr.startsWith("+") ? "text-red-500" : "text-green-500"
+          }`}>
+            {delayStr}
+          </span>
+        </div>
+      ) : (
+        <span className="flex-shrink-0 w-10 text-zinc-600 dark:text-zinc-300 font-mono tabular-nums">
+          {time ?? "—"}
         </span>
       )}
 
@@ -272,6 +226,16 @@ function StopRow({
         <span className={`${cancelled ? "line-through" : ""} text-zinc-700 dark:text-zinc-300`}>
           {name}
         </span>
+        {/* FR11.1/FR11.2: Stop ID */}
+        {stopId && (
+          <span className="ml-1.5 font-mono text-[10px] text-zinc-400 dark:text-zinc-500">{stopId}</span>
+        )}
+        {/* FR11.5: Tariff zone */}
+        {zoneId && (
+          <span className="ml-1.5 inline-flex items-center px-1 py-0 rounded text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
+            Zone {zoneId}
+          </span>
+        )}
         {indicator === "board" && (
           <span className="ml-1.5 text-[10px] font-semibold uppercase text-green-600 dark:text-green-400">Board</span>
         )}
@@ -288,6 +252,35 @@ function StopRow({
   );
 }
 
+// FR11.6: Alert category color mapping
+const ALERT_CATEGORY_STYLES: Record<number, string> = {
+  0: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",           // Disruption
+  1: "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400", // Delay
+  2: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400",       // Winter
+  3: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",        // Info
+  4: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",    // Construction
+  5: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400", // Event
+  6: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",            // Unreachable
+};
+
+function AlertList({ alerts }: { alerts: Alert[] }) {
+  if (alerts.length === 0) return null;
+  return (
+    <div className="space-y-1 mt-1.5">
+      {alerts.map((alert, i) => {
+        const style = ALERT_CATEGORY_STYLES[alert.alertCategory] ?? ALERT_CATEGORY_STYLES[3];
+        return (
+          <div key={i} className={`rounded px-2 py-1.5 text-[11px] ${style}`}>
+            <span className="font-semibold">{formatAlertCategory(alert.alertCategory)}</span>
+            {alert.alertHeaderText && <span className="font-medium">: {alert.alertHeaderText}</span>}
+            <p className="mt-0.5 opacity-80">{alert.alertDescriptionText}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // --- Main component ---
 
 interface ItineraryCardProps {
@@ -295,14 +288,15 @@ interface ItineraryCardProps {
   index: number;
   isSelected: boolean;
   onSelect: (index: number) => void;
+  onHoverLeg?: (index: number | null) => void;
 }
 
-export default function ItineraryCard({ itinerary, index, isSelected, onSelect }: ItineraryCardProps) {
+export default function ItineraryCard({ itinerary, index, isSelected, onSelect, onHoverLeg }: ItineraryCardProps) {
   const isDark = useIsDark();
   const walkColor = isDark ? "#ffffff" : "#1a1a1a";
 
-  const depTime = itinerary.startTimeHHMM ?? formatTime(itinerary.startTime);
-  const arrTime = itinerary.endTimeHHMM ?? formatTime(itinerary.endTime);
+  const depTime = itinerary.startTimeHHMM ?? formatTimestamp(itinerary.startTime);
+  const arrTime = itinerary.endTimeHHMM ?? formatTimestamp(itinerary.endTime);
   const duration = itinerary.durationHHMM ?? formatDuration(itinerary.duration);
   const products = getUniqueProducts(itinerary.legs);
   const zones = itinerary.zoneInfo?.orderedZones ?? [];
@@ -392,13 +386,20 @@ export default function ItineraryCard({ itinerary, index, isSelected, onSelect }
       {/* Row 5: Expandable leg details (only when selected) */}
       {isSelected && (
         <div className="mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-700 space-y-0.5">
-          {itinerary.legs.map((leg, i) =>
-            leg.transitLeg ? (
-              <TransitLegDetail key={i} leg={leg} />
-            ) : (
-              <WalkLegDetail key={i} leg={leg} />
-            )
-          )}
+          {itinerary.legs.map((leg, i) => (
+            // FR11.8: Hover to highlight map polyline
+            <div
+              key={i}
+              onMouseEnter={() => onHoverLeg?.(i)}
+              onMouseLeave={() => onHoverLeg?.(null)}
+            >
+              {leg.transitLeg ? (
+                <TransitLegDetail leg={leg} />
+              ) : (
+                <WalkLegDetail leg={leg} isDark={isDark} />
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>

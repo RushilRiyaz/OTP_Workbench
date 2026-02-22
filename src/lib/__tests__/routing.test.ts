@@ -12,6 +12,10 @@ import {
   autocompleteLocation,
   emptyLocation,
   defaultOptions,
+  createRoutingResponse,
+  createTransitLeg,
+  createStation,
+  createItinerary,
 } from "@/test/fixtures";
 
 // --- Pure helper tests ---
@@ -243,5 +247,68 @@ describe("fetchRouting", () => {
     if (!result.success) {
       expect(result.error.type).toBe("timeout");
     }
+  });
+});
+
+// --- Regression: Station delays must not be multiplied (API returns seconds) ---
+
+describe("fetchRouting delay passthrough", () => {
+  let fetchSpy: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("does not multiply Station delays (API returns seconds)", async () => {
+    const response: RoutingResponse = createRoutingResponse({
+      plan: {
+        date: 0,
+        from: { name: "A", lon: 12, lat: 51 },
+        to: { name: "B", lon: 12, lat: 51 },
+        itineraries: [
+          createItinerary({
+            legs: [
+              createTransitLeg({
+                from: createStation({ departureDelay: -60 }),
+                to: createStation({ arrivalDelay: 120 }),
+                intermediateStops: [
+                  createStation({ departureDelay: -60, arrivalDelay: -60 }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      },
+    });
+
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve(response),
+    });
+
+    const result = await fetchRouting({
+      start: coordsLocation(51.34, 12.37),
+      destination: coordsLocation(51.31, 12.37),
+      dateTime: "2026-02-03T14:30",
+      routingOptions: defaultOptions(),
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+
+    const leg = result.data.plan!.itineraries[0].legs[0];
+    if (!leg.transitLeg) throw new Error("expected transit leg");
+
+    // Delays must pass through unchanged — no * 60 multiplication
+    expect(leg.from.departureDelay).toBe(-60);
+    expect(leg.to.arrivalDelay).toBe(120);
+    expect(leg.intermediateStops[0].departureDelay).toBe(-60);
+    expect(leg.intermediateStops[0].arrivalDelay).toBe(-60);
   });
 });

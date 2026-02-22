@@ -57,7 +57,9 @@ export default function MapMarkers({ start, destination, isDark = false }: MapMa
     <>
       {startCoords && (
         <Marker position={[startCoords.lat, startCoords.lng]} icon={startIcon}>
-          <Tooltip direction="top" offset={[0, -36]}>Start</Tooltip>
+          <Tooltip direction="bottom" offset={[0, 4]} permanent className="marker-label">
+            Start
+          </Tooltip>
           <CoordPopup
             coords={startCoords}
             label="Start"
@@ -67,10 +69,12 @@ export default function MapMarkers({ start, destination, isDark = false }: MapMa
       )}
       {destCoords && (
         <Marker position={[destCoords.lat, destCoords.lng]} icon={destIcon}>
-          <Tooltip direction="top" offset={[0, -36]}>End</Tooltip>
+          <Tooltip direction="bottom" offset={[0, 4]} permanent className="marker-label">
+            Dest.
+          </Tooltip>
           <CoordPopup
             coords={destCoords}
-            label="End"
+            label="Dest."
             onClose={() => {}}
           />
         </Marker>

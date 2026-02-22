@@ -11,6 +11,7 @@ interface RoutingResultsProps {
   selectedIndex: number;
   onSelectItinerary: (index: number) => void;
   onLoadMore?: (direction: "earlier" | "later") => Promise<void>;
+  onHoverLeg?: (index: number | null) => void;
 }
 
 export default function RoutingResults({
@@ -18,6 +19,7 @@ export default function RoutingResults({
   selectedIndex,
   onSelectItinerary,
   onLoadMore,
+  onHoverLeg,
 }: RoutingResultsProps) {
   const itineraries = routingResult?.plan?.itineraries ?? [];
   const [view, setView] = useState<ResultsView>("itineraries");
@@ -158,6 +160,7 @@ export default function RoutingResults({
               index={i}
               isSelected={i === selectedIndex}
               onSelect={onSelectItinerary}
+              onHoverLeg={onHoverLeg}
             />
           ))}
 
