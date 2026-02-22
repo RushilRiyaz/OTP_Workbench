@@ -75,6 +75,7 @@ export default function RoutePolylines({ itinerary, isDark = false, hoveredLegIn
               color: getLegColor(leg),
               weight: isHovered ? 7 : 4,
               opacity: hasHover ? (isHovered ? 1 : 0.3) : 0.85,
+              dashArray: undefined,
             }}
           />
         );
