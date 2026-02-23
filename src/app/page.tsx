@@ -48,6 +48,11 @@ export default function Home() {
   // Selected itinerary index for results display
   const [selectedItineraryIndex, setSelectedItineraryIndex] = useState<number>(0);
 
+  // FR13: Comparison results — one entry per selected environment
+  const [comparisonResults, setComparisonResults] = useState<
+    Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }>
+  >({});
+
   // FR11.8: Hovered leg index for map polyline highlighting
   const [hoveredLegIndex, setHoveredLegIndex] = useState<number | null>(null);
 
@@ -232,6 +237,69 @@ export default function Home() {
     }
   };
 
+  // FR13: Comparison submit — fetch routing for all selected environments concurrently
+  const handleComparisonSubmit = async () => {
+    setValidationErrors([]);
+
+    const errors = validateRoutingParams({
+      start: startLocation,
+      destination: destinationLocation,
+      dateTime,
+      routingOptions,
+    });
+
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+
+    if (selectedEnvironments.length === 0) return;
+
+    // Set all envs to loading
+    const initialState: Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }> = {};
+    for (const envId of selectedEnvironments) {
+      initialState[envId] = { result: null, error: null, isLoading: true };
+    }
+    setComparisonResults(initialState);
+    setIsLoading(true);
+
+    // Fetch concurrently for each environment
+    const promises = selectedEnvironments.map(async (envId) => {
+      const envConfig = getEnvironmentConfig(envId, customEnvironments);
+      const result = await fetchRouting(
+        {
+          start: startLocation,
+          destination: destinationLocation,
+          dateTime,
+          routingOptions,
+        },
+        undefined,
+        { baseUrl: envConfig.otpUrl, apiKey: envConfig.apiKey }
+      );
+      return { envId, result };
+    });
+
+    const settled = await Promise.allSettled(promises);
+
+    const nextState: Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }> = {};
+    for (const entry of settled) {
+      if (entry.status === "fulfilled") {
+        const { envId, result } = entry.value;
+        if (result.success) {
+          nextState[envId] = { result: result.data, error: null, isLoading: false };
+        } else {
+          nextState[envId] = { result: null, error: result.error, isLoading: false };
+        }
+      } else {
+        // Promise rejected — shouldn't happen with fetchRouting, but handle gracefully
+        console.error("[Comparison] Unexpected rejection:", entry.reason);
+      }
+    }
+
+    setComparisonResults(nextState);
+    setIsLoading(false);
+  };
+
   // FR6.5: Load historical request (overwrites current, no warning)
   const handleLoadRequest = (entry: RequestHistoryEntry) => {
     setStartLocation(entry.start);
@@ -255,6 +323,7 @@ export default function Home() {
   // Clear routing results and return to map-only view
   const handleClearResults = useCallback(() => {
     setRoutingResult(null);
+    setComparisonResults({});
     setSelectedItineraryIndex(0);
     setHoveredLegIndex(null);
   }, []);
@@ -389,7 +458,7 @@ export default function Home() {
             onRoutingOptionsChange={setRoutingOptions}
             validationErrors={validationErrors}
             isLoading={isLoading}
-            onSubmit={handleSubmitRouting}
+            onSubmit={activeTab === "routing-comparison" ? handleComparisonSubmit : handleSubmitRouting}
             routingError={routingError}
             requestHistory={requestHistory}
             onLoadRequest={handleLoadRequest}
@@ -413,6 +482,9 @@ export default function Home() {
         onClearResults={handleClearResults}
         hoveredLegIndex={hoveredLegIndex}
         onHoverLeg={setHoveredLegIndex}
+        comparisonResults={comparisonResults}
+        selectedEnvironments={selectedEnvironments}
+        customEnvironments={customEnvironments}
       />
     </div>
   );

@@ -6,9 +6,13 @@ import { LocationValue } from "./LocationInput";
 import Map from "./map/DynamicMapLoader";
 import ErrorBoundary from "./ErrorBoundary";
 import RoutingResults from "./RoutingResults";
-import type { RoutingResponse, Itinerary } from "@/lib/routing";
+import type { RoutingResponse, RoutingError, Itinerary } from "@/lib/routing";
+import type { Environment } from "./EnvironmentSelector";
+import ItineraryCard from "./ItineraryCard";
 
 type SplitLayout = "vertical" | "horizontal";
+// FR13: Three comparison layout modes
+type ComparisonLayout = "horizontal" | "vertical" | "overview";
 
 interface EvaluationAreaProps {
   activeTab: TabId;
@@ -25,6 +29,10 @@ interface EvaluationAreaProps {
   hoveredLegIndex?: number | null;
   onHoverLeg?: (index: number | null) => void;
   children?: React.ReactNode;
+  // FR13: Comparison props
+  comparisonResults?: Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }>;
+  selectedEnvironments?: string[];
+  customEnvironments?: Environment[];
 }
 
 const MIN_PANEL_PCT = 20;
@@ -57,6 +65,9 @@ export default function EvaluationArea({
   hoveredLegIndex,
   onHoverLeg,
   children,
+  comparisonResults,
+  selectedEnvironments,
+  customEnvironments,
 }: EvaluationAreaProps) {
   const itineraries = routingResult?.plan?.itineraries ?? [];
   const selectedItinerary: Itinerary | null =
@@ -64,6 +75,7 @@ export default function EvaluationArea({
   const hasResults = itineraries.length > 0;
 
   const [layout, setLayout] = useState<SplitLayout>("vertical");
+  const [comparisonLayout, setComparisonLayout] = useState<ComparisonLayout>("horizontal"); // FR13.1: default
   const [mapPct, setMapPct] = useState(DEFAULT_MAP_PCT);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -240,7 +252,62 @@ export default function EvaluationArea({
             </div>
           </div>
         )}
-        {activeTab !== "routing" && (
+        {/* FR13: Routing Comparison tab */}
+        {activeTab === "routing-comparison" && (
+          <div className="flex flex-col h-full">
+            {/* FR13: Layout toggle — only show when comparison has results */}
+            {Object.keys(comparisonResults ?? {}).length > 0 && (
+              <div className="flex items-center justify-center px-2 py-1.5 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+                <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-0.5">
+                  {([
+                    { id: "horizontal" as const, label: "Horizontal" },
+                    { id: "vertical" as const, label: "Vertical" },
+                    { id: "overview" as const, label: "Overview" },
+                  ]).map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setComparisonLayout(opt.id)}
+                      className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                        comparisonLayout === opt.id
+                          ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
+                          : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Render active comparison layout */}
+            {comparisonLayout === "horizontal" && (
+              <ComparisonColumnsLayout
+                direction="row"
+                comparisonResults={comparisonResults ?? {}}
+                selectedEnvironments={selectedEnvironments ?? []}
+                customEnvironments={customEnvironments ?? []}
+              />
+            )}
+            {comparisonLayout === "vertical" && (
+              <ComparisonColumnsLayout
+                direction="column"
+                comparisonResults={comparisonResults ?? {}}
+                selectedEnvironments={selectedEnvironments ?? []}
+                customEnvironments={customEnvironments ?? []}
+              />
+            )}
+            {comparisonLayout === "overview" && (
+              <ComparisonOverviewLayout
+                comparisonResults={comparisonResults ?? {}}
+                selectedEnvironments={selectedEnvironments ?? []}
+                customEnvironments={customEnvironments ?? []}
+              />
+            )}
+          </div>
+        )}
+        {activeTab !== "routing" && activeTab !== "routing-comparison" && (
           <div className="flex-1 flex items-center justify-center p-4">
             <div className="text-center">
               <div className="mx-auto w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-3">
@@ -289,5 +356,289 @@ export default function EvaluationArea({
         </div>
       )}
     </main>
+  );
+}
+
+// --- FR13: Comparison layout helpers ---
+
+const PREDEFINED_LABELS: Record<string, string> = {
+  prod: "PROD",
+  stage: "STAGE",
+  dev: "DEV",
+};
+
+// FR16.2: Environment comparison colors
+const ENV_COLORS = ["#0072B2", "#E69F00", "#009E73"] as const;
+
+function getEnvLabel(envId: string, customEnvironments: Environment[]): string {
+  if (PREDEFINED_LABELS[envId]) return PREDEFINED_LABELS[envId];
+  const custom = customEnvironments.find((e) => e.id === envId);
+  return custom?.label ?? envId;
+}
+
+interface ComparisonLayoutProps {
+  comparisonResults: Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }>;
+  selectedEnvironments: string[];
+  customEnvironments: Environment[];
+}
+
+/** Shared empty state for comparison layouts */
+function ComparisonEmptyState({ selectedEnvironments }: { selectedEnvironments: string[] }) {
+  return (
+    <div className="flex-1 flex items-center justify-center p-4">
+      <div className="text-center">
+        <div className="mx-auto w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-3">
+          <svg className="w-6 h-6 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </div>
+        <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+          {selectedEnvironments.length === 0
+            ? "Select environments to compare"
+            : "Submit a routing request to compare environments"}
+        </p>
+        <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+          {selectedEnvironments.length === 0
+            ? "Choose up to 3 environments from the parameter area."
+            : `${selectedEnvironments.length} environment${selectedEnvironments.length > 1 ? "s" : ""} selected.`}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/** Shared per-environment content renderer (loading / error / itineraries) */
+function EnvColumnContent({
+  envId,
+  result,
+  error,
+  isLoading,
+  label,
+}: {
+  envId: string;
+  result: RoutingResponse | null;
+  error: RoutingError | null;
+  isLoading: boolean;
+  label: string;
+}) {
+  const itineraries = result?.plan?.itineraries ?? [];
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <span className="inline-block w-5 h-5 border-2 border-zinc-300 dark:border-zinc-600 border-t-lvb-yellow rounded-full animate-spin" />
+          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">Loading {label}...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-3">
+        <div className="text-center">
+          <div className="mx-auto w-8 h-8 rounded-lg bg-red-50 dark:bg-red-950/30 flex items-center justify-center mb-2">
+            <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-xs font-medium text-red-600 dark:text-red-400">Request failed</p>
+          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 max-w-[200px]">
+            {error.message || "Unknown error"}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (itineraries.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-3">
+        <p className="text-xs text-zinc-400 dark:text-zinc-500">No itineraries found.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto p-2 space-y-2">
+      {itineraries.map((itinerary, i) => (
+        <ItineraryCard
+          key={`${envId}-${itinerary.startTime}-${itinerary.endTime}-${i}`}
+          itinerary={itinerary}
+          index={i}
+          isSelected={false}
+          onSelect={() => {}}
+        />
+      ))}
+    </div>
+  );
+}
+
+// --- FR13.1 + FR13.2: Side-by-side columns layout (horizontal or vertical) ---
+
+function ComparisonColumnsLayout({
+  direction,
+  comparisonResults,
+  selectedEnvironments,
+  customEnvironments,
+}: ComparisonLayoutProps & { direction: "row" | "column" }) {
+  const hasAnyResults = Object.keys(comparisonResults).length > 0;
+
+  if (!hasAnyResults) {
+    return <ComparisonEmptyState selectedEnvironments={selectedEnvironments} />;
+  }
+
+  const envIds = selectedEnvironments.filter((id) => comparisonResults[id]);
+  const isRow = direction === "row";
+  const dividerClass = isRow
+    ? "divide-x divide-zinc-200 dark:divide-zinc-800"
+    : "divide-y divide-zinc-200 dark:divide-zinc-800";
+
+  return (
+    <div className={`flex-1 flex min-h-0 ${isRow ? "flex-row" : "flex-col"} ${dividerClass}`}>
+      {envIds.map((envId) => {
+        const entry = comparisonResults[envId];
+        const label = getEnvLabel(envId, customEnvironments);
+        const itineraries = entry.result?.plan?.itineraries ?? [];
+
+        return (
+          <div key={envId} className={`flex-1 flex flex-col ${isRow ? "min-w-0" : "min-h-0"}`}>
+            {/* Section header */}
+            <div className="flex-shrink-0 px-3 py-2 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
+                  {label}
+                </span>
+                {!entry.isLoading && entry.result && (
+                  <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
+                    {itineraries.length} itinerar{itineraries.length === 1 ? "y" : "ies"}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <EnvColumnContent
+              envId={envId}
+              result={entry.result}
+              error={entry.error}
+              isLoading={entry.isLoading}
+              label={label}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// --- FR13.3 + FR16: Horizontal overview — single merged list with env color coding ---
+
+function ComparisonOverviewLayout({
+  comparisonResults,
+  selectedEnvironments,
+  customEnvironments,
+}: ComparisonLayoutProps) {
+  const hasAnyResults = Object.keys(comparisonResults).length > 0;
+
+  if (!hasAnyResults) {
+    return <ComparisonEmptyState selectedEnvironments={selectedEnvironments} />;
+  }
+
+  const envIds = selectedEnvironments.filter((id) => comparisonResults[id]);
+
+  // Check if any env is still loading
+  const anyLoading = envIds.some((id) => comparisonResults[id].isLoading);
+  if (anyLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <span className="inline-block w-5 h-5 border-2 border-zinc-300 dark:border-zinc-600 border-t-lvb-yellow rounded-full animate-spin" />
+          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">Loading results...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // FR16.1: Merge all itineraries into a single list, tagged with env info
+  const mergedItineraries: { envId: string; envIndex: number; itinerary: Itinerary; label: string }[] = [];
+  envIds.forEach((envId, envIndex) => {
+    const entry = comparisonResults[envId];
+    if (entry.result?.plan?.itineraries) {
+      const label = getEnvLabel(envId, customEnvironments);
+      entry.result.plan.itineraries.forEach((itinerary) => {
+        mergedItineraries.push({ envId, envIndex, itinerary, label });
+      });
+    }
+  });
+
+  // Sort by departure time
+  mergedItineraries.sort((a, b) => a.itinerary.startTime - b.itinerary.startTime);
+
+  if (mergedItineraries.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-3">
+        <p className="text-xs text-zinc-400 dark:text-zinc-500">No itineraries found across any environment.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col min-h-0">
+      {/* FR16.3: Legend */}
+      <div className="flex-shrink-0 flex items-center gap-4 px-3 py-2 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+        {envIds.map((envId, i) => {
+          const label = getEnvLabel(envId, customEnvironments);
+          const count = comparisonResults[envId].result?.plan?.itineraries?.length ?? 0;
+          return (
+            <div key={envId} className="flex items-center gap-1.5">
+              <span
+                className="inline-block w-3 h-3 rounded-sm flex-shrink-0"
+                style={{ backgroundColor: ENV_COLORS[i] ?? "#888" }}
+              />
+              <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                {label}
+              </span>
+              <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
+                ({count})
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* FR16.1: Merged itinerary list */}
+      <div className="flex-1 overflow-y-auto p-2 space-y-2">
+        {mergedItineraries.map(({ envId, envIndex, itinerary, label }, i) => (
+          <div
+            key={`${envId}-${itinerary.startTime}-${itinerary.endTime}-${i}`}
+            className="relative"
+          >
+            {/* FR16.2: Color-coded environment indicator */}
+            <div
+              className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
+              style={{ backgroundColor: ENV_COLORS[envIndex] ?? "#888" }}
+            />
+            <div className="pl-3">
+              <div className="flex items-center gap-1.5 mb-0.5 pt-1 px-2">
+                <span
+                  className="inline-block w-2 h-2 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: ENV_COLORS[envIndex] ?? "#888" }}
+                />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                  {label}
+                </span>
+              </div>
+              <ItineraryCard
+                itinerary={itinerary}
+                index={i}
+                isSelected={false}
+                onSelect={() => {}}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
