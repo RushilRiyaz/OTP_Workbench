@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { searchLocations, AutocompleteResult } from "@/lib/autocomplete";
 import { getLocationHistory, addToLocationHistory } from "@/lib/locationHistory";
 import { reverseGeocode } from "@/lib/reverseGeocode";
+import { lookupStopById } from "@/lib/stopLookup";
 import { getAutocompleteConfig } from "@/components/EnvironmentSelector";
 
 export interface LocationValue {
@@ -33,7 +34,7 @@ interface LocationInputProps {
 }
 
 function isStopId(input: string): boolean {
-  return /^\d+$/.test(input.trim());
+  return /^\d+(:\d+)?$/.test(input.trim());
 }
 
 // FR4.6: Parse coordinate input
@@ -246,19 +247,46 @@ export default function LocationInput({
     setShowHistory(false);
   };
 
-  const handleSelectStopId = (stopId: string) => {
-    const locationValue: LocationValue = {
+  const handleSelectStopId = async (stopId: string) => {
+    // Immediately close dropdown and show temporary value
+    setShowDropdown(false);
+    setIsStopIdInput(false);
+    setShowHistory(false);
+
+    const fallbackValue: LocationValue = {
       text: `Stop ID: ${stopId}`,
       type: "stopId",
       location: null,
       stopId,
       coordinates: null,
     };
-    onChange(locationValue);
-    addToLocationHistory(locationValue);
-    setShowDropdown(false);
-    setIsStopIdInput(false);
-    setShowHistory(false);
+
+    // Show resolving state
+    onChange({ ...fallbackValue, text: `Resolving ${stopId}...` });
+
+    try {
+      const match = await lookupStopById(stopId);
+
+      if (match) {
+        const resolvedValue: LocationValue = {
+          text: match.name,
+          type: "stopId",
+          location: null,
+          stopId,
+          coordinates: { lat: match.lat, lon: match.lon },
+        };
+        onChange(resolvedValue);
+        addToLocationHistory(resolvedValue);
+      } else {
+        // No match found — fall back to raw stop ID
+        onChange(fallbackValue);
+        addToLocationHistory(fallbackValue);
+      }
+    } catch (error) {
+      console.error("Failed to resolve stop ID:", error);
+      onChange(fallbackValue);
+      addToLocationHistory(fallbackValue);
+    }
   };
 
   // FR4.6: Handle coordinate selection
@@ -363,7 +391,7 @@ export default function LocationInput({
 
       {showDropdown && (
         <ul
-          className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-lg ring-1 ring-black/5 dark:ring-white/5 max-h-60 overflow-y-auto z-50"
+          className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-lg ring-1 ring-black/5 dark:ring-white/5 max-h-96 overflow-y-auto z-50"
         >
           {showHistory && history.length > 0 ? (
             <>
@@ -382,11 +410,24 @@ export default function LocationInput({
                       highlightedIndex === index ? "bg-lvb-yellow/8 dark:bg-lvb-yellow/10" : "hover:bg-zinc-50 dark:hover:bg-zinc-700"
                     }`}
                   >
-                    <div className="font-medium">{item.text}</div>
-                    <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                      {item.type === "autocomplete" && "Location"}
-                      {item.type === "stopId" && "Stop ID"}
-                      {item.type === "coordinates" && "Coordinates"}
+                    <div className="flex items-start gap-2.5">
+                      <span
+                        className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-xs font-bold shrink-0 mt-0.5 ${
+                          item.type === "stopId" || (item.type === "autocomplete" && (item.location?.ptype === "S" || item.location?.ptype === "V"))
+                            ? "bg-lvb-yellow/20 text-lvb-yellow-dark dark:bg-lvb-yellow/25 dark:text-lvb-yellow"
+                            : "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                        }`}
+                      >
+                        {item.type === "stopId" || (item.type === "autocomplete" && (item.location?.ptype === "S" || item.location?.ptype === "V")) ? "H" : "X"}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="font-medium">{item.text}</div>
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {item.type === "autocomplete" && "Location"}
+                          {item.type === "stopId" && "Stop ID"}
+                          {item.type === "coordinates" && "Coordinates"}
+                        </div>
+                      </div>
                     </div>
                   </button>
                 </li>
@@ -435,12 +476,25 @@ export default function LocationInput({
                     highlightedIndex === index ? "bg-lvb-yellow/8 dark:bg-lvb-yellow/10" : "hover:bg-zinc-50 dark:hover:bg-zinc-700"
                   }`}
                 >
-                  <div className="font-medium">{suggestion.name}</div>
-                  {suggestion.data && suggestion.data !== suggestion.name && (
-                    <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
-                      {suggestion.data}
+                  <div className="flex items-start gap-2.5">
+                    <span
+                      className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-xs font-bold shrink-0 mt-0.5 ${
+                        suggestion.ptype === "S" || suggestion.ptype === "V"
+                          ? "bg-lvb-yellow/20 text-lvb-yellow-dark dark:bg-lvb-yellow/25 dark:text-lvb-yellow"
+                          : "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                      }`}
+                    >
+                      {suggestion.ptype === "S" || suggestion.ptype === "V" ? "H" : "X"}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="font-medium">{suggestion.name}</div>
+                      {suggestion.data && suggestion.data !== suggestion.name && (
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                          {suggestion.data}
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </button>
               </li>
             ))
