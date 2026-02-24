@@ -343,7 +343,10 @@ export default function Home() {
     setDestinationLocation(entry.destination);
     setDateTime(entry.dateTime);
     setRoutingOptions(entry.routingOptions);
-    setSelectedEnvironments([entry.selectedEnvironment]);
+    // Preserve selected environments when on comparison tab
+    if (activeTab !== "routing-comparison") {
+      setSelectedEnvironments([entry.selectedEnvironment]);
+    }
     setSelectedAutocompleteEnv(entry.selectedAutocompleteEnv || entry.selectedEnvironment);
     // Clear any previous errors/results
     setValidationErrors([]);
