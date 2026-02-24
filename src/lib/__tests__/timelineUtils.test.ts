@@ -23,7 +23,7 @@ function makeEntry(itineraries: { startTime: number; endTime: number }[]): {
     })
   );
   return {
-    result: createRoutingResponse({ plan: { itineraries: fullItineraries, date: Date.now() } }),
+    result: createRoutingResponse({ plan: { itineraries: fullItineraries, date: Date.now(), from: { name: "A", lon: 12, lat: 51 }, to: { name: "B", lon: 12, lat: 51 } } }),
   };
 }
 

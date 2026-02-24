@@ -421,6 +421,11 @@ export default function EvaluationArea({
                       comparisonResults={comparisonResults ?? {}}
                       selectedEnvironments={selectedEnvironments ?? []}
                       customEnvironments={customEnvironments ?? []}
+                      comparisonHoveredItinerary={comparisonHoveredItinerary}
+                      comparisonSelectedItinerary={comparisonSelectedItinerary}
+                      onComparisonHover={onComparisonHover}
+                      onComparisonSelect={onComparisonSelect}
+                      onComparisonHoverLeg={onComparisonHoverLeg}
                     />
                   )}
                 </div>
@@ -539,13 +544,19 @@ function ComparisonEmptyState({ selectedEnvironments }: { selectedEnvironments: 
   );
 }
 
-// --- FR13.3 + FR16: Horizontal overview — single merged list with env color coding ---
+// --- FR13.3 + FR16: Horizontal overview — Gantt-chart timeline with env color coding ---
 
 function ComparisonOverviewLayout({
   comparisonResults,
   selectedEnvironments,
   customEnvironments,
-}: ComparisonLayoutProps) {
+  comparisonHoveredItinerary,
+  comparisonSelectedItinerary,
+  onComparisonHover,
+  onComparisonSelect,
+  onComparisonHoverLeg,
+}: TimelineComparisonLayoutProps) {
+  const isDark = useIsDark();
   const hasAnyResults = Object.keys(comparisonResults).length > 0;
 
   if (!hasAnyResults) {
@@ -568,13 +579,14 @@ function ComparisonOverviewLayout({
   }
 
   // FR16.1: Merge all itineraries into a single list, tagged with env info
-  const mergedItineraries: { envId: string; envIndex: number; itinerary: Itinerary; label: string }[] = [];
+  // Track the original index within each environment for hover/select callbacks
+  const mergedItineraries: { envId: string; envIndex: number; itinerary: Itinerary; label: string; originalIndex: number }[] = [];
   envIds.forEach((envId, envIndex) => {
     const entry = comparisonResults[envId];
     if (entry.result?.plan?.itineraries) {
       const label = getEnvLabel(envId, customEnvironments);
-      entry.result.plan.itineraries.forEach((itinerary) => {
-        mergedItineraries.push({ envId, envIndex, itinerary, label });
+      entry.result.plan.itineraries.forEach((itinerary, originalIndex) => {
+        mergedItineraries.push({ envId, envIndex, itinerary, label, originalIndex });
       });
     }
   });
@@ -590,61 +602,187 @@ function ComparisonOverviewLayout({
     );
   }
 
+  // Compute timeline range from all itineraries
+  const { start: timelineStart, end: timelineEnd } = computeTimelineRange(comparisonResults, envIds);
+  const timelineSpan = timelineEnd - timelineStart;
+
+  // Generate time axis markers (30-min intervals if ≤3h, else 1h)
+  const rangeMinutes = timelineSpan / 60000;
+  const intervalMs = rangeMinutes <= 180 ? 30 * 60000 : 60 * 60000;
+  const timeMarkers: { label: string; pct: number }[] = [];
+  let t = timelineStart;
+  while (t <= timelineEnd) {
+    timeMarkers.push({
+      label: formatTimestamp(t),
+      pct: ((t - timelineStart) / timelineSpan) * 100,
+    });
+    t += intervalMs;
+  }
+
+  const BAR_HEIGHT = 54;
+  const BAR_GAP = 6;
+  const PADDING_TOP = 6;
+  const totalChartHeight = PADDING_TOP + mergedItineraries.length * (BAR_HEIGHT + BAR_GAP) + 4;
+  const walkColor = isDark ? "#ffffff" : "#1a1a1a";
+
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      {/* FR16.3: Legend */}
-      <div className="flex-shrink-0 flex items-center gap-4 px-3 py-2 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+      {/* FR16.3: Legend header — color-coded env columns (matches Figure 6) */}
+      <div className="flex-shrink-0 flex">
         {envIds.map((envId, i) => {
           const label = getEnvLabel(envId, customEnvironments);
           const count = comparisonResults[envId].result?.plan?.itineraries?.length ?? 0;
+          const hasError = !!comparisonResults[envId].error;
           return (
-            <div key={envId} className="flex items-center gap-1.5">
-              <span
-                className="inline-block w-3 h-3 rounded-sm flex-shrink-0"
-                style={{ backgroundColor: ENV_COLORS[i] ?? "#888" }}
-              />
-              <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
-                {label}
-              </span>
-              <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
-                ({count})
-              </span>
+            <div
+              key={envId}
+              className="flex-1 px-3 py-1.5 text-center text-xs font-semibold text-white truncate"
+              style={{ backgroundColor: ENV_COLORS[i] ?? "#888" }}
+            >
+              {label} ({hasError ? "Error" : count})
             </div>
           );
         })}
       </div>
 
-      {/* FR16.1: Merged itinerary list */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-2">
-        {mergedItineraries.map(({ envId, envIndex, itinerary, label }, i) => (
-          <div
-            key={`${envId}-${itinerary.startTime}-${itinerary.endTime}-${i}`}
-            className="relative"
-          >
-            {/* FR16.2: Color-coded environment indicator */}
-            <div
-              className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
-              style={{ backgroundColor: ENV_COLORS[envIndex] ?? "#888" }}
-            />
-            <div className="pl-3">
-              <div className="flex items-center gap-1.5 mb-0.5 pt-1 px-2">
-                <span
-                  className="inline-block w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: ENV_COLORS[envIndex] ?? "#888" }}
-                />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-                  {label}
-                </span>
+      {/* FR16.1: Gantt chart body — scrolls vertically */}
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="relative mx-5" style={{ minHeight: totalChartHeight }}>
+          {/* Vertical grid lines with time labels at top */}
+          {timeMarkers.map((marker, mi) => {
+            const isFirst = mi === 0;
+            const isLast = mi === timeMarkers.length - 1;
+            return (
+              <div key={mi} className="absolute top-0" style={{ left: `${marker.pct}%`, height: totalChartHeight }}>
+                <div className="absolute border-l border-dashed border-zinc-300 dark:border-zinc-700" style={{ top: 0, height: totalChartHeight }} />
               </div>
-              <ItineraryCard
-                itinerary={itinerary}
-                index={i}
-                isSelected={false}
-                onSelect={() => {}}
-              />
-            </div>
-          </div>
-        ))}
+            );
+          })}
+
+          {/* Itinerary bars — positioned by departure time, sized by duration */}
+          {mergedItineraries.map(({ envId, envIndex, itinerary, label, originalIndex }, i) => {
+            const leftPct = ((itinerary.startTime - timelineStart) / timelineSpan) * 100;
+            const widthPct = Math.max(((itinerary.duration * 1000) / timelineSpan) * 100, 5);
+            const top = PADDING_TOP + i * (BAR_HEIGHT + BAR_GAP);
+            const envColor = ENV_COLORS[envIndex] ?? "#888";
+            const totalDuration = itinerary.duration || 1;
+            const products = getUniqueProducts(itinerary.legs);
+
+            const depTime = itinerary.startTimeHHMM ?? formatTimestamp(itinerary.startTime);
+            const arrTime = itinerary.endTimeHHMM ?? formatTimestamp(itinerary.endTime);
+            const duration = itinerary.durationHHMM ?? formatDuration(itinerary.duration);
+
+            const isHovered = comparisonHoveredItinerary?.envId === envId && comparisonHoveredItinerary?.itineraryIndex === originalIndex;
+            const isSelected = comparisonSelectedItinerary?.envId === envId && comparisonSelectedItinerary?.itineraryIndex === originalIndex;
+
+            return (
+              <div
+                key={`${envId}-${originalIndex}-${i}`}
+                className={`absolute rounded-lg border transition-all cursor-pointer ${
+                  isSelected
+                    ? "border-lvb-yellow bg-yellow-50 dark:bg-zinc-900 shadow-lg z-30"
+                    : isHovered
+                    ? "border-zinc-400 dark:border-zinc-500 bg-white dark:bg-zinc-800 shadow-md z-20"
+                    : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-600 z-0"
+                }`}
+                style={{
+                  left: `${leftPct}%`,
+                  width: `${widthPct}%`,
+                  top,
+                  height: BAR_HEIGHT,
+                  minWidth: 120,
+                }}
+                onMouseEnter={() => onComparisonHover?.(envId, originalIndex)}
+                onMouseLeave={() => onComparisonHover?.(envId, null)}
+                onClick={() => onComparisonSelect?.(envId, originalIndex)}
+              >
+                {/* FR16.2: Left accent bar showing env color */}
+                <div
+                  className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg"
+                  style={{ backgroundColor: envColor }}
+                />
+
+                {/* Content: times, transfer scheme, products */}
+                <div className="px-2 py-1 pl-2.5 h-full flex flex-col justify-center overflow-hidden">
+                  {/* Row 1: Env label + Times + Duration */}
+                  <div className="flex items-center gap-1.5 text-[10px]">
+                    <span
+                      className="inline-block w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: envColor }}
+                    />
+                    <span className="font-semibold uppercase text-zinc-400 dark:text-zinc-500 flex-shrink-0">{label}</span>
+                    <span className="text-zinc-300 dark:text-zinc-600 flex-shrink-0">|</span>
+                    <span className="font-mono tabular-nums font-semibold text-zinc-800 dark:text-zinc-100 flex-shrink-0">{depTime}</span>
+                    <svg className="w-2.5 h-2.5 text-zinc-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                    <span className="font-mono tabular-nums font-semibold text-zinc-800 dark:text-zinc-100 flex-shrink-0">{arrTime}</span>
+                    <span className="ml-auto text-zinc-400 dark:text-zinc-500 flex-shrink-0">{duration}</span>
+                  </div>
+
+                  {/* Row 2: Transfer scheme bar (proportional leg segments) */}
+                  <div className="flex h-1.5 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 my-0.5">
+                    {itinerary.legs.map((leg, li) => {
+                      const pct = Math.max((leg.duration / totalDuration) * 100, 2);
+                      const isWalk = !leg.transitLeg;
+                      return (
+                        <div
+                          key={li}
+                          className="h-full"
+                          onMouseEnter={() => onComparisonHoverLeg?.(li)}
+                          onMouseLeave={() => onComparisonHoverLeg?.(null)}
+                          style={{
+                            width: `${pct}%`,
+                            backgroundColor: isWalk ? walkColor : getLegColor(leg),
+                            opacity: isWalk ? 0.5 : 1,
+                          }}
+                          title={`${MODE_LABELS[leg.mode] ?? leg.mode}${leg.transitLeg ? ` ${leg.routeShortName}` : ""}`}
+                        />
+                      );
+                    })}
+                  </div>
+
+                  {/* Row 3: Product badges + transfers */}
+                  <div className="flex items-center gap-1 overflow-hidden">
+                    {products.map((p, pi) => (
+                      <span
+                        key={pi}
+                        className="px-1 py-0 rounded text-[9px] text-white font-medium leading-tight flex-shrink-0"
+                        style={{ backgroundColor: p.color }}
+                      >
+                        {p.label} {p.routeName}
+                      </span>
+                    ))}
+                    {itinerary.transfers > 0 && (
+                      <span className="text-[9px] text-zinc-400 dark:text-zinc-500 ml-auto flex-shrink-0">
+                        {itinerary.transfers} transfer{itinerary.transfers > 1 ? "s" : ""}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Time axis — fixed at bottom */}
+      <div className="flex-shrink-0 h-8 relative border-t border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800 mx-5">
+        {timeMarkers.map((marker, mi) => {
+          const isFirst = mi === 0;
+          const isLast = mi === timeMarkers.length - 1;
+          return (
+            <span
+              key={mi}
+              className={`absolute text-xs font-mono font-medium text-zinc-600 dark:text-zinc-300 leading-8 whitespace-nowrap ${
+                isFirst ? "translate-x-0" : isLast ? "-translate-x-full" : "-translate-x-1/2"
+              }`}
+              style={{ left: `${marker.pct}%` }}
+            >
+              {marker.label}
+            </span>
+          );
+        })}
       </div>
     </div>
   );
@@ -1037,7 +1175,7 @@ function TimelineTransferScheme({
 
 // --- FR15: Vertical Timeline Comparison Layout ---
 
-// FR15.2/15.3: Variable-height strip with vertical leg stacking
+// FR15.2/15.3: Vertical stop-chain diagram strip
 function VerticalTransferSchemeStrip({
   itinerary,
   envId,
@@ -1065,7 +1203,7 @@ function VerticalTransferSchemeStrip({
   onSelect?: (envId: string, itineraryIndex: number) => void;
   onHoverLeg?: (index: number | null) => void;
 }) {
-  const walkColor = isDark ? "#ffffff" : "#1a1a1a";
+  const walkColor = isDark ? "#888888" : "#999999";
   const totalDuration = itinerary.duration || 1;
 
   const depTime = itinerary.startTimeHHMM ?? formatTimestamp(itinerary.startTime);
@@ -1073,9 +1211,64 @@ function VerticalTransferSchemeStrip({
   const duration = itinerary.durationHHMM ?? formatDuration(itinerary.duration);
   const products = getUniqueProducts(itinerary.legs);
 
-  const HEADER_HEIGHT = 18;
-  const FOOTER_HEIGHT = 20;
+  const HEADER_HEIGHT = 24;
+  const FOOTER_HEIGHT = 24;
   const contentHeight = Math.max(height - HEADER_HEIGHT - FOOTER_HEIGHT, 12);
+
+  // Build flattened stop chain: board stops, intermediate stops, alight stop
+  type StopEntry = {
+    name: string;
+    time: number;
+    color: string;
+    isWalk: boolean;
+    indicator: "board" | "intermediate" | "alight";
+    legIndex: number;
+  };
+
+  const stops: StopEntry[] = [];
+  itinerary.legs.forEach((leg, legIdx) => {
+    const isWalk = !leg.transitLeg;
+    const color = isWalk ? walkColor : getLegColor(leg);
+    const fromTime = leg.startTime;
+
+    // Add boarding stop (skip if same as previous leg's alighting stop)
+    const prevStop = stops[stops.length - 1];
+    const fromName = leg.from.name;
+    if (!prevStop || prevStop.name !== fromName) {
+      stops.push({ name: fromName, time: fromTime, color, isWalk, indicator: "board", legIndex: legIdx });
+    } else {
+      // Update color for the transfer point to the new leg's color
+      prevStop.color = color;
+      prevStop.isWalk = isWalk;
+      prevStop.indicator = "board";
+    }
+
+    // Add intermediate stops for transit legs
+    if (leg.transitLeg && leg.intermediateStops) {
+      for (const intStop of leg.intermediateStops) {
+        const intTime = intStop.departure ?? intStop.arrival ?? leg.startTime;
+        stops.push({ name: intStop.name, time: intTime, color, isWalk: false, indicator: "intermediate", legIndex: legIdx });
+      }
+    }
+
+    // Add alighting stop for the last leg
+    if (legIdx === itinerary.legs.length - 1) {
+      stops.push({ name: leg.to.name, time: leg.endTime, color, isWalk, indicator: "alight", legIndex: legIdx });
+    }
+  });
+
+  // Compute Y positions for each stop within the content area
+  const itStart = itinerary.startTime;
+  const stopPositions = stops.map((s) => {
+    const pct = totalDuration > 0 ? (s.time - itStart) / (totalDuration * 1000) : 0;
+    return Math.max(0, Math.min(1, pct)) * contentHeight;
+  });
+  // Enforce minimum gap of 4px between stops
+  for (let i = 1; i < stopPositions.length; i++) {
+    if (stopPositions[i] - stopPositions[i - 1] < 4) {
+      stopPositions[i] = stopPositions[i - 1] + 4;
+    }
+  }
 
   return (
     <div
@@ -1100,39 +1293,87 @@ function VerticalTransferSchemeStrip({
       {/* Strip content */}
       <div style={{ height: isSelected ? height : "100%" }} className="flex flex-col pl-1.5 pr-1">
         {/* Departure time header */}
-        <div className="flex-shrink-0 flex items-center justify-between px-0.5" style={{ height: HEADER_HEIGHT }}>
-          <span className="font-mono tabular-nums text-[9px] font-semibold text-zinc-800 dark:text-zinc-100">
+        <div className="flex-shrink-0 flex items-center justify-between px-1" style={{ height: HEADER_HEIGHT }}>
+          <span className="font-mono tabular-nums text-[11px] font-semibold text-zinc-800 dark:text-zinc-100">
             {depTime}
           </span>
-          <span className="text-[8px] text-zinc-400 dark:text-zinc-500">{duration}</span>
+          <span className="text-[10px] text-zinc-400 dark:text-zinc-500">{duration}</span>
         </div>
 
-        {/* FR15.2: Vertical leg segments — each leg's height proportional to its duration */}
-        <div className="flex-shrink-0 flex flex-col rounded overflow-hidden" style={{ height: contentHeight }}>
-          {itinerary.legs.map((leg, i) => {
-            const legPct = leg.duration / totalDuration;
-            const legHeight = Math.max(legPct * contentHeight, 3);
-            const isWalk = !leg.transitLeg;
-            const color = isWalk ? walkColor : getLegColor(leg);
-            const showLabel = legHeight >= 18 && leg.transitLeg;
+        {/* FR15.2: Vertical stop-chain diagram */}
+        <div
+          className="flex-shrink-0 relative"
+          style={{ height: contentHeight }}
+        >
+          {stops.map((stop, i) => {
+            const top = stopPositions[i];
+            const nextTop = i < stops.length - 1 ? stopPositions[i + 1] : null;
+            const connectorHeight = nextTop !== null ? nextTop - top : 0;
+            const nextStop = i < stops.length - 1 ? stops[i + 1] : null;
+
+            // Dot size: board = 8px filled, intermediate = 5px filled, alight = 8px ring
+            const dotSize = stop.indicator === "intermediate" ? 5 : 8;
+            const isAlight = stop.indicator === "alight";
+
+            // Show route name on connector if enough space
+            const showRouteName = connectorHeight >= 18 && !stop.isWalk &&
+              itinerary.legs[stop.legIndex]?.transitLeg &&
+              (itinerary.legs[stop.legIndex] as import("@/lib/routing").TransitLeg).routeShortName;
 
             return (
-              <div
-                key={i}
-                className="w-full flex items-center justify-center overflow-hidden"
-                style={{
-                  height: legHeight,
-                  backgroundColor: color,
-                  opacity: isWalk ? 0.3 : 1,
-                }}
-                title={`${MODE_LABELS[leg.mode] ?? leg.mode}${leg.transitLeg ? ` ${leg.routeShortName}` : ""} — ${formatDuration(leg.duration)}`}
-                onMouseEnter={(e) => { e.stopPropagation(); onHoverLeg?.(i); }}
-                onMouseLeave={(e) => { e.stopPropagation(); onHoverLeg?.(null); }}
-              >
-                {showLabel && (
-                  <span className="text-[8px] font-semibold text-white truncate px-0.5 drop-shadow-sm">
-                    {leg.routeShortName}
-                  </span>
+              <div key={i} className="absolute left-0 right-0" style={{ top }}>
+                {/* Stop dot + name row */}
+                <div className="flex items-center gap-2">
+                  {/* Dot */}
+                  <div
+                    className="flex-shrink-0 rounded-full"
+                    style={{
+                      width: dotSize,
+                      height: dotSize,
+                      backgroundColor: isAlight ? "transparent" : stop.color,
+                      border: isAlight ? `2px solid ${stop.color}` : "none",
+                      marginLeft: stop.indicator === "intermediate" ? 1.5 : 0,
+                    }}
+                  />
+                  {/* Stop name (only for board/alight stops to avoid clutter) */}
+                  {stop.indicator !== "intermediate" && (
+                    <span className="text-[9px] text-zinc-500 dark:text-zinc-400 truncate leading-none">
+                      {stop.name}
+                    </span>
+                  )}
+                </div>
+
+                {/* Connector line to next stop */}
+                {connectorHeight > 0 && nextStop && (
+                  <div
+                    className="absolute"
+                    style={{
+                      left: 3,
+                      top: dotSize + 1,
+                      width: 2.5,
+                      height: Math.max(connectorHeight - dotSize - 1, 0),
+                      backgroundColor: stop.isWalk ? undefined : stop.color,
+                      borderLeft: stop.isWalk ? `2px dashed ${walkColor}` : undefined,
+                      opacity: stop.isWalk ? 0.5 : 1,
+                    }}
+                    title={`${MODE_LABELS[itinerary.legs[stop.legIndex]?.mode] ?? itinerary.legs[stop.legIndex]?.mode}`}
+                    onMouseEnter={(e) => { e.stopPropagation(); onHoverLeg?.(stop.legIndex); }}
+                    onMouseLeave={(e) => { e.stopPropagation(); onHoverLeg?.(null); }}
+                  >
+                    {/* Route name label alongside connector */}
+                    {showRouteName && (
+                      <span
+                        className="absolute text-[9px] font-semibold truncate leading-none"
+                        style={{
+                          left: 8,
+                          top: Math.max((connectorHeight - dotSize - 1) / 2 - 5, 0),
+                          color: stop.color,
+                        }}
+                      >
+                        {(itinerary.legs[stop.legIndex] as import("@/lib/routing").TransitLeg).routeShortName}
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
             );
@@ -1140,15 +1381,15 @@ function VerticalTransferSchemeStrip({
         </div>
 
         {/* Arrival time + products footer */}
-        <div className="flex-shrink-0 flex items-center justify-between px-0.5" style={{ height: FOOTER_HEIGHT }}>
-          <span className="font-mono tabular-nums text-[9px] font-semibold text-zinc-800 dark:text-zinc-100">
+        <div className="flex-shrink-0 flex items-center justify-between px-1" style={{ height: FOOTER_HEIGHT }}>
+          <span className="font-mono tabular-nums text-[11px] font-semibold text-zinc-800 dark:text-zinc-100">
             {arrTime}
           </span>
           <div className="flex items-center gap-0.5">
             {products.slice(0, 2).map((p, i) => (
               <span
                 key={i}
-                className="px-0.5 rounded text-[7px] text-white font-medium leading-tight"
+                className="px-1 py-0.5 rounded text-[9px] text-white font-medium leading-tight"
                 style={{ backgroundColor: p.color }}
               >
                 {p.label}

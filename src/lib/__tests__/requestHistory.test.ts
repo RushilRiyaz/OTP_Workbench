@@ -127,7 +127,7 @@ describe("localStorage operations", () => {
 
   it("loads old entries that lack selectedAutocompleteEnv", () => {
     const oldEntry = historyEntry({ id: "old-format" });
-    delete (oldEntry as Record<string, unknown>).selectedAutocompleteEnv;
+    delete (oldEntry as unknown as Record<string, unknown>).selectedAutocompleteEnv;
     localStorageMock.getItem.mockReturnValueOnce(JSON.stringify([oldEntry]));
     const result = getRequestHistory();
     expect(result).toHaveLength(1);
