@@ -310,36 +310,34 @@ export default function EnvironmentSelector({
                   )}
                 </button>
 
-                {/* Inline autocomplete service picker for selected environment */}
-                {isSelected(env.id) && (
-                  <div className="mt-1.5 ml-6 space-y-1">
-                    <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">
-                      Autocomplete Service
-                    </span>
-                    <div className="inline-flex p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/60 dark:border-zinc-700/60">
-                      {AUTOCOMPLETE_ENVIRONMENTS.map((acEnv) => (
-                        <button
-                          key={acEnv.id}
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onAutocompleteEnvChange(acEnv.id);
-                          }}
-                          className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all ${
-                            selectedAutocompleteEnv === acEnv.id
-                              ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
-                              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
-                          }`}
-                        >
-                          {acEnv.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             ))}
           </div>
+
+          {/* Autocomplete service picker — only in single-select (Routing) mode */}
+          {singleSelectMode && selectedEnvironments.length > 0 && (
+            <div className="space-y-1">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">
+                Autocomplete Service
+              </span>
+              <div className="inline-flex p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/60 dark:border-zinc-700/60">
+                {AUTOCOMPLETE_ENVIRONMENTS.map((acEnv) => (
+                  <button
+                    key={acEnv.id}
+                    type="button"
+                    onClick={() => onAutocompleteEnvChange(acEnv.id)}
+                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all ${
+                      selectedAutocompleteEnv === acEnv.id
+                        ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
+                        : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                    }`}
+                  >
+                    {acEnv.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Add custom environment section */}
           {!showAddForm ? (

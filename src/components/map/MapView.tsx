@@ -45,6 +45,8 @@ interface MapViewProps {
   onDestinationChange: (loc: LocationValue) => void;
   selectedItinerary?: Itinerary | null;
   hoveredLegIndex?: number | null;
+  /** Set to false to prevent auto-fitting map bounds on itinerary change */
+  autoFitBounds?: boolean;
 }
 
 export default function MapView({
@@ -54,6 +56,7 @@ export default function MapView({
   onDestinationChange,
   selectedItinerary,
   hoveredLegIndex,
+  autoFitBounds = true,
 }: MapViewProps) {
   const [popupCoords, setPopupCoords] = useState<{ lat: number; lng: number } | null>(null);
   const isDark = useIsDark();
@@ -89,7 +92,7 @@ export default function MapView({
 
         <MapMarkers start={start} destination={destination} isDark={isDark} />
 
-        <RoutePolylines itinerary={selectedItinerary ?? null} isDark={isDark} hoveredLegIndex={hoveredLegIndex ?? null} />
+        <RoutePolylines itinerary={selectedItinerary ?? null} isDark={isDark} hoveredLegIndex={hoveredLegIndex ?? null} autoFitBounds={autoFitBounds} />
 
         <CursorTracker />
 

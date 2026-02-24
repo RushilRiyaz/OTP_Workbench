@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import ParameterArea from "@/components/ParameterArea";
 import EvaluationArea from "@/components/EvaluationArea";
 import JourneyForm from "@/components/JourneyForm";
@@ -48,13 +48,55 @@ export default function Home() {
   // Selected itinerary index for results display
   const [selectedItineraryIndex, setSelectedItineraryIndex] = useState<number>(0);
 
+  // FR13: Comparison results — one entry per selected environment
+  const [comparisonResults, setComparisonResults] = useState<
+    Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }>
+  >({});
+
   // FR11.8: Hovered leg index for map polyline highlighting
   const [hoveredLegIndex, setHoveredLegIndex] = useState<number | null>(null);
+
+  // FR14.5/14.6: Comparison interaction state — hovered/selected itinerary + leg hover
+  const [comparisonHoveredItinerary, setComparisonHoveredItinerary] = useState<{
+    envId: string;
+    itineraryIndex: number;
+  } | null>(null);
+  const [comparisonSelectedItinerary, setComparisonSelectedItinerary] = useState<{
+    envId: string;
+    itineraryIndex: number;
+  } | null>(null);
+  const [comparisonHoveredLegIndex, setComparisonHoveredLegIndex] = useState<number | null>(null);
+
+  // FR14.5: Derive the itinerary to show on map in comparison mode (hover takes priority)
+  const comparisonMapItinerary = useMemo(() => {
+    const target = comparisonHoveredItinerary ?? comparisonSelectedItinerary;
+    if (!target) return null;
+    return comparisonResults[target.envId]?.result?.plan?.itineraries?.[target.itineraryIndex] ?? null;
+  }, [comparisonHoveredItinerary, comparisonSelectedItinerary, comparisonResults]);
 
   // Reset hover when itinerary selection changes
   const handleSelectItinerary = useCallback((index: number) => {
     setSelectedItineraryIndex(index);
     setHoveredLegIndex(null);
+  }, []);
+
+  // FR14.5: Comparison hover — update map with hovered itinerary
+  const handleComparisonHover = useCallback((envId: string, itineraryIndex: number | null) => {
+    if (itineraryIndex === null) {
+      setComparisonHoveredItinerary(null);
+    } else {
+      setComparisonHoveredItinerary({ envId, itineraryIndex });
+    }
+    setComparisonHoveredLegIndex(null);
+  }, []);
+
+  // FR14.6: Comparison select — toggle itinerary detail view
+  const handleComparisonSelect = useCallback((envId: string, itineraryIndex: number) => {
+    setComparisonSelectedItinerary((prev) => {
+      if (prev?.envId === envId && prev?.itineraryIndex === itineraryIndex) return null;
+      return { envId, itineraryIndex };
+    });
+    setComparisonHoveredLegIndex(null);
   }, []);
 
   // FR6.4: Request history (loaded from localStorage)
@@ -232,13 +274,79 @@ export default function Home() {
     }
   };
 
+  // FR13: Comparison submit — fetch routing for all selected environments concurrently
+  const handleComparisonSubmit = async () => {
+    setValidationErrors([]);
+
+    const errors = validateRoutingParams({
+      start: startLocation,
+      destination: destinationLocation,
+      dateTime,
+      routingOptions,
+    });
+
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+
+    if (selectedEnvironments.length === 0) return;
+
+    // Set all envs to loading
+    const initialState: Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }> = {};
+    for (const envId of selectedEnvironments) {
+      initialState[envId] = { result: null, error: null, isLoading: true };
+    }
+    setComparisonResults(initialState);
+    setIsLoading(true);
+
+    // Fetch concurrently for each environment
+    const promises = selectedEnvironments.map(async (envId) => {
+      const envConfig = getEnvironmentConfig(envId, customEnvironments);
+      const result = await fetchRouting(
+        {
+          start: startLocation,
+          destination: destinationLocation,
+          dateTime,
+          routingOptions,
+        },
+        undefined,
+        { baseUrl: envConfig.otpUrl, apiKey: envConfig.apiKey }
+      );
+      return { envId, result };
+    });
+
+    const settled = await Promise.allSettled(promises);
+
+    const nextState: Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }> = {};
+    for (const entry of settled) {
+      if (entry.status === "fulfilled") {
+        const { envId, result } = entry.value;
+        if (result.success) {
+          nextState[envId] = { result: result.data, error: null, isLoading: false };
+        } else {
+          nextState[envId] = { result: null, error: result.error, isLoading: false };
+        }
+      } else {
+        // Promise rejected — shouldn't happen with fetchRouting, but handle gracefully
+        console.error("[Comparison] Unexpected rejection:", entry.reason);
+      }
+    }
+
+    setComparisonResults(nextState);
+    setIsLoading(false);
+  };
+
   // FR6.5: Load historical request (overwrites current, no warning)
   const handleLoadRequest = (entry: RequestHistoryEntry) => {
     setStartLocation(entry.start);
     setDestinationLocation(entry.destination);
     setDateTime(entry.dateTime);
     setRoutingOptions(entry.routingOptions);
-    setSelectedEnvironments([entry.selectedEnvironment]);
+    // Preserve selected environments when on comparison tab
+    if (activeTab !== "routing-comparison") {
+      setSelectedEnvironments([entry.selectedEnvironment]);
+    }
     setSelectedAutocompleteEnv(entry.selectedAutocompleteEnv || entry.selectedEnvironment);
     // Clear any previous errors/results
     setValidationErrors([]);
@@ -255,8 +363,13 @@ export default function Home() {
   // Clear routing results and return to map-only view
   const handleClearResults = useCallback(() => {
     setRoutingResult(null);
+    setComparisonResults({});
     setSelectedItineraryIndex(0);
     setHoveredLegIndex(null);
+    // FR14: Reset comparison interaction state
+    setComparisonHoveredItinerary(null);
+    setComparisonSelectedItinerary(null);
+    setComparisonHoveredLegIndex(null);
   }, []);
 
   // FR12.5: Load earlier/later itineraries
@@ -389,7 +502,7 @@ export default function Home() {
             onRoutingOptionsChange={setRoutingOptions}
             validationErrors={validationErrors}
             isLoading={isLoading}
-            onSubmit={handleSubmitRouting}
+            onSubmit={activeTab === "routing-comparison" ? handleComparisonSubmit : handleSubmitRouting}
             routingError={routingError}
             requestHistory={requestHistory}
             onLoadRequest={handleLoadRequest}
@@ -413,6 +526,16 @@ export default function Home() {
         onClearResults={handleClearResults}
         hoveredLegIndex={hoveredLegIndex}
         onHoverLeg={setHoveredLegIndex}
+        comparisonResults={comparisonResults}
+        selectedEnvironments={selectedEnvironments}
+        customEnvironments={customEnvironments}
+        comparisonHoveredItinerary={comparisonHoveredItinerary}
+        comparisonSelectedItinerary={comparisonSelectedItinerary}
+        comparisonMapItinerary={comparisonMapItinerary}
+        comparisonHoveredLegIndex={comparisonHoveredLegIndex}
+        onComparisonHover={handleComparisonHover}
+        onComparisonSelect={handleComparisonSelect}
+        onComparisonHoverLeg={setComparisonHoveredLegIndex}
       />
     </div>
   );

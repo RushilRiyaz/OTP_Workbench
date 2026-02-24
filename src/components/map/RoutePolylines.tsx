@@ -12,13 +12,16 @@ interface RoutePolylinesProps {
   itinerary: Itinerary | null;
   isDark?: boolean;
   hoveredLegIndex?: number | null;
+  /** Set to false to prevent auto-fitting map bounds on itinerary change (e.g. comparison hover) */
+  autoFitBounds?: boolean;
 }
 
-export default function RoutePolylines({ itinerary, isDark = false, hoveredLegIndex = null }: RoutePolylinesProps) {
+export default function RoutePolylines({ itinerary, isDark = false, hoveredLegIndex = null, autoFitBounds = true }: RoutePolylinesProps) {
   const map = useMap();
 
   // Auto-fit bounds when itinerary changes
   useEffect(() => {
+    if (!autoFitBounds) return;
     if (!itinerary || itinerary.legs.length === 0) return;
 
     const allPoints: L.LatLngExpression[] = [];
