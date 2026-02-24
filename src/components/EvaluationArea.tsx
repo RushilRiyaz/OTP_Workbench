@@ -13,6 +13,7 @@ import { useIsDark } from "@/lib/useIsDark";
 import {
   computeTimelineRange,
   timeToY,
+  durationToHeight,
   computeTotalHeight,
   generateHourMarkers,
   DEFAULT_PIXELS_PER_MINUTE,
@@ -294,6 +295,13 @@ export default function EvaluationArea({
         {/* FR13: Routing Comparison tab — FR14: with map + timeline */}
         {activeTab === "routing-comparison" && (
           <div className="flex flex-col h-full">
+            {/* Show empty state when fewer than 2 environments selected */}
+            {(selectedEnvironments?.length ?? 0) < 2 && (
+              <ComparisonEmptyState selectedEnvironments={selectedEnvironments ?? []} />
+            )}
+
+            {/* Show map + comparison layouts once 2+ environments are selected */}
+            {(selectedEnvironments?.length ?? 0) >= 2 && (<>
             {/* Toolbar: clear + layout toggle — only show when comparison has results */}
             {hasComparisonResults && (
               <div className="flex items-center justify-between px-2 py-1.5 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
@@ -397,11 +405,15 @@ export default function EvaluationArea({
                     />
                   )}
                   {comparisonLayout === "vertical" && (
-                    <ComparisonColumnsLayout
-                      direction="column"
+                    <VerticalTimelineComparisonLayout
                       comparisonResults={comparisonResults ?? {}}
                       selectedEnvironments={selectedEnvironments ?? []}
                       customEnvironments={customEnvironments ?? []}
+                      comparisonHoveredItinerary={comparisonHoveredItinerary}
+                      comparisonSelectedItinerary={comparisonSelectedItinerary}
+                      onComparisonHover={onComparisonHover}
+                      onComparisonSelect={onComparisonSelect}
+                      onComparisonHoverLeg={onComparisonHoverLeg}
                     />
                   )}
                   {comparisonLayout === "overview" && (
@@ -414,15 +426,16 @@ export default function EvaluationArea({
                 </div>
               )}
 
-              {/* Empty state when no results */}
+              {/* Empty state when environments selected but no results yet */}
               {!hasComparisonResults && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
                   <p className="text-xs text-zinc-400 dark:text-zinc-500 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm px-3 py-1.5 rounded-lg">
-                    Select environments and submit a routing request to compare
+                    Submit a routing request to compare environments
                   </p>
                 </div>
               )}
             </div>
+            </>)}
           </div>
         )}
 
@@ -522,131 +535,6 @@ function ComparisonEmptyState({ selectedEnvironments }: { selectedEnvironments: 
             : `${selectedEnvironments.length} environment${selectedEnvironments.length > 1 ? "s" : ""} selected.`}
         </p>
       </div>
-    </div>
-  );
-}
-
-/** Shared per-environment content renderer (loading / error / itineraries) */
-function EnvColumnContent({
-  envId,
-  result,
-  error,
-  isLoading,
-  label,
-}: {
-  envId: string;
-  result: RoutingResponse | null;
-  error: RoutingError | null;
-  isLoading: boolean;
-  label: string;
-}) {
-  const itineraries = result?.plan?.itineraries ?? [];
-
-  if (isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <span className="inline-block w-5 h-5 border-2 border-zinc-300 dark:border-zinc-600 border-t-lvb-yellow rounded-full animate-spin" />
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">Loading {label}...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex-1 flex items-center justify-center p-3">
-        <div className="text-center">
-          <div className="mx-auto w-8 h-8 rounded-lg bg-red-50 dark:bg-red-950/30 flex items-center justify-center mb-2">
-            <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <p className="text-xs font-medium text-red-600 dark:text-red-400">Request failed</p>
-          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 max-w-[200px]">
-            {error.message || "Unknown error"}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (itineraries.length === 0) {
-    return (
-      <div className="flex-1 flex items-center justify-center p-3">
-        <p className="text-xs text-zinc-400 dark:text-zinc-500">No itineraries found.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex-1 overflow-y-auto p-2 space-y-2">
-      {itineraries.map((itinerary, i) => (
-        <ItineraryCard
-          key={`${envId}-${itinerary.startTime}-${itinerary.endTime}-${i}`}
-          itinerary={itinerary}
-          index={i}
-          isSelected={false}
-          onSelect={() => {}}
-        />
-      ))}
-    </div>
-  );
-}
-
-// --- FR13.1 + FR13.2: Side-by-side columns layout (used for "vertical" comparison mode) ---
-
-function ComparisonColumnsLayout({
-  direction,
-  comparisonResults,
-  selectedEnvironments,
-  customEnvironments,
-}: ComparisonLayoutProps & { direction: "row" | "column" }) {
-  const hasAnyResults = Object.keys(comparisonResults).length > 0;
-
-  if (!hasAnyResults) {
-    return <ComparisonEmptyState selectedEnvironments={selectedEnvironments} />;
-  }
-
-  const envIds = selectedEnvironments.filter((id) => comparisonResults[id]);
-  const isRow = direction === "row";
-  const dividerClass = isRow
-    ? "divide-x divide-zinc-200 dark:divide-zinc-800"
-    : "divide-y divide-zinc-200 dark:divide-zinc-800";
-
-  return (
-    <div className={`flex-1 flex min-h-0 ${isRow ? "flex-row" : "flex-col"} ${dividerClass}`}>
-      {envIds.map((envId) => {
-        const entry = comparisonResults[envId];
-        const label = getEnvLabel(envId, customEnvironments);
-        const itineraries = entry.result?.plan?.itineraries ?? [];
-
-        return (
-          <div key={envId} className={`flex-1 flex flex-col ${isRow ? "min-w-0" : "min-h-0"}`}>
-            {/* Section header */}
-            <div className="flex-shrink-0 px-3 py-2 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
-                  {label}
-                </span>
-                {!entry.isLoading && entry.result && (
-                  <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
-                    {itineraries.length} itinerar{itineraries.length === 1 ? "y" : "ies"}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <EnvColumnContent
-              envId={envId}
-              result={entry.result}
-              error={entry.error}
-              isLoading={entry.isLoading}
-              label={label}
-            />
-          </div>
-        );
-      })}
     </div>
   );
 }
@@ -1058,7 +946,7 @@ function TimelineTransferScheme({
     <div
       className={`absolute left-1 right-1 rounded-lg border transition-all cursor-pointer ${
         isSelected
-          ? "border-lvb-yellow bg-yellow-50/80 dark:bg-yellow-950/30 shadow-md z-20"
+          ? "border-lvb-yellow bg-yellow-50 dark:bg-zinc-900 shadow-lg z-30"
           : isHovered
           ? "border-zinc-400 dark:border-zinc-500 bg-white dark:bg-zinc-800 shadow-sm z-10"
           : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-600 z-0"
@@ -1133,7 +1021,7 @@ function TimelineTransferScheme({
 
       {/* FR14.6: Expanded detail view when selected (click to open) */}
       {isSelected && (
-        <div className="border-t border-zinc-200 dark:border-zinc-700">
+        <div className="border-t border-zinc-200 dark:border-zinc-700 bg-yellow-50 dark:bg-zinc-900">
           <ItineraryCard
             itinerary={itinerary}
             index={itineraryIndex}
@@ -1143,6 +1031,369 @@ function TimelineTransferScheme({
           />
         </div>
       )}
+    </div>
+  );
+}
+
+// --- FR15: Vertical Timeline Comparison Layout ---
+
+// FR15.2/15.3: Variable-height strip with vertical leg stacking
+function VerticalTransferSchemeStrip({
+  itinerary,
+  envId,
+  itineraryIndex,
+  y,
+  height,
+  envColor,
+  isDark,
+  isHovered,
+  isSelected,
+  onHover,
+  onSelect,
+  onHoverLeg,
+}: {
+  itinerary: Itinerary;
+  envId: string;
+  itineraryIndex: number;
+  y: number;
+  height: number;
+  envColor: string;
+  isDark: boolean;
+  isHovered: boolean;
+  isSelected: boolean;
+  onHover?: (envId: string, itineraryIndex: number | null) => void;
+  onSelect?: (envId: string, itineraryIndex: number) => void;
+  onHoverLeg?: (index: number | null) => void;
+}) {
+  const walkColor = isDark ? "#ffffff" : "#1a1a1a";
+  const totalDuration = itinerary.duration || 1;
+
+  const depTime = itinerary.startTimeHHMM ?? formatTimestamp(itinerary.startTime);
+  const arrTime = itinerary.endTimeHHMM ?? formatTimestamp(itinerary.endTime);
+  const duration = itinerary.durationHHMM ?? formatDuration(itinerary.duration);
+  const products = getUniqueProducts(itinerary.legs);
+
+  const HEADER_HEIGHT = 18;
+  const FOOTER_HEIGHT = 20;
+  const contentHeight = Math.max(height - HEADER_HEIGHT - FOOTER_HEIGHT, 12);
+
+  return (
+    <div
+      className={`absolute left-1 right-1 rounded-lg border transition-all cursor-pointer overflow-hidden ${
+        isSelected
+          ? "border-lvb-yellow bg-yellow-50 dark:bg-zinc-900 shadow-lg z-30"
+          : isHovered
+          ? "border-zinc-400 dark:border-zinc-500 bg-white dark:bg-zinc-800 shadow-sm z-10"
+          : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-600 z-0"
+      }`}
+      style={{ top: y, height: isSelected ? "auto" : height, minHeight: isSelected ? height : undefined }}
+      onMouseEnter={() => onHover?.(envId, itineraryIndex)}
+      onMouseLeave={() => onHover?.(envId, null)}
+      onClick={() => onSelect?.(envId, itineraryIndex)}
+    >
+      {/* Left accent bar showing env color */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-lg"
+        style={{ backgroundColor: envColor }}
+      />
+
+      {/* Strip content */}
+      <div style={{ height: isSelected ? height : "100%" }} className="flex flex-col pl-1.5 pr-1">
+        {/* Departure time header */}
+        <div className="flex-shrink-0 flex items-center justify-between px-0.5" style={{ height: HEADER_HEIGHT }}>
+          <span className="font-mono tabular-nums text-[9px] font-semibold text-zinc-800 dark:text-zinc-100">
+            {depTime}
+          </span>
+          <span className="text-[8px] text-zinc-400 dark:text-zinc-500">{duration}</span>
+        </div>
+
+        {/* FR15.2: Vertical leg segments — each leg's height proportional to its duration */}
+        <div className="flex-shrink-0 flex flex-col rounded overflow-hidden" style={{ height: contentHeight }}>
+          {itinerary.legs.map((leg, i) => {
+            const legPct = leg.duration / totalDuration;
+            const legHeight = Math.max(legPct * contentHeight, 3);
+            const isWalk = !leg.transitLeg;
+            const color = isWalk ? walkColor : getLegColor(leg);
+            const showLabel = legHeight >= 18 && leg.transitLeg;
+
+            return (
+              <div
+                key={i}
+                className="w-full flex items-center justify-center overflow-hidden"
+                style={{
+                  height: legHeight,
+                  backgroundColor: color,
+                  opacity: isWalk ? 0.3 : 1,
+                }}
+                title={`${MODE_LABELS[leg.mode] ?? leg.mode}${leg.transitLeg ? ` ${leg.routeShortName}` : ""} — ${formatDuration(leg.duration)}`}
+                onMouseEnter={(e) => { e.stopPropagation(); onHoverLeg?.(i); }}
+                onMouseLeave={(e) => { e.stopPropagation(); onHoverLeg?.(null); }}
+              >
+                {showLabel && (
+                  <span className="text-[8px] font-semibold text-white truncate px-0.5 drop-shadow-sm">
+                    {leg.routeShortName}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Arrival time + products footer */}
+        <div className="flex-shrink-0 flex items-center justify-between px-0.5" style={{ height: FOOTER_HEIGHT }}>
+          <span className="font-mono tabular-nums text-[9px] font-semibold text-zinc-800 dark:text-zinc-100">
+            {arrTime}
+          </span>
+          <div className="flex items-center gap-0.5">
+            {products.slice(0, 2).map((p, i) => (
+              <span
+                key={i}
+                className="px-0.5 rounded text-[7px] text-white font-medium leading-tight"
+                style={{ backgroundColor: p.color }}
+              >
+                {p.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* FR15.4: Expanded detail view when selected */}
+      {isSelected && (
+        <div className="border-t border-zinc-200 dark:border-zinc-700 bg-yellow-50 dark:bg-zinc-900">
+          <ItineraryCard
+            itinerary={itinerary}
+            index={itineraryIndex}
+            isSelected={true}
+            onSelect={() => {}}
+            onHoverLeg={onHoverLeg}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// FR15.1: One column per environment with vertical timeline strips
+function VerticalTimelineEnvColumn({
+  envId,
+  envIndex,
+  comparisonResults,
+  config,
+  totalHeight,
+  hourMarkers,
+  isDark,
+  hoveredItinerary,
+  selectedItinerary,
+  onHover,
+  onSelect,
+  onHoverLeg,
+}: {
+  envId: string;
+  envIndex: number;
+  comparisonResults: Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }>;
+  config: TimelineConfig;
+  totalHeight: number;
+  hourMarkers: { y: number }[];
+  isDark: boolean;
+  hoveredItinerary?: { envId: string; itineraryIndex: number } | null;
+  selectedItinerary?: { envId: string; itineraryIndex: number } | null;
+  onHover?: (envId: string, itineraryIndex: number | null) => void;
+  onSelect?: (envId: string, itineraryIndex: number) => void;
+  onHoverLeg?: (index: number | null) => void;
+}) {
+  const entry = comparisonResults[envId];
+  const itineraries = entry?.result?.plan?.itineraries ?? [];
+  const envColor = ENV_COLORS[envIndex] ?? "#888";
+
+  if (entry?.error) {
+    return (
+      <div className="flex-1 flex items-center justify-center border-r last:border-r-0 border-zinc-200 dark:border-zinc-800 p-3">
+        <div className="text-center">
+          <p className="text-xs text-red-500">Error</p>
+          <p className="text-[10px] text-zinc-400 mt-0.5 max-w-[150px] truncate">{entry.error.message}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // FR15.3: Sort by realtime departure time
+  const sorted = [...itineraries]
+    .map((it, originalIndex) => ({ itinerary: it, originalIndex }))
+    .sort((a, b) => a.itinerary.startTime - b.itinerary.startTime);
+
+  // FR15.3: Compute Y positions + variable heights with overlap prevention
+  const MIN_STRIP_HEIGHT = 60;
+  const STRIP_GAP = 4;
+  const positions: { y: number; height: number }[] = [];
+  let nextAvailableY = 0;
+  for (const { itinerary } of sorted) {
+    const timeY = timeToY(itinerary.startTime, config);
+    const rawHeight = durationToHeight(itinerary.duration, config);
+    const height = Math.max(rawHeight, MIN_STRIP_HEIGHT);
+    const y = Math.max(timeY, nextAvailableY);
+    positions.push({ y, height });
+    nextAvailableY = y + height + STRIP_GAP;
+  }
+
+  return (
+    <div
+      className="flex-1 relative border-r last:border-r-0 border-zinc-200 dark:border-zinc-800"
+      style={{ height: totalHeight }}
+    >
+      {/* Horizontal gridlines at hour markers */}
+      {hourMarkers.map((marker, i) => (
+        <div
+          key={`grid-${i}`}
+          className="absolute left-0 right-0 border-t border-zinc-100 dark:border-zinc-800/50 pointer-events-none"
+          style={{ top: marker.y }}
+        />
+      ))}
+
+      {/* FR15.2: Itinerary strips positioned by start time with height = duration */}
+      {sorted.map(({ itinerary, originalIndex }, sortedIdx) => {
+        const { y, height } = positions[sortedIdx];
+        const isHovered = hoveredItinerary?.envId === envId && hoveredItinerary?.itineraryIndex === originalIndex;
+        const isSelected = selectedItinerary?.envId === envId && selectedItinerary?.itineraryIndex === originalIndex;
+
+        return (
+          <VerticalTransferSchemeStrip
+            key={`${envId}-${originalIndex}`}
+            itinerary={itinerary}
+            envId={envId}
+            itineraryIndex={originalIndex}
+            y={y}
+            height={height}
+            envColor={envColor}
+            isDark={isDark}
+            isHovered={isHovered}
+            isSelected={isSelected}
+            onHover={onHover}
+            onSelect={onSelect}
+            onHoverLeg={onHoverLeg}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+// FR15: Top-level vertical timeline comparison layout
+function VerticalTimelineComparisonLayout({
+  comparisonResults,
+  selectedEnvironments,
+  customEnvironments,
+  comparisonHoveredItinerary,
+  comparisonSelectedItinerary,
+  onComparisonHover,
+  onComparisonSelect,
+  onComparisonHoverLeg,
+}: TimelineComparisonLayoutProps) {
+  const hasAnyResults = Object.keys(comparisonResults).length > 0;
+  const isDark = useIsDark();
+
+  if (!hasAnyResults) {
+    return <ComparisonEmptyState selectedEnvironments={selectedEnvironments} />;
+  }
+
+  const envIds = selectedEnvironments.filter((id) => comparisonResults[id]);
+
+  // Check if any env is still loading
+  const anyLoading = envIds.some((id) => comparisonResults[id].isLoading);
+  if (anyLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <span className="inline-block w-5 h-5 border-2 border-zinc-300 dark:border-zinc-600 border-t-lvb-yellow rounded-full animate-spin" />
+          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">Loading results...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Compute timeline range and config
+  const timelineRange = computeTimelineRange(comparisonResults, envIds);
+  const config: TimelineConfig = {
+    timelineStart: timelineRange.start,
+    timelineEnd: timelineRange.end,
+    pixelsPerMinute: DEFAULT_PIXELS_PER_MINUTE,
+  };
+  const totalHeight = computeTotalHeight(config);
+  const hourMarkers = generateHourMarkers(config);
+
+  // Check if all envs have no itineraries
+  const totalItineraryCount = envIds.reduce((sum, id) => {
+    return sum + (comparisonResults[id]?.result?.plan?.itineraries?.length ?? 0);
+  }, 0);
+
+  if (totalItineraryCount === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-3">
+        <p className="text-xs text-zinc-400 dark:text-zinc-500">No itineraries found across any environment.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col min-h-0">
+      {/* Fixed column headers */}
+      <div className="flex-shrink-0 flex border-b border-zinc-200 dark:border-zinc-800">
+        {/* Time axis header */}
+        <div className="w-14 flex-shrink-0 px-2 py-1.5 bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Time</span>
+        </div>
+        {/* Env column headers */}
+        {envIds.map((envId, i) => {
+          const label = getEnvLabel(envId, customEnvironments);
+          const count = comparisonResults[envId]?.result?.plan?.itineraries?.length ?? 0;
+          return (
+            <div
+              key={envId}
+              className="flex-1 px-3 py-1.5 bg-zinc-50 dark:bg-zinc-900 border-r last:border-r-0 border-zinc-200 dark:border-zinc-800"
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className="w-3 h-3 rounded-sm flex-shrink-0"
+                  style={{ backgroundColor: ENV_COLORS[i] ?? "#888" }}
+                />
+                <span className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
+                  {label}
+                </span>
+                <span className="text-[10px] text-zinc-400 dark:text-zinc-500">
+                  ({count})
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* FR15.2: Single scrollable container — all columns scroll together */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="flex" style={{ height: Math.max(totalHeight, 200) }}>
+          {/* Time axis column */}
+          <TimeAxis hourMarkers={hourMarkers} totalHeight={Math.max(totalHeight, 200)} />
+
+          {/* Environment columns */}
+          {envIds.map((envId, envIndex) => (
+            <VerticalTimelineEnvColumn
+              key={envId}
+              envId={envId}
+              envIndex={envIndex}
+              comparisonResults={comparisonResults}
+              config={config}
+              totalHeight={Math.max(totalHeight, 200)}
+              hourMarkers={hourMarkers}
+              isDark={isDark}
+              hoveredItinerary={comparisonHoveredItinerary}
+              selectedItinerary={comparisonSelectedItinerary}
+              onHover={onComparisonHover}
+              onSelect={onComparisonSelect}
+              onHoverLeg={onComparisonHoverLeg}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
