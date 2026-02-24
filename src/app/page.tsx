@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import ParameterArea from "@/components/ParameterArea";
 import EvaluationArea from "@/components/EvaluationArea";
 import JourneyForm from "@/components/JourneyForm";
@@ -56,10 +56,47 @@ export default function Home() {
   // FR11.8: Hovered leg index for map polyline highlighting
   const [hoveredLegIndex, setHoveredLegIndex] = useState<number | null>(null);
 
+  // FR14.5/14.6: Comparison interaction state — hovered/selected itinerary + leg hover
+  const [comparisonHoveredItinerary, setComparisonHoveredItinerary] = useState<{
+    envId: string;
+    itineraryIndex: number;
+  } | null>(null);
+  const [comparisonSelectedItinerary, setComparisonSelectedItinerary] = useState<{
+    envId: string;
+    itineraryIndex: number;
+  } | null>(null);
+  const [comparisonHoveredLegIndex, setComparisonHoveredLegIndex] = useState<number | null>(null);
+
+  // FR14.5: Derive the itinerary to show on map in comparison mode (hover takes priority)
+  const comparisonMapItinerary = useMemo(() => {
+    const target = comparisonHoveredItinerary ?? comparisonSelectedItinerary;
+    if (!target) return null;
+    return comparisonResults[target.envId]?.result?.plan?.itineraries?.[target.itineraryIndex] ?? null;
+  }, [comparisonHoveredItinerary, comparisonSelectedItinerary, comparisonResults]);
+
   // Reset hover when itinerary selection changes
   const handleSelectItinerary = useCallback((index: number) => {
     setSelectedItineraryIndex(index);
     setHoveredLegIndex(null);
+  }, []);
+
+  // FR14.5: Comparison hover — update map with hovered itinerary
+  const handleComparisonHover = useCallback((envId: string, itineraryIndex: number | null) => {
+    if (itineraryIndex === null) {
+      setComparisonHoveredItinerary(null);
+    } else {
+      setComparisonHoveredItinerary({ envId, itineraryIndex });
+    }
+    setComparisonHoveredLegIndex(null);
+  }, []);
+
+  // FR14.6: Comparison select — toggle itinerary detail view
+  const handleComparisonSelect = useCallback((envId: string, itineraryIndex: number) => {
+    setComparisonSelectedItinerary((prev) => {
+      if (prev?.envId === envId && prev?.itineraryIndex === itineraryIndex) return null;
+      return { envId, itineraryIndex };
+    });
+    setComparisonHoveredLegIndex(null);
   }, []);
 
   // FR6.4: Request history (loaded from localStorage)
@@ -326,6 +363,10 @@ export default function Home() {
     setComparisonResults({});
     setSelectedItineraryIndex(0);
     setHoveredLegIndex(null);
+    // FR14: Reset comparison interaction state
+    setComparisonHoveredItinerary(null);
+    setComparisonSelectedItinerary(null);
+    setComparisonHoveredLegIndex(null);
   }, []);
 
   // FR12.5: Load earlier/later itineraries
@@ -485,6 +526,13 @@ export default function Home() {
         comparisonResults={comparisonResults}
         selectedEnvironments={selectedEnvironments}
         customEnvironments={customEnvironments}
+        comparisonHoveredItinerary={comparisonHoveredItinerary}
+        comparisonSelectedItinerary={comparisonSelectedItinerary}
+        comparisonMapItinerary={comparisonMapItinerary}
+        comparisonHoveredLegIndex={comparisonHoveredLegIndex}
+        onComparisonHover={handleComparisonHover}
+        onComparisonSelect={handleComparisonSelect}
+        onComparisonHoverLeg={setComparisonHoveredLegIndex}
       />
     </div>
   );
