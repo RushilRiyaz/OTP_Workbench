@@ -22,9 +22,9 @@ export function TimelineComparisonLayout({
   selectedEnvironments,
   customEnvironments,
   comparisonHoveredItinerary,
-  comparisonSelectedItinerary,
+  comparisonSelectedItineraries,
   onComparisonHover,
-  onComparisonSelect,
+  onComparisonToggleSelect,
   onComparisonHoverLeg,
 }: TimelineComparisonLayoutProps & { mode: "horizontal" | "vertical" }) {
   const t = useTranslations("Comparison");
@@ -126,9 +126,9 @@ export function TimelineComparisonLayout({
               hourMarkers={hourMarkers}
               isDark={isDark}
               hoveredItinerary={comparisonHoveredItinerary}
-              selectedItinerary={comparisonSelectedItinerary}
+              selectedItineraries={comparisonSelectedItineraries}
               onHover={onComparisonHover}
-              onSelect={onComparisonSelect}
+              onSelect={onComparisonToggleSelect}
               onHoverLeg={onComparisonHoverLeg}
             />
           ))}

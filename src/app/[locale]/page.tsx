@@ -15,6 +15,9 @@ import { fetchRouting, RoutingResponse, RoutingError, Itinerary } from "@/lib/ro
 import { getRequestHistory, addToRequestHistory, clearRequestHistory, generateDisplayLabel } from "@/lib/requestHistory";
 import { serializeFormState, deserializeUrlParams } from "@/lib/urlParams";
 import { getEnvironmentConfig, getAutocompleteConfig } from "@/components/EnvironmentSelector";
+import type { ComparisonItineraryRef, DetailHoveredLeg, ComparisonMapItinerary } from "@/components/comparison/types";
+import { ITINERARY_COLORS, ENV_COLORS } from "@/components/comparison/types";
+import { toggleComparisonSelection } from "@/lib/comparisonSelectionUtils";
 
 
 export default function Home() {
@@ -59,23 +62,41 @@ export default function Home() {
   // FR11.8: Hovered leg index for map polyline highlighting
   const [hoveredLegIndex, setHoveredLegIndex] = useState<number | null>(null);
 
-  // FR14.5/14.6: Comparison interaction state — hovered/selected itinerary + leg hover
+  // FR14.5/14.6: Comparison interaction state — hovered itinerary + leg hover
   const [comparisonHoveredItinerary, setComparisonHoveredItinerary] = useState<{
-    envId: string;
-    itineraryIndex: number;
-  } | null>(null);
-  const [comparisonSelectedItinerary, setComparisonSelectedItinerary] = useState<{
     envId: string;
     itineraryIndex: number;
   } | null>(null);
   const [comparisonHoveredLegIndex, setComparisonHoveredLegIndex] = useState<number | null>(null);
 
-  // FR14.5: Derive the itinerary to show on map in comparison mode (hover takes priority)
-  const comparisonMapItinerary = useMemo(() => {
-    const target = comparisonHoveredItinerary ?? comparisonSelectedItinerary;
-    if (!target) return null;
-    return comparisonResults[target.envId]?.result?.plan?.itineraries?.[target.itineraryIndex] ?? null;
-  }, [comparisonHoveredItinerary, comparisonSelectedItinerary, comparisonResults]);
+  // FR17.1: Multi-select for detail comparison (up to 3)
+  const [comparisonSelectedItineraries, setComparisonSelectedItineraries] = useState<ComparisonItineraryRef[]>([]);
+  const [detailHoveredLeg, setDetailHoveredLeg] = useState<DetailHoveredLeg | null>(null);
+  const [showDetailView, setShowDetailView] = useState(false);
+  const isDetailComparisonView = showDetailView && comparisonSelectedItineraries.length > 0;
+
+  // FR17.4: Derive itineraries for map — detail mode shows all selected, overview shows hovered
+  const comparisonMapItineraries = useMemo((): ComparisonMapItinerary[] => {
+    if (isDetailComparisonView) {
+      // Detail mode: show all selected itineraries with ITINERARY_COLORS
+      const items: ComparisonMapItinerary[] = [];
+      for (let i = 0; i < comparisonSelectedItineraries.length; i++) {
+        const ref = comparisonSelectedItineraries[i];
+        const it = comparisonResults[ref.envId]?.result?.plan?.itineraries?.[ref.itineraryIndex];
+        if (it) items.push({ itinerary: it, color: ITINERARY_COLORS[i] ?? "#888" });
+      }
+      return items;
+    }
+    // Overview mode: show hovered itinerary with env color
+    if (comparisonHoveredItinerary) {
+      const it = comparisonResults[comparisonHoveredItinerary.envId]?.result?.plan?.itineraries?.[comparisonHoveredItinerary.itineraryIndex];
+      if (it) {
+        const envIndex = selectedEnvironments.indexOf(comparisonHoveredItinerary.envId);
+        return [{ itinerary: it, color: ENV_COLORS[envIndex] ?? "#888" }];
+      }
+    }
+    return [];
+  }, [isDetailComparisonView, comparisonSelectedItineraries, comparisonHoveredItinerary, comparisonResults, selectedEnvironments]);
 
   // Reset hover when itinerary selection changes
   const handleSelectItinerary = useCallback((index: number) => {
@@ -93,13 +114,26 @@ export default function Home() {
     setComparisonHoveredLegIndex(null);
   }, []);
 
-  // FR14.6: Comparison select — toggle itinerary detail view
-  const handleComparisonSelect = useCallback((envId: string, itineraryIndex: number) => {
-    setComparisonSelectedItinerary((prev) => {
-      if (prev?.envId === envId && prev?.itineraryIndex === itineraryIndex) return null;
-      return { envId, itineraryIndex };
-    });
+  // FR17.1: Toggle itinerary in/out of detail comparison (cap at 3)
+  const handleComparisonToggleSelect = useCallback((envId: string, itineraryIndex: number) => {
+    setComparisonSelectedItineraries((prev) => toggleComparisonSelection(prev, envId, itineraryIndex));
+    setDetailHoveredLeg(null);
     setComparisonHoveredLegIndex(null);
+  }, []);
+
+  // FR17.5: Enter/exit detail comparison view (selections preserved on exit)
+  const handleEnterDetailView = useCallback(() => {
+    setShowDetailView(true);
+  }, []);
+
+  const handleExitDetailView = useCallback(() => {
+    setShowDetailView(false);
+    setDetailHoveredLeg(null);
+  }, []);
+
+  // FR17: Set detail hovered leg
+  const handleDetailHoverLeg = useCallback((leg: DetailHoveredLeg | null) => {
+    setDetailHoveredLeg(leg);
   }, []);
 
   // FR6.4: Request history (loaded from localStorage)
@@ -295,6 +329,11 @@ export default function Home() {
 
     if (selectedEnvironments.length === 0) return;
 
+    // FR17: Clear stale selections before new results arrive
+    setComparisonSelectedItineraries([]);
+    setShowDetailView(false);
+    setDetailHoveredLeg(null);
+
     // Set all envs to loading
     const initialState: Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }> = {};
     for (const envId of selectedEnvironments) {
@@ -373,9 +412,11 @@ export default function Home() {
     setComparisonResults({});
     setSelectedItineraryIndex(0);
     setHoveredLegIndex(null);
-    // FR14: Reset comparison interaction state
+    // FR14/FR17: Reset comparison interaction state
     setComparisonHoveredItinerary(null);
-    setComparisonSelectedItinerary(null);
+    setComparisonSelectedItineraries([]);
+    setShowDetailView(false);
+    setDetailHoveredLeg(null);
     setComparisonHoveredLegIndex(null);
   }, []);
 
@@ -537,12 +578,17 @@ export default function Home() {
         selectedEnvironments={selectedEnvironments}
         customEnvironments={customEnvironments}
         comparisonHoveredItinerary={comparisonHoveredItinerary}
-        comparisonSelectedItinerary={comparisonSelectedItinerary}
-        comparisonMapItinerary={comparisonMapItinerary}
+        comparisonSelectedItineraries={comparisonSelectedItineraries}
+        comparisonMapItineraries={comparisonMapItineraries}
         comparisonHoveredLegIndex={comparisonHoveredLegIndex}
         onComparisonHover={handleComparisonHover}
-        onComparisonSelect={handleComparisonSelect}
+        onComparisonToggleSelect={handleComparisonToggleSelect}
+        onEnterDetailView={handleEnterDetailView}
+        onExitDetailView={handleExitDetailView}
         onComparisonHoverLeg={setComparisonHoveredLegIndex}
+        isDetailComparisonView={isDetailComparisonView}
+        detailHoveredLeg={detailHoveredLeg}
+        onDetailHoverLeg={handleDetailHoverLeg}
       />
     </div>
   );

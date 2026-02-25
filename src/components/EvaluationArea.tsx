@@ -9,9 +9,12 @@ import ErrorBoundary from "./ErrorBoundary";
 import RoutingResults from "./RoutingResults";
 import type { RoutingResponse, RoutingError, Itinerary } from "@/lib/routing";
 import type { Environment } from "./EnvironmentSelector";
+import type { ComparisonItineraryRef, DetailHoveredLeg, ComparisonMapItinerary } from "./comparison/types";
+import { ITINERARY_COLORS } from "./comparison/types";
 import { ComparisonEmptyState } from "./comparison/ComparisonEmptyState";
 import { TimelineComparisonLayout } from "./comparison/TimelineComparisonLayout";
 import { ComparisonOverviewLayout } from "./comparison/ComparisonOverviewLayout";
+import { DetailComparisonLayout } from "./comparison/DetailComparisonLayout";
 
 type SplitLayout = "vertical" | "horizontal";
 // FR13: Three comparison layout modes
@@ -36,14 +39,20 @@ interface EvaluationAreaProps {
   comparisonResults?: Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }>;
   selectedEnvironments?: string[];
   customEnvironments?: Environment[];
-  // FR14: Comparison interaction props
+  // FR14/FR17: Comparison interaction props
   comparisonHoveredItinerary?: { envId: string; itineraryIndex: number } | null;
-  comparisonSelectedItinerary?: { envId: string; itineraryIndex: number } | null;
-  comparisonMapItinerary?: Itinerary | null;
+  comparisonSelectedItineraries?: ComparisonItineraryRef[];
+  comparisonMapItineraries?: ComparisonMapItinerary[];
   comparisonHoveredLegIndex?: number | null;
   onComparisonHover?: (envId: string, itineraryIndex: number | null) => void;
-  onComparisonSelect?: (envId: string, itineraryIndex: number) => void;
+  onComparisonToggleSelect?: (envId: string, itineraryIndex: number) => void;
   onComparisonHoverLeg?: (index: number | null) => void;
+  // FR17: Detail comparison
+  isDetailComparisonView?: boolean;
+  detailHoveredLeg?: DetailHoveredLeg | null;
+  onEnterDetailView?: () => void;
+  onExitDetailView?: () => void;
+  onDetailHoverLeg?: (leg: DetailHoveredLeg | null) => void;
 }
 
 const MIN_PANEL_PCT = 20;
@@ -80,14 +89,20 @@ export default function EvaluationArea({
   selectedEnvironments,
   customEnvironments,
   comparisonHoveredItinerary,
-  comparisonSelectedItinerary,
-  comparisonMapItinerary,
+  comparisonSelectedItineraries,
+  comparisonMapItineraries,
   comparisonHoveredLegIndex,
   onComparisonHover,
-  onComparisonSelect,
+  onComparisonToggleSelect,
   onComparisonHoverLeg,
+  isDetailComparisonView,
+  detailHoveredLeg,
+  onEnterDetailView,
+  onExitDetailView,
+  onDetailHoverLeg,
 }: EvaluationAreaProps) {
   const t = useTranslations("EvaluationArea");
+  const tDetail = useTranslations("DetailComparison");
   const itineraries = routingResult?.plan?.itineraries ?? [];
   const selectedItinerary: Itinerary | null =
     itineraries[selectedItineraryIndex] ?? null;
@@ -154,8 +169,13 @@ export default function EvaluationArea({
 
   const isVertical = layout === "vertical";
 
-  // FR14: Whether the comparison map should auto-fit bounds (only on selection, not hover)
+  // FR14/FR17: Whether the comparison map should auto-fit bounds
   const comparisonAutoFitBounds = comparisonHoveredItinerary === null;
+
+  // FR17: Derive single itinerary for non-detail map mode (backward compat)
+  const comparisonMapItinerary = (!isDetailComparisonView && (comparisonMapItineraries?.length ?? 0) > 0)
+    ? comparisonMapItineraries![0].itinerary
+    : null;
 
   return (
     <main className="flex-1 flex flex-col h-full bg-white dark:bg-zinc-950">
@@ -289,21 +309,38 @@ export default function EvaluationArea({
 
             {/* Show map + comparison layouts once 2+ environments are selected */}
             {(selectedEnvironments?.length ?? 0) >= 2 && (<>
-            {/* Toolbar: clear + layout toggle — only show when comparison has results */}
+            {/* Toolbar: clear + compare button + layout toggle — only show when comparison has results */}
             {hasComparisonResults && (
               <div className="flex items-center justify-between px-2 py-1.5 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
-                {/* Clear results */}
-                <button
-                  type="button"
-                  onClick={() => setShowClearConfirm(true)}
-                  className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
-                  title={t("clearTitle")}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  <span>{t("clear")}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  {/* Clear results */}
+                  <button
+                    type="button"
+                    onClick={() => setShowClearConfirm(true)}
+                    className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+                    title={t("clearTitle")}
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span>{t("clear")}</span>
+                  </button>
+
+                  {/* FR17: Compare Selected button — visible when itineraries selected */}
+                  {(comparisonSelectedItineraries?.length ?? 0) > 0 && !isDetailComparisonView && (
+                    <button
+                      type="button"
+                      onClick={onEnterDetailView}
+                      className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+                      style={{ backgroundColor: ITINERARY_COLORS[0] }}
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                      {tDetail("compareSelected", { count: comparisonSelectedItineraries?.length ?? 0 })}
+                    </button>
+                  )}
+                </div>
                 {/* Layout toggle */}
                 <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-0.5">
                   {([
@@ -352,9 +389,11 @@ export default function EvaluationArea({
                     destination={destinationLocation}
                     onStartChange={onStartChange}
                     onDestinationChange={onDestinationChange}
-                    selectedItinerary={comparisonMapItinerary ?? null}
-                    hoveredLegIndex={comparisonHoveredLegIndex ?? null}
+                    selectedItinerary={isDetailComparisonView ? null : comparisonMapItinerary}
+                    hoveredLegIndex={isDetailComparisonView ? null : (comparisonHoveredLegIndex ?? null)}
                     autoFitBounds={comparisonAutoFitBounds}
+                    comparisonItineraries={isDetailComparisonView ? comparisonMapItineraries : undefined}
+                    comparisonHoveredLeg={isDetailComparisonView ? detailHoveredLeg : undefined}
                   />
                 </ErrorBoundary>
               </div>
@@ -379,15 +418,24 @@ export default function EvaluationArea({
                   className="min-h-0 min-w-0 bg-zinc-50 dark:bg-zinc-950 flex flex-col"
                   style={{ height: `${100 - mapPct}%` }}
                 >
-                  {comparisonLayout === "overview" ? (
+                  {isDetailComparisonView ? (
+                    <DetailComparisonLayout
+                      items={comparisonSelectedItineraries ?? []}
+                      comparisonResults={comparisonResults ?? {}}
+                      customEnvironments={customEnvironments ?? []}
+                      onDeselectItem={(ref) => onComparisonToggleSelect?.(ref.envId, ref.itineraryIndex)}
+                      onDeselectAll={onExitDetailView ?? (() => {})}
+                      onHoverLeg={onDetailHoverLeg ?? (() => {})}
+                    />
+                  ) : comparisonLayout === "overview" ? (
                     <ComparisonOverviewLayout
                       comparisonResults={comparisonResults ?? {}}
                       selectedEnvironments={selectedEnvironments ?? []}
                       customEnvironments={customEnvironments ?? []}
                       comparisonHoveredItinerary={comparisonHoveredItinerary}
-                      comparisonSelectedItinerary={comparisonSelectedItinerary}
+                      comparisonSelectedItineraries={comparisonSelectedItineraries}
                       onComparisonHover={onComparisonHover}
-                      onComparisonSelect={onComparisonSelect}
+                      onComparisonToggleSelect={onComparisonToggleSelect}
                       onComparisonHoverLeg={onComparisonHoverLeg}
                     />
                   ) : (
@@ -397,9 +445,9 @@ export default function EvaluationArea({
                       selectedEnvironments={selectedEnvironments ?? []}
                       customEnvironments={customEnvironments ?? []}
                       comparisonHoveredItinerary={comparisonHoveredItinerary}
-                      comparisonSelectedItinerary={comparisonSelectedItinerary}
+                      comparisonSelectedItineraries={comparisonSelectedItineraries}
                       onComparisonHover={onComparisonHover}
-                      onComparisonSelect={onComparisonSelect}
+                      onComparisonToggleSelect={onComparisonToggleSelect}
                       onComparisonHoverLeg={onComparisonHoverLeg}
                     />
                   )}

@@ -8,12 +8,14 @@ import "leaflet/dist/leaflet.css";
 
 import type { LocationValue } from "@/components/LocationInput";
 import type { Itinerary } from "@/lib/routing";
+import type { ComparisonMapItinerary, DetailHoveredLeg } from "@/components/comparison/types";
 import { LEIPZIG_HBF, DEFAULT_ZOOM, TILE_URL, TILE_ATTRIBUTION } from "./constants";
 import MapEvents from "./MapEvents";
 import MapMarkers from "./MapMarkers";
 import CursorTracker from "./CursorTracker";
 import CoordPopup from "./CoordPopup";
 import RoutePolylines from "./RoutePolylines";
+import ComparisonRoutePolylines from "./ComparisonRoutePolylines";
 
 // Fix Leaflet default icon paths for Next.js
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
@@ -47,6 +49,9 @@ interface MapViewProps {
   hoveredLegIndex?: number | null;
   /** Set to false to prevent auto-fitting map bounds on itinerary change */
   autoFitBounds?: boolean;
+  /** FR17: Multiple itineraries for detail comparison map */
+  comparisonItineraries?: ComparisonMapItinerary[];
+  comparisonHoveredLeg?: DetailHoveredLeg | null;
 }
 
 export default function MapView({
@@ -57,6 +62,8 @@ export default function MapView({
   selectedItinerary,
   hoveredLegIndex,
   autoFitBounds = true,
+  comparisonItineraries,
+  comparisonHoveredLeg,
 }: MapViewProps) {
   const [popupCoords, setPopupCoords] = useState<{ lat: number; lng: number } | null>(null);
   const isDark = useIsDark();
@@ -92,7 +99,15 @@ export default function MapView({
 
         <MapMarkers start={start} destination={destination} isDark={isDark} />
 
-        <RoutePolylines itinerary={selectedItinerary ?? null} isDark={isDark} hoveredLegIndex={hoveredLegIndex ?? null} autoFitBounds={autoFitBounds} />
+        {comparisonItineraries && comparisonItineraries.length > 0 ? (
+          <ComparisonRoutePolylines
+            itineraries={comparisonItineraries}
+            hoveredLeg={comparisonHoveredLeg ?? null}
+            autoFitBounds={autoFitBounds}
+          />
+        ) : (
+          <RoutePolylines itinerary={selectedItinerary ?? null} isDark={isDark} hoveredLegIndex={hoveredLegIndex ?? null} autoFitBounds={autoFitBounds} />
+        )}
 
         <CursorTracker />
 
