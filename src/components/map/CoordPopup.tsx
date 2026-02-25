@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Popup } from "react-leaflet";
 import { COORD_PRECISION } from "./constants";
 
@@ -12,6 +13,7 @@ interface CoordPopupProps {
 
 // FR8.4-8.5: Popup with copy functionality
 export default function CoordPopup({ coords, label, onClose }: CoordPopupProps) {
+  const t = useTranslations("Map");
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
   const coordString = `${coords.lat.toFixed(COORD_PRECISION)}, ${coords.lng.toFixed(COORD_PRECISION)}`;
 
@@ -63,10 +65,10 @@ export default function CoordPopup({ coords, label, onClose }: CoordPopupProps) 
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
                 <path fillRule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" />
               </svg>
-              Copied!
+              {t("copied")}
             </>
           ) : copyStatus === "failed" ? (
-            "Failed"
+            t("copyFailed")
           ) : (
             <>
               {/* Copy icon */}
@@ -74,7 +76,7 @@ export default function CoordPopup({ coords, label, onClose }: CoordPopupProps) 
                 <path d="M5.5 3.5A1.5 1.5 0 0 1 7 2h2.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 1 .439 1.061V9.5A1.5 1.5 0 0 1 12 11V3.5H7a1.5 1.5 0 0 1-1.5-1.5V3.5Z" />
                 <path d="M3.5 6A1.5 1.5 0 0 1 5 4.5h4.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 1 .439 1.061V12.5A1.5 1.5 0 0 1 12 14H5a1.5 1.5 0 0 1-1.5-1.5V6Z" />
               </svg>
-              Copy coordinates
+              {t("copyCoordinates")}
             </>
           )}
         </button>

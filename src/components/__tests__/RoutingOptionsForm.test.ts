@@ -20,7 +20,6 @@ describe("RoutingOptionsForm exports", () => {
     it("includes TRANSIT mode", () => {
       const transit = TRAVEL_MODES.find((m) => m.id === "TRANSIT");
       expect(transit).toBeDefined();
-      expect(transit?.label).toBe("Transit");
     });
 
     it("includes common transit modes", () => {
@@ -30,12 +29,10 @@ describe("RoutingOptionsForm exports", () => {
       expect(modeIds).toContain("TRAIN");
     });
 
-    it("each mode has id and label", () => {
+    it("each mode has an id", () => {
       for (const mode of TRAVEL_MODES) {
         expect(mode.id).toBeDefined();
         expect(typeof mode.id).toBe("string");
-        expect(mode.label).toBeDefined();
-        expect(typeof mode.label).toBe("string");
       }
     });
 
@@ -56,13 +53,11 @@ describe("RoutingOptionsForm exports", () => {
     it("includes shortWalk option", () => {
       const shortWalk = OPTIONAL_PARAMS.find((p) => p.id === "shortWalk");
       expect(shortWalk).toBeDefined();
-      expect(shortWalk?.label).toBe("Short Walk");
     });
 
     it("includes lessTransfers option", () => {
       const lessTransfers = OPTIONAL_PARAMS.find((p) => p.id === "lessTransfers");
       expect(lessTransfers).toBeDefined();
-      expect(lessTransfers?.label).toBe("Less Transfers");
     });
 
     it("includes accessibility option", () => {
@@ -75,12 +70,10 @@ describe("RoutingOptionsForm exports", () => {
       expect(transitOnly).toBeDefined();
     });
 
-    it("each param has id and label", () => {
+    it("each param has an id", () => {
       for (const param of OPTIONAL_PARAMS) {
         expect(param.id).toBeDefined();
         expect(typeof param.id).toBe("string");
-        expect(param.label).toBeDefined();
-        expect(typeof param.label).toBe("string");
       }
     });
   });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 // Predefined OTP environments — populated from .env
 const PREDEFINED_ENVIRONMENTS = [
@@ -107,6 +108,7 @@ export default function EnvironmentSelector({
   const [customAutocompleteUrl, setCustomAutocompleteUrl] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [isListOpen, setIsListOpen] = useState(false);
+  const t = useTranslations("EnvironmentSelector");
 
   // Combine predefined and custom environments
   const allEnvironments: Environment[] = [
@@ -178,11 +180,11 @@ export default function EnvironmentSelector({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <label className="block text-xs font-semibold uppercase tracking-widest text-zinc-400">
-          Environment{!singleSelectMode && "s"}
+          {singleSelectMode ? t("environment") : t("environments")}
         </label>
         {!singleSelectMode && (
           <span className="text-xs text-zinc-500 dark:text-zinc-400">
-            {selectedEnvironments.length}/3 selected
+            {t("selectedCount", { count: selectedEnvironments.length })}
           </span>
         )}
       </div>
@@ -207,7 +209,7 @@ export default function EnvironmentSelector({
 
             {selectedEnvObjects[0].isCustom && (
               <span className="text-[10px] px-1.5 py-0.5 bg-zinc-200 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 rounded-full">
-                Custom
+                {t("custom")}
               </span>
             )}
 
@@ -221,7 +223,7 @@ export default function EnvironmentSelector({
           </div>
 
           <span className="flex items-center gap-1 text-xs font-medium text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors">
-            Change
+            {t("change")}
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
@@ -277,7 +279,7 @@ export default function EnvironmentSelector({
 
                     {env.isCustom && (
                       <span className="text-xs px-1.5 py-0.5 bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400 rounded-full border border-zinc-300 dark:border-zinc-600">
-                        Custom
+                        {t("custom")}
                       </span>
                     )}
                   </div>
@@ -291,7 +293,7 @@ export default function EnvironmentSelector({
                         handleRemoveCustom(env.id);
                       }}
                       className="p-1 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
-                      title="Remove custom environment"
+                      title={t("removeCustom")}
                     >
                       <svg
                         className="w-4 h-4"
@@ -318,7 +320,7 @@ export default function EnvironmentSelector({
           {singleSelectMode && selectedEnvironments.length > 0 && (
             <div className="space-y-1">
               <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">
-                Autocomplete Service
+                {t("autocompleteService")}
               </span>
               <div className="inline-flex p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/60 dark:border-zinc-700/60">
                 {AUTOCOMPLETE_ENVIRONMENTS.map((acEnv) => (
@@ -358,27 +360,27 @@ export default function EnvironmentSelector({
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              Add Custom Environment
+              {t("addCustomEnvironment")}
             </button>
           ) : (
             <div className="p-3 border border-zinc-200 dark:border-zinc-700 rounded-xl space-y-2 bg-zinc-50 dark:bg-zinc-800 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
               <input
                 type="text"
-                placeholder="Environment name"
+                placeholder={t("environmentName")}
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
                 className="w-full px-3 py-1.5 text-sm border border-zinc-200 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
               />
               <input
                 type="text"
-                placeholder="OTP API URL"
+                placeholder={t("otpApiUrl")}
                 value={customOtpUrl}
                 onChange={(e) => setCustomOtpUrl(e.target.value)}
                 className="w-full px-3 py-1.5 text-sm border border-zinc-200 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
               />
               <input
                 type="text"
-                placeholder="Autocomplete API URL"
+                placeholder={t("autocompleteApiUrl")}
                 value={customAutocompleteUrl}
                 onChange={(e) => setCustomAutocompleteUrl(e.target.value)}
                 className="w-full px-3 py-1.5 text-sm border border-zinc-200 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
@@ -389,7 +391,7 @@ export default function EnvironmentSelector({
                   disabled={!customName.trim() || !customOtpUrl.trim()}
                   className="flex-1 px-3 py-1.5 text-sm font-semibold text-lvb-dark bg-lvb-yellow rounded-lg hover:bg-lvb-yellow-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                 >
-                  Add
+                  {t("add")}
                 </button>
                 <button
                   onClick={() => {
@@ -400,7 +402,7 @@ export default function EnvironmentSelector({
                   }}
                   className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
               </div>
             </div>
@@ -416,7 +418,7 @@ export default function EnvironmentSelector({
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
               </svg>
-              Confirm
+              {t("confirm")}
             </button>
           )}
         </>
@@ -425,7 +427,7 @@ export default function EnvironmentSelector({
       {/* Helper text */}
       {singleSelectMode && !showCollapsed && (
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          Single environment mode. Switch to &quot;Routing Comparison&quot; to compare multiple environments.
+          {t("singleModeHelp")}
         </p>
       )}
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type { Itinerary, Leg, TransitLeg, Alert } from "@/lib/routing";
 import { isStation } from "@/lib/routing";
 import { useIsDark } from "@/lib/useIsDark";
@@ -44,7 +45,7 @@ function WalkLegDetail({ leg, isDark }: { leg: Leg; isDark: boolean }) {
   );
 }
 
-function TransitLegDetail({ leg }: { leg: TransitLeg }) {
+function TransitLegDetail({ leg, t }: { leg: TransitLeg; t: ReturnType<typeof useTranslations<"ItineraryCard">> }) {
   const [expanded, setExpanded] = useState(false);
   const color = getLegColor(leg);
   const label = MODE_LABELS[leg.mode] ?? leg.mode;
@@ -77,7 +78,7 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
         {/* FR11.4: Duration + stop count + expand chevron */}
         <span className="text-zinc-400 dark:text-zinc-500 flex-shrink-0 flex items-center gap-1">
           <span>{formatDuration(leg.duration)}</span>
-          {stopCount > 0 && <span>&middot; {stopCount} stop{stopCount !== 1 ? "s" : ""}</span>}
+          {stopCount > 0 && <span>&middot; {stopCount === 1 ? t("stop", { count: stopCount }) : t("stops", { count: stopCount })}</span>}
           <svg
             className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : ""}`}
             fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -92,6 +93,7 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
         <div className="ml-3 pl-3 border-l-2 mt-1 mb-2" style={{ borderColor: color }}>
           {/* Boarding stop */}
           <StopRow
+            t={t}
             name={leg.from.name}
             time={depTime}
             delayedTime={leg.from.departureDelayedTimeHHMM}
@@ -108,6 +110,7 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
           {/* Intermediate stops */}
           {leg.intermediateStops?.map((stop, i) => (
             <StopRow
+              t={t}
               key={i}
               name={stop.name}
               time={stop.departure ? formatTimestamp(stop.departure) : undefined}
@@ -125,6 +128,7 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
 
           {/* Alighting stop */}
           <StopRow
+            t={t}
             name={leg.to.name}
             time={arrTime}
             delayedTime={leg.to.arrivalDelayedTimeHHMM}
@@ -140,7 +144,7 @@ function TransitLegDetail({ leg }: { leg: TransitLeg }) {
 
           {/* FR11.6: Trip ID */}
           <div className="mt-1.5 pt-1.5 border-t border-zinc-100 dark:border-zinc-800 text-[10px] text-zinc-400 dark:text-zinc-500">
-            Trip: <span className="font-mono">{leg.tripId}</span>
+            {t("trip")}: <span className="font-mono">{leg.tripId}</span>
           </div>
 
           {/* FR11.6: Alerts */}
@@ -165,6 +169,7 @@ function StopRow({
   indicator,
   stopId,
   zoneId,
+  t,
 }: {
   name: string;
   time?: string;
@@ -177,6 +182,7 @@ function StopRow({
   indicator: "board" | "alight" | "intermediate";
   stopId?: string;
   zoneId?: string;
+  t: ReturnType<typeof useTranslations<"ItineraryCard">>;
 }) {
   const delayStr = formatDelay(delay);
   const trackChanged = track && scheduledTrack && track !== scheduledTrack;
@@ -233,18 +239,18 @@ function StopRow({
         {/* FR11.5: Tariff zone */}
         {zoneId && (
           <span className="ml-1.5 inline-flex items-center px-1 py-0 rounded text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
-            Zone {zoneId}
+            {t("zone", { id: zoneId })}
           </span>
         )}
         {indicator === "board" && (
-          <span className="ml-1.5 text-[10px] font-semibold uppercase text-green-600 dark:text-green-400">Board</span>
+          <span className="ml-1.5 text-[10px] font-semibold uppercase text-green-600 dark:text-green-400">{t("board")}</span>
         )}
         {indicator === "alight" && (
-          <span className="ml-1.5 text-[10px] font-semibold uppercase text-red-600 dark:text-red-400">Exit</span>
+          <span className="ml-1.5 text-[10px] font-semibold uppercase text-red-600 dark:text-red-400">{t("exit")}</span>
         )}
         {track && (
           <span className={`ml-1.5 text-[10px] ${trackChanged ? "text-orange-500 font-semibold" : "text-zinc-400 dark:text-zinc-500"}`}>
-            Pl. {track}{trackChanged ? ` (was ${scheduledTrack})` : ""}
+            {trackChanged ? t("platformChanged", { track, scheduled: scheduledTrack }) : t("platform", { track })}
           </span>
         )}
       </div>
@@ -292,6 +298,7 @@ interface ItineraryCardProps {
 }
 
 export default function ItineraryCard({ itinerary, index, isSelected, onSelect, onHoverLeg }: ItineraryCardProps) {
+  const t = useTranslations("ItineraryCard");
   const isDark = useIsDark();
   const walkColor = isDark ? "#ffffff" : "#1a1a1a";
 
@@ -349,8 +356,10 @@ export default function ItineraryCard({ itinerary, index, isSelected, onSelect, 
       <div className="flex items-center flex-wrap gap-2 text-xs">
         <span className="text-zinc-500 dark:text-zinc-400">
           {itinerary.transfers === 0
-            ? "Direct"
-            : `${itinerary.transfers} transfer${itinerary.transfers > 1 ? "s" : ""}`}
+            ? t("direct")
+            : itinerary.transfers === 1
+              ? t("transfer", { count: itinerary.transfers })
+              : t("transfers", { count: itinerary.transfers })}
         </span>
 
         {products.length > 0 && (
@@ -374,10 +383,10 @@ export default function ItineraryCard({ itinerary, index, isSelected, onSelect, 
       {/* Row 4: Zones + Short distance */}
       {(zones.length > 0 || shortDistance) && (
         <div className="flex items-center gap-2 mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-          {zones.length > 0 && <span>Zones: {zones.join(", ")}</span>}
+          {zones.length > 0 && <span>{t("zones", { zones: zones.join(", ") })}</span>}
           {shortDistance && (
             <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 font-medium">
-              Short distance
+              {t("shortDistance")}
             </span>
           )}
         </div>
@@ -394,7 +403,7 @@ export default function ItineraryCard({ itinerary, index, isSelected, onSelect, 
               onMouseLeave={() => onHoverLeg?.(null)}
             >
               {leg.transitLeg ? (
-                <TransitLegDetail leg={leg} />
+                <TransitLegDetail leg={leg} t={t} />
               ) : (
                 <WalkLegDetail leg={leg} isDark={isDark} />
               )}

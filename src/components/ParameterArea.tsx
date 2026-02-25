@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 // Width values as percentage of viewport width
 const DEFAULT_WIDTH_PERCENT = 28; // Start between 1/4 (25%) and 1/3 (33%)
@@ -18,6 +19,7 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
   const [isDragging, setIsDragging] = useState(false);
   const isResizing = useRef(false);
   const sidebarRef = useRef<HTMLElement>(null);
+  const t = useTranslations("ParameterArea");
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -68,12 +70,12 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
             isExpanded ? "max-w-40 opacity-100" : "max-w-0 opacity-0"
           }`}
         >
-          Parameters
+          {t("parameters")}
         </h2>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
-          title={isExpanded ? "Collapse" : "Expand"}
+          title={isExpanded ? t("collapse") : t("expand")}
         >
           <svg
             className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? "" : "rotate-180"}`}

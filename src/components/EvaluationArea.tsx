@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import Tabs, { TabId } from "./Tabs";
 import { LocationValue } from "./LocationInput";
 import Map from "./map/DynamicMapLoader";
@@ -86,6 +87,7 @@ export default function EvaluationArea({
   onComparisonSelect,
   onComparisonHoverLeg,
 }: EvaluationAreaProps) {
+  const t = useTranslations("EvaluationArea");
   const itineraries = routingResult?.plan?.itineraries ?? [];
   const selectedItinerary: Itinerary | null =
     itineraries[selectedItineraryIndex] ?? null;
@@ -169,19 +171,19 @@ export default function EvaluationArea({
                   type="button"
                   onClick={() => setShowClearConfirm(true)}
                   className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
-                  title="Clear results"
+                  title={t("clearTitle")}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  <span>Clear</span>
+                  <span>{t("clear")}</span>
                 </button>
                 {/* Layout toggle */}
                 <button
                   type="button"
                   onClick={toggleLayout}
                   className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
-                  title={isVertical ? "Switch to side-by-side layout" : "Switch to stacked layout"}
+                  title={isVertical ? t("switchToSideBySide") : t("switchToStacked")}
                 >
                   {isVertical ? (
                     // Columns icon
@@ -194,7 +196,7 @@ export default function EvaluationArea({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.5 9h15m-15 6h15M4.5 19.5h15a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5h-15A1.5 1.5 0 003 6v12a1.5 1.5 0 001.5 1.5z" />
                     </svg>
                   )}
-                  <span>{isVertical ? "Side by side" : "Stacked"}</span>
+                  <span>{isVertical ? t("sideBySide") : t("stacked")}</span>
                 </button>
               </div>
             )}
@@ -219,7 +221,7 @@ export default function EvaluationArea({
                   fallback={
                     <div className="flex items-center justify-center h-full bg-zinc-100 dark:bg-zinc-900">
                       <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                        Map failed to load. Try refreshing.
+                        {t("mapError")}
                       </p>
                     </div>
                   }
@@ -295,19 +297,19 @@ export default function EvaluationArea({
                   type="button"
                   onClick={() => setShowClearConfirm(true)}
                   className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
-                  title="Clear results"
+                  title={t("clearTitle")}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  <span>Clear</span>
+                  <span>{t("clear")}</span>
                 </button>
                 {/* Layout toggle */}
                 <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-0.5">
                   {([
-                    { id: "horizontal" as const, label: "Horizontal" },
-                    { id: "vertical" as const, label: "Vertical" },
-                    { id: "overview" as const, label: "Overview" },
+                    { id: "horizontal" as const, label: t("horizontal") },
+                    { id: "vertical" as const, label: t("vertical") },
+                    { id: "overview" as const, label: t("overview") },
                   ]).map((opt) => (
                     <button
                       key={opt.id}
@@ -340,7 +342,7 @@ export default function EvaluationArea({
                   fallback={
                     <div className="flex items-center justify-center h-full bg-zinc-100 dark:bg-zinc-900">
                       <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                        Map failed to load. Try refreshing.
+                        {t("mapError")}
                       </p>
                     </div>
                   }
@@ -408,7 +410,7 @@ export default function EvaluationArea({
               {!hasComparisonResults && (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
                   <p className="text-xs text-zinc-400 dark:text-zinc-500 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm px-3 py-1.5 rounded-lg">
-                    Submit a routing request to compare environments
+                    {t("submitToCompare")}
                   </p>
                 </div>
               )}
@@ -425,8 +427,8 @@ export default function EvaluationArea({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Coming soon</p>
-              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">The {activeTab} feature is under development.</p>
+              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{t("comingSoon")}</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{t("featureInDevelopment", { tab: activeTab })}</p>
             </div>
             {children}
           </div>
@@ -438,10 +440,10 @@ export default function EvaluationArea({
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-700 p-5 max-w-sm w-full mx-4">
             <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-              Clear routing results?
+              {t("clearConfirmTitle")}
             </h3>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5">
-              This will remove all itineraries and return to the map view.
+              {t("clearConfirmMessage")}
             </p>
             <div className="flex items-center justify-end gap-2">
               <button
@@ -449,7 +451,7 @@ export default function EvaluationArea({
                 onClick={() => setShowClearConfirm(false)}
                 className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 type="button"
@@ -459,7 +461,7 @@ export default function EvaluationArea({
                 }}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
               >
-                Clear
+                {t("clear")}
               </button>
             </div>
           </div>

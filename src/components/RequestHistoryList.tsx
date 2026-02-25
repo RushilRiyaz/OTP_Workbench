@@ -2,6 +2,7 @@
 
 // FR6.4-6.5: Request history list component
 
+import { useTranslations } from "next-intl";
 import { RequestHistoryEntry } from "@/lib/types";
 
 interface RequestHistoryListProps {
@@ -23,7 +24,7 @@ function formatJourneyDateTime(dateTime: string): string | null {
 }
 
 // Format timestamp as relative time or short date
-function formatTimestamp(timestamp: number): string {
+function formatRelativeTime(timestamp: number, t: ReturnType<typeof useTranslations<"RequestHistory">>): string {
   const now = Date.now();
   const diff = now - timestamp;
 
@@ -31,10 +32,10 @@ function formatTimestamp(timestamp: number): string {
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
 
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 7) return `${days}d ago`;
+  if (minutes < 1) return t("justNow");
+  if (minutes < 60) return t("minutesAgo", { count: minutes });
+  if (hours < 24) return t("hoursAgo", { count: hours });
+  if (days < 7) return t("daysAgo", { count: days });
 
   // Older than a week: show date
   const date = new Date(timestamp);
@@ -46,8 +47,9 @@ export default function RequestHistoryList({
   onLoad,
   onClear,
 }: RequestHistoryListProps) {
+  const t = useTranslations("RequestHistory");
   const handleClear = () => {
-    if (window.confirm("Clear all request history?")) {
+    if (window.confirm(t("clearConfirm"))) {
       onClear();
     }
   };
@@ -61,13 +63,13 @@ export default function RequestHistoryList({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-          Request History
+          {t("title")}
         </h3>
         <button
           type="button"
           onClick={handleClear}
           className="p-1.5 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow rounded-lg"
-          title="Clear history"
+          title={t("clearHistory")}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -108,7 +110,7 @@ export default function RequestHistoryList({
                       <span className="text-zinc-300 dark:text-zinc-600">|</span>
                     </>
                   )}
-                  {formatTimestamp(entry.timestamp)}
+                  {formatRelativeTime(entry.timestamp, t)}
                 </span>
                 <span className="text-xs px-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
                   {entry.selectedEnvironment.toUpperCase()}

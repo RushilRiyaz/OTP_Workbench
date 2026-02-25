@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { RoutingResponse, RoutingError } from "@/lib/routing";
 import type { TimelineConfig } from "@/lib/timelineUtils";
 import { timeToY, durationToHeight } from "@/lib/timelineUtils";
@@ -37,6 +38,7 @@ export function EnvColumn({
   onSelect?: (envId: string, itineraryIndex: number) => void;
   onHoverLeg?: (index: number | null) => void;
 }) {
+  const t = useTranslations("Comparison");
   const entry = comparisonResults[envId];
   const itineraries = entry?.result?.plan?.itineraries ?? [];
   const envColor = ENV_COLORS[envIndex] ?? "#888";
@@ -45,7 +47,7 @@ export function EnvColumn({
     return (
       <div className="flex-1 flex items-center justify-center border-r last:border-r-0 border-zinc-200 dark:border-zinc-800 p-3">
         <div className="text-center">
-          <p className="text-xs text-red-500">Error</p>
+          <p className="text-xs text-red-500">{t("error")}</p>
           <p className="text-[10px] text-zinc-400 mt-0.5 max-w-[150px] truncate">{entry.error.message}</p>
         </div>
       </div>

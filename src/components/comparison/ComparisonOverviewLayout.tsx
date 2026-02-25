@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useIsDark } from "@/lib/useIsDark";
 import type { Itinerary } from "@/lib/routing";
 import { computeTimelineRange } from "@/lib/timelineUtils";
@@ -26,6 +27,8 @@ export function ComparisonOverviewLayout({
   onComparisonSelect,
   onComparisonHoverLeg,
 }: TimelineComparisonLayoutProps) {
+  const t = useTranslations("Comparison");
+  const tCard = useTranslations("ItineraryCard");
   const isDark = useIsDark();
   const hasAnyResults = Object.keys(comparisonResults).length > 0;
 
@@ -42,7 +45,7 @@ export function ComparisonOverviewLayout({
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
           <span className="inline-block w-5 h-5 border-2 border-zinc-300 dark:border-zinc-600 border-t-lvb-yellow rounded-full animate-spin" />
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">Loading results...</p>
+          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">{t("loadingResults")}</p>
         </div>
       </div>
     );
@@ -67,7 +70,7 @@ export function ComparisonOverviewLayout({
   if (mergedItineraries.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center p-3">
-        <p className="text-xs text-zinc-400 dark:text-zinc-500">No itineraries found across any environment.</p>
+        <p className="text-xs text-zinc-400 dark:text-zinc-500">{t("noItineraries")}</p>
       </div>
     );
   }
@@ -80,13 +83,13 @@ export function ComparisonOverviewLayout({
   const rangeMinutes = timelineSpan / 60000;
   const intervalMs = rangeMinutes <= 180 ? 30 * 60000 : 60 * 60000;
   const timeMarkers: { label: string; pct: number }[] = [];
-  let t = timelineStart;
-  while (t <= timelineEnd) {
+  let cursor = timelineStart;
+  while (cursor <= timelineEnd) {
     timeMarkers.push({
-      label: formatTimestamp(t),
-      pct: ((t - timelineStart) / timelineSpan) * 100,
+      label: formatTimestamp(cursor),
+      pct: ((cursor - timelineStart) / timelineSpan) * 100,
     });
-    t += intervalMs;
+    cursor += intervalMs;
   }
 
   const BAR_HEIGHT = 54;
@@ -109,7 +112,7 @@ export function ComparisonOverviewLayout({
               className="flex-1 px-3 py-1.5 text-center text-xs font-semibold text-white truncate"
               style={{ backgroundColor: ENV_COLORS[i] ?? "#888" }}
             >
-              {label} ({hasError ? "Error" : count})
+              {label} ({hasError ? t("error") : count})
             </div>
           );
         })}
@@ -223,7 +226,9 @@ export function ComparisonOverviewLayout({
                     ))}
                     {itinerary.transfers > 0 && (
                       <span className="text-[9px] text-zinc-400 dark:text-zinc-500 ml-auto flex-shrink-0">
-                        {itinerary.transfers} transfer{itinerary.transfers > 1 ? "s" : ""}
+                        {itinerary.transfers === 1
+                          ? tCard("transfer", { count: itinerary.transfers })
+                          : tCard("transfers", { count: itinerary.transfers })}
                       </span>
                     )}
                   </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { searchLocations, AutocompleteResult } from "@/lib/autocomplete";
 import { getLocationHistory, addToLocationHistory } from "@/lib/locationHistory";
 import { reverseGeocode } from "@/lib/reverseGeocode";
@@ -87,6 +88,7 @@ export default function LocationInput({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const t = useTranslations("LocationInput");
 
   // Click outside detection
   useEffect(() => {
@@ -254,7 +256,7 @@ export default function LocationInput({
     setShowHistory(false);
 
     const fallbackValue: LocationValue = {
-      text: `Stop ID: ${stopId}`,
+      text: t("stopIdLabel", { stopId }),
       type: "stopId",
       location: null,
       stopId,
@@ -262,7 +264,7 @@ export default function LocationInput({
     };
 
     // Show resolving state
-    onChange({ ...fallbackValue, text: `Resolving ${stopId}...` });
+    onChange({ ...fallbackValue, text: t("resolving", { stopId }) });
 
     try {
       const match = await lookupStopById(stopId);
@@ -396,7 +398,7 @@ export default function LocationInput({
           {showHistory && history.length > 0 ? (
             <>
               <li className="px-3 py-1.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900">
-                Recent Locations
+                {t("recentLocations")}
               </li>
               {history.map((item, index) => (
                 <li
@@ -423,9 +425,9 @@ export default function LocationInput({
                       <div className="min-w-0">
                         <div className="font-medium">{item.text}</div>
                         <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                          {item.type === "autocomplete" && "Location"}
-                          {item.type === "stopId" && "Stop ID"}
-                          {item.type === "coordinates" && "Coordinates"}
+                          {item.type === "autocomplete" && t("location")}
+                          {item.type === "stopId" && t("stopId")}
+                          {item.type === "coordinates" && t("coordinates")}
                         </div>
                       </div>
                     </div>
@@ -442,7 +444,7 @@ export default function LocationInput({
                   highlightedIndex === 0 ? "bg-lvb-yellow/8 dark:bg-lvb-yellow/10" : "hover:bg-zinc-50 dark:hover:bg-zinc-700"
                 }`}
               >
-                <div className="font-medium">Use as Coordinates</div>
+                <div className="font-medium">{t("useAsCoordinates")}</div>
                 <div className="text-xs text-zinc-500 dark:text-zinc-400">
                   Lat: {parsedCoordinates.lat}, Lon: {parsedCoordinates.lon}
                 </div>
@@ -457,7 +459,7 @@ export default function LocationInput({
                   highlightedIndex === 0 ? "bg-lvb-yellow/8 dark:bg-lvb-yellow/10" : "hover:bg-zinc-50 dark:hover:bg-zinc-700"
                 }`}
               >
-                <div className="font-medium">Use as Stop ID</div>
+                <div className="font-medium">{t("useAsStopId")}</div>
                 <div className="text-xs text-zinc-500 dark:text-zinc-400">
                   {value.text.trim()}
                 </div>

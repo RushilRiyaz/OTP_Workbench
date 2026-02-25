@@ -1,0 +1,214 @@
+{
+  "Header": {
+    "title": "OTP Workbench",
+    "subtitle": "Leipziger Verkehrsbetriebe"
+  },
+  "ThemeToggle": {
+    "switchToLight": "Zum hellen Modus wechseln",
+    "switchToDark": "Zum dunklen Modus wechseln"
+  },
+  "LanguageSwitcher": {
+    "switchToEn": "Zu Englisch wechseln",
+    "switchToDe": "Zu Deutsch wechseln"
+  },
+  "Tabs": {
+    "routing": "Routing",
+    "routingComparison": "Routing-Vergleich",
+    "autocomplete": "Autovervollständigung",
+    "stopmonitor": "Haltestellenmonitor",
+    "nearbySearch": "Umgebungssuche"
+  },
+  "ParameterArea": {
+    "parameters": "Parameter",
+    "collapse": "Einklappen",
+    "expand": "Ausklappen"
+  },
+  "EnvironmentSelector": {
+    "environment": "Umgebung",
+    "environments": "Umgebungen",
+    "selectedCount": "{count}/3 ausgewählt",
+    "change": "Ändern",
+    "custom": "Benutzerdefiniert",
+    "autocompleteService": "Autocomplete-Dienst",
+    "addCustomEnvironment": "Benutzerdefinierte Umgebung hinzufügen",
+    "environmentName": "Umgebungsname",
+    "otpApiUrl": "OTP-API-URL",
+    "autocompleteApiUrl": "Autocomplete-API-URL",
+    "add": "Hinzufügen",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "removeCustom": "Benutzerdefinierte Umgebung entfernen",
+    "singleModeHelp": "Einzelumgebungsmodus. Wechseln Sie zu \"Routing-Vergleich\", um mehrere Umgebungen zu vergleichen."
+  },
+  "JourneyForm": {
+    "routing": "Routing",
+    "copyLink": "Link kopieren",
+    "copyShareableLink": "Teilbaren Link kopieren",
+    "copied": "Kopiert!",
+    "failed": "Fehlgeschlagen",
+    "start": "Start",
+    "destination": "Ziel",
+    "enterStart": "Startort eingeben",
+    "enterDestination": "Ziel eingeben",
+    "swapLocations": "Start und Ziel tauschen",
+    "dateTime": "Datum & Uhrzeit",
+    "history": "Verlauf",
+    "clearHistory": "Verlauf löschen",
+    "clearHistoryConfirm": "Gesamten Anfrageverlauf löschen?",
+    "loadRequest": "Diese Anfrage in das Formular laden?",
+    "load": "Laden",
+    "cancel": "Abbrechen",
+    "startRouting": "Routing starten",
+    "requesting": "Anfrage läuft...",
+    "requestFailed": "Anfrage fehlgeschlagen"
+  },
+  "LocationInput": {
+    "recentLocations": "Letzte Orte",
+    "useAsCoordinates": "Als Koordinaten verwenden",
+    "useAsStopId": "Als Haltestellen-ID verwenden",
+    "location": "Ort",
+    "stopId": "Haltestellen-ID",
+    "coordinates": "Koordinaten",
+    "resolving": "{stopId} wird aufgelöst...",
+    "stopIdLabel": "Haltestellen-ID: {stopId}"
+  },
+  "DateTimeInput": {
+    "now": "Jetzt",
+    "setToCurrentTime": "Auf aktuelle Uhrzeit setzen",
+    "openCalendar": "Kalender öffnen"
+  },
+  "RoutingOptionsForm": {
+    "timing": "Zeiteinstellung",
+    "departAt": "Abfahrt um",
+    "arriveBy": "Ankunft bis",
+    "travelModes": "Verkehrsmittel",
+    "selected": "{count} ausgewählt",
+    "lastModeWarning": "Mindestens ein Verkehrsmittel muss ausgewählt sein",
+    "options": "Optionen",
+    "active": "{count} aktiv",
+    "customParameters": "Benutzerdefinierte Parameter",
+    "set": "gesetzt",
+    "customPlaceholder": "z.B. numItineraries=3&maxWalkDistance=1000",
+    "customHelp": "Zusätzliche Abfrageparameter hinzufügen (Schlüssel=Wert-Format)"
+  },
+  "TravelModes": {
+    "TRANSIT": "ÖPNV",
+    "TRANSIT_desc": "Entspricht WALK, TRAM, BUS, SUBURB, TRAIN",
+    "BIKE": "Fahrrad",
+    "BIKERENTAL": "Leihfahrrad",
+    "WALK": "Zu Fuß",
+    "CAR": "Auto",
+    "CARRENTAL": "Mietwagen",
+    "BUS": "Bus",
+    "TRAM": "Straßenbahn",
+    "SUBURB": "S-Bahn",
+    "SUBURB_desc": "Stadtschnellbahn",
+    "TRAIN": "Zug",
+    "TRAIN_desc": "Regional- und Fernverkehr",
+    "TAXI4884": "Taxi4884",
+    "TAXI4884_desc": "AUTO-Routing im TAXI4884-Bediengebiet",
+    "ESCOOTER": "E-Scooter",
+    "ESCOOTER_desc": "Max. 15 Minuten Fußweg",
+    "FLEXA": "Flexa",
+    "FLEXA_desc": "Rufbus in Leipzig",
+    "SUBWAY": "U-Bahn",
+    "RRB": "RRB",
+    "RRB_desc": "Schienenersatzverkehr (SEV)",
+    "OD": "OD",
+    "OD_desc": "Rufbus (On-Demand)",
+    "ICE": "ICE",
+    "ICE_desc": "Intercity-Express",
+    "IC": "IC",
+    "IC_desc": "Intercity",
+    "COACH": "Fernbus",
+    "COACH_desc": "Fernlinienbus",
+    "RE": "RE",
+    "RE_desc": "Regionalexpress (Regional-Bahn)"
+  },
+  "OptionalParams": {
+    "accessibility": "Rollstuhlgerecht",
+    "shortWalk": "Kurzer Fußweg",
+    "lessTransfers": "Weniger Umstiege",
+    "transitOnly": "Nur ÖPNV"
+  },
+  "RoutingResults": {
+    "noResults": "Noch keine Routing-Ergebnisse.",
+    "submitToSee": "Senden Sie eine Routing-Anfrage, um Reiserouten zu sehen.",
+    "itineraries": "Reiserouten ({count})",
+    "json": "JSON",
+    "copy": "Kopieren",
+    "copied": "Kopiert!",
+    "failed": "Fehlgeschlagen",
+    "earlierDepartures": "Frühere Abfahrten",
+    "laterDepartures": "Spätere Abfahrten",
+    "loading": "Laden..."
+  },
+  "ItineraryCard": {
+    "direct": "Direkt",
+    "transfer": "{count} Umstieg",
+    "transfers": "{count} Umstiege",
+    "zones": "Zonen: {zones}",
+    "shortDistance": "Kurzstrecke",
+    "board": "Einstieg",
+    "exit": "Ausstieg",
+    "platform": "Gl. {track}",
+    "platformChanged": "Gl. {track} (geplant {scheduled})",
+    "trip": "Fahrt",
+    "stop": "{count} Halt",
+    "stops": "{count} Halte",
+    "zone": "Zone {id}"
+  },
+  "RequestHistory": {
+    "title": "Anfrageverlauf",
+    "clearHistory": "Verlauf löschen",
+    "clearConfirm": "Gesamten Anfrageverlauf löschen?",
+    "justNow": "Gerade eben",
+    "minutesAgo": "vor {count} Min.",
+    "hoursAgo": "vor {count} Std.",
+    "daysAgo": "vor {count} T."
+  },
+  "Validation": {
+    "startRequired": "Startort ist erforderlich",
+    "destinationRequired": "Ziel ist erforderlich",
+    "dateTimeRequired": "Datum und Uhrzeit sind erforderlich",
+    "travelModeRequired": "Mindestens ein Verkehrsmittel ist erforderlich"
+  },
+  "EvaluationArea": {
+    "clear": "Löschen",
+    "clearTitle": "Ergebnisse löschen",
+    "sideBySide": "Nebeneinander",
+    "stacked": "Gestapelt",
+    "switchToSideBySide": "Zur Nebeneinander-Ansicht wechseln",
+    "switchToStacked": "Zur gestapelten Ansicht wechseln",
+    "mapError": "Karte konnte nicht geladen werden. Versuchen Sie, die Seite zu aktualisieren.",
+    "comingSoon": "Demnächst verfügbar",
+    "featureInDevelopment": "Die Funktion {tab} ist in Entwicklung.",
+    "clearConfirmTitle": "Routing-Ergebnisse löschen?",
+    "clearConfirmMessage": "Dies entfernt alle Reiserouten und kehrt zur Kartenansicht zurück.",
+    "cancel": "Abbrechen",
+    "submitToCompare": "Senden Sie eine Routing-Anfrage, um Umgebungen zu vergleichen",
+    "horizontal": "Horizontal",
+    "vertical": "Vertikal",
+    "overview": "Übersicht"
+  },
+  "Comparison": {
+    "selectEnvironments": "Umgebungen zum Vergleichen auswählen",
+    "submitToCompare": "Senden Sie eine Routing-Anfrage, um Umgebungen zu vergleichen",
+    "chooseUpTo3": "Wählen Sie bis zu 3 Umgebungen aus dem Parameterbereich.",
+    "environmentsSelected": "{count} Umgebung(en) ausgewählt.",
+    "loadingResults": "Ergebnisse werden geladen...",
+    "noItineraries": "Keine Reiserouten in den Umgebungen gefunden.",
+    "error": "Fehler",
+    "time": "Zeit"
+  },
+  "ErrorBoundary": {
+    "genericError": "Etwas ist schiefgelaufen. Versuchen Sie, die Seite zu aktualisieren."
+  },
+  "Map": {
+    "start": "Start",
+    "destination": "Ziel",
+    "copyCoordinates": "Koordinaten kopieren",
+    "copied": "Kopiert!",
+    "copyFailed": "Fehlgeschlagen"
+  }
+}

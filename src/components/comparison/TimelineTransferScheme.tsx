@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { Itinerary } from "@/lib/routing";
 import ItineraryCard from "../ItineraryCard";
 import {
@@ -36,6 +37,7 @@ export function TimelineTransferScheme({
   onSelect?: (envId: string, itineraryIndex: number) => void;
   onHoverLeg?: (index: number | null) => void;
 }) {
+  const tCard = useTranslations("ItineraryCard");
   const walkColor = isDark ? "#ffffff" : "#1a1a1a";
   const totalDuration = itinerary.duration || 1;
 
@@ -114,7 +116,9 @@ export function TimelineTransferScheme({
             ))}
             {itinerary.transfers > 0 && (
               <span className="text-[9px] text-zinc-400 dark:text-zinc-500 ml-auto">
-                {itinerary.transfers} transfer{itinerary.transfers > 1 ? "s" : ""}
+                {itinerary.transfers === 1
+                  ? tCard("transfer", { count: itinerary.transfers })
+                  : tCard("transfers", { count: itinerary.transfers })}
               </span>
             )}
           </div>

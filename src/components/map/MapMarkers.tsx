@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Marker, Tooltip } from "react-leaflet";
 import L from "leaflet";
 import type { LocationValue } from "@/components/LocationInput";
@@ -39,6 +40,7 @@ const createMarkerIcon = (color: string, highlightColor: string, accentBg: strin
 
 // FR8.1: Display start/destination markers on map
 export default function MapMarkers({ start, destination, isDark = false }: MapMarkersProps) {
+  const t = useTranslations("Map");
   const startCoords = getCoords(start);
   const destCoords = getCoords(destination);
 
@@ -58,11 +60,11 @@ export default function MapMarkers({ start, destination, isDark = false }: MapMa
       {startCoords && (
         <Marker position={[startCoords.lat, startCoords.lng]} icon={startIcon}>
           <Tooltip direction="bottom" offset={[0, 4]} permanent className="marker-label">
-            Start
+            {t("start")}
           </Tooltip>
           <CoordPopup
             coords={startCoords}
-            label="Start"
+            label={t("start")}
             onClose={() => {}}
           />
         </Marker>
@@ -70,11 +72,11 @@ export default function MapMarkers({ start, destination, isDark = false }: MapMa
       {destCoords && (
         <Marker position={[destCoords.lat, destCoords.lng]} icon={destIcon}>
           <Tooltip direction="bottom" offset={[0, 4]} permanent className="marker-label">
-            Dest.
+            {t("destination")}
           </Tooltip>
           <CoordPopup
             coords={destCoords}
-            label="Dest."
+            label={t("destination")}
             onClose={() => {}}
           />
         </Marker>
