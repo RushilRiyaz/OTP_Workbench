@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Hide native datetime-local calendar indicator (we use a custom button + showPicker()) */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
 /* Enable class-based dark mode for Tailwind 4 */
 @custom-variant dark (&:where(.dark, .dark *));
 

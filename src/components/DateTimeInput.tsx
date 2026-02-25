@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 /** Current Berlin time as a datetime-local string ("YYYY-MM-DDTHH:mm"). */
 export function getBerlinNow(): string {
@@ -23,6 +23,7 @@ export default function DateTimeInput({
   required = false,
   error,
 }: DateTimeInputProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -42,27 +43,6 @@ export default function DateTimeInput({
     };
   }, []);
 
-  // Hide the native calendar indicator but keep it on top so it still handles clicks
-  useEffect(() => {
-    const styleId = "datetime-picker-custom-icon";
-    let el = document.getElementById(styleId) as HTMLStyleElement | null;
-    if (!el) {
-      el = document.createElement("style");
-      el.id = styleId;
-      document.head.appendChild(el);
-    }
-    el.textContent = `
-      input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-        opacity: 0;
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-        position: relative;
-        z-index: 1;
-      }
-    `;
-  }, []);
-
   return (
     <div className="flex flex-col gap-1">
       <label className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
@@ -71,6 +51,7 @@ export default function DateTimeInput({
       </label>
       <div className="relative">
         <input
+          ref={inputRef}
           type="datetime-local"
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -90,8 +71,13 @@ export default function DateTimeInput({
         >
           Now
         </button>
-        {/* Custom calendar icon — pointer-events-none so the invisible native indicator above handles clicks */}
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+        {/* Custom calendar icon — opens native date picker */}
+        <button
+          type="button"
+          onClick={() => inputRef.current?.showPicker()}
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+          title="Open calendar"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -107,7 +93,7 @@ export default function DateTimeInput({
             <line x1="8" y1="2" x2="8" y2="6" />
             <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
-        </div>
+        </button>
       </div>
       {error && (
         <p className="text-xs text-red-500 mt-1">{error}</p>
