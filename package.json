@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "leaflet": "^1.9.4",
-    "next": "16.0.6",
+    "next": "^16.1.6",
     "next-intl": "^4.8.3",
     "react": "19.2.0",
     "react-dom": "19.2.0",
