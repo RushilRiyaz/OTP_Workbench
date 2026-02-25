@@ -301,35 +301,39 @@ export default function Home() {
     setIsLoading(true);
 
     // Fetch concurrently for each environment
+    // Wrap in try/catch so promises never reject — envId is always preserved
     const promises = selectedEnvironments.map(async (envId) => {
-      const envConfig = getEnvironmentConfig(envId, customEnvironments);
-      const result = await fetchRouting(
-        {
-          start: startLocation,
-          destination: destinationLocation,
-          dateTime,
-          routingOptions,
-        },
-        undefined,
-        { baseUrl: envConfig.otpUrl, apiKey: envConfig.apiKey }
-      );
-      return { envId, result };
+      try {
+        const envConfig = getEnvironmentConfig(envId, customEnvironments);
+        const result = await fetchRouting(
+          {
+            start: startLocation,
+            destination: destinationLocation,
+            dateTime,
+            routingOptions,
+          },
+          undefined,
+          { baseUrl: envConfig.otpUrl, apiKey: envConfig.apiKey }
+        );
+        return { envId, result };
+      } catch (err) {
+        console.error(`[Comparison] Unexpected error for ${envId}:`, err);
+        const error: RoutingError = {
+          type: "network",
+          message: err instanceof Error ? err.message : "Unexpected error",
+        };
+        return { envId, result: { success: false as const, error } };
+      }
     });
 
-    const settled = await Promise.allSettled(promises);
+    const results = await Promise.all(promises);
 
     const nextState: Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }> = {};
-    for (const entry of settled) {
-      if (entry.status === "fulfilled") {
-        const { envId, result } = entry.value;
-        if (result.success) {
-          nextState[envId] = { result: result.data, error: null, isLoading: false };
-        } else {
-          nextState[envId] = { result: null, error: result.error, isLoading: false };
-        }
+    for (const { envId, result } of results) {
+      if (result.success) {
+        nextState[envId] = { result: result.data, error: null, isLoading: false };
       } else {
-        // Promise rejected — shouldn't happen with fetchRouting, but handle gracefully
-        console.error("[Comparison] Unexpected rejection:", entry.reason);
+        nextState[envId] = { result: null, error: result.error, isLoading: false };
       }
     }
 
