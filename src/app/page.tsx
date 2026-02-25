@@ -13,7 +13,7 @@ import { validateRoutingParams } from "@/lib/validation";
 import { fetchRouting, RoutingResponse, RoutingError, Itinerary } from "@/lib/routing";
 import { getRequestHistory, addToRequestHistory, clearRequestHistory, generateDisplayLabel } from "@/lib/requestHistory";
 import { serializeFormState, deserializeUrlParams } from "@/lib/urlParams";
-import { getEnvironmentConfig, getAutocompleteConfig } from "@/components/EnvironmentSelector";
+import { getEnvironmentConfig } from "@/components/EnvironmentSelector";
 
 
 export default function Home() {

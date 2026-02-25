@@ -1,6 +1,6 @@
 // FR6.6: URL parameter serialization for shareable links
 
-import { LocationValue, emptyLocationValue } from "@/components/LocationInput";
+import { LocationValue } from "@/components/LocationInput";
 import { RoutingOptions, defaultRoutingOptions, TravelModeId, TRAVEL_MODES } from "@/components/RoutingOptionsForm";
 import { Environment } from "@/components/EnvironmentSelector";
 
