@@ -1,7 +1,6 @@
 "use client";
 
 import type { Itinerary, TransitLeg } from "@/lib/routing";
-import ItineraryCard from "../ItineraryCard";
 import {
   MODE_LABELS,
   formatTimestamp,
@@ -9,8 +8,9 @@ import {
   getLegColor,
   getUniqueProducts,
 } from "@/lib/legUtils";
+import { ITINERARY_COLORS } from "./types";
 
-// FR15.2/15.3: Vertical stop-chain diagram strip
+// FR15.2/15.3/FR17: Vertical stop-chain diagram strip
 export function VerticalTransferSchemeStrip({
   itinerary,
   envId,
@@ -20,7 +20,7 @@ export function VerticalTransferSchemeStrip({
   envColor,
   isDark,
   isHovered,
-  isSelected,
+  selectedSlotIndex,
   onHover,
   onSelect,
   onHoverLeg,
@@ -33,13 +33,16 @@ export function VerticalTransferSchemeStrip({
   envColor: string;
   isDark: boolean;
   isHovered: boolean;
-  isSelected: boolean;
+  /** -1 = not selected, 0/1/2 = slot index in detail comparison */
+  selectedSlotIndex: number;
   onHover?: (envId: string, itineraryIndex: number | null) => void;
   onSelect?: (envId: string, itineraryIndex: number) => void;
   onHoverLeg?: (index: number | null) => void;
 }) {
   const walkColor = isDark ? "#888888" : "#999999";
   const totalDuration = itinerary.duration || 1;
+  const isSelected = selectedSlotIndex >= 0;
+  const selectionColor = isSelected ? ITINERARY_COLORS[selectedSlotIndex] : undefined;
 
   const depTime = itinerary.startTimeHHMM ?? formatTimestamp(itinerary.startTime);
   const arrTime = itinerary.endTimeHHMM ?? formatTimestamp(itinerary.endTime);
@@ -107,14 +110,14 @@ export function VerticalTransferSchemeStrip({
 
   return (
     <div
-      className={`absolute left-1 right-1 rounded-lg border transition-all cursor-pointer overflow-hidden ${
+      className={`absolute left-1 right-1 rounded-lg border-2 transition-all cursor-pointer overflow-hidden ${
         isSelected
-          ? "border-lvb-yellow bg-yellow-50 dark:bg-zinc-900 shadow-lg z-30"
+          ? "bg-white dark:bg-zinc-900 shadow-lg z-30"
           : isHovered
           ? "border-zinc-400 dark:border-zinc-500 bg-white dark:bg-zinc-800 shadow-sm z-10"
           : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-600 z-0"
       }`}
-      style={{ top: y, height: isSelected ? "auto" : height, minHeight: isSelected ? height : undefined }}
+      style={{ top: y, height, borderColor: isSelected ? selectionColor : undefined }}
       onMouseEnter={() => onHover?.(envId, itineraryIndex)}
       onMouseLeave={() => onHover?.(envId, null)}
       onClick={() => onSelect?.(envId, itineraryIndex)}
@@ -125,8 +128,18 @@ export function VerticalTransferSchemeStrip({
         style={{ backgroundColor: envColor }}
       />
 
+      {/* FR17: Selection badge — numbered circle */}
+      {isSelected && (
+        <div
+          className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white z-40"
+          style={{ backgroundColor: selectionColor }}
+        >
+          {selectedSlotIndex + 1}
+        </div>
+      )}
+
       {/* Strip content */}
-      <div style={{ height: isSelected ? height : "100%" }} className="flex flex-col pl-1.5 pr-1">
+      <div style={{ height: "100%" }} className="flex flex-col pl-1.5 pr-1">
         {/* Departure time header */}
         <div className="flex-shrink-0 flex items-center justify-between px-1" style={{ height: HEADER_HEIGHT }}>
           <span className="font-mono tabular-nums text-[11px] font-semibold text-zinc-800 dark:text-zinc-100">
@@ -234,18 +247,6 @@ export function VerticalTransferSchemeStrip({
         </div>
       </div>
 
-      {/* FR15.4: Expanded detail view when selected */}
-      {isSelected && (
-        <div className="border-t border-zinc-200 dark:border-zinc-700 bg-yellow-50 dark:bg-zinc-900">
-          <ItineraryCard
-            itinerary={itinerary}
-            index={itineraryIndex}
-            isSelected={true}
-            onSelect={() => {}}
-            onHoverLeg={onHoverLeg}
-          />
-        </div>
-      )}
     </div>
   );
 }

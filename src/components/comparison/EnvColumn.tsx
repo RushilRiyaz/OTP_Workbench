@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import type { RoutingResponse, RoutingError } from "@/lib/routing";
 import type { TimelineConfig } from "@/lib/timelineUtils";
 import { timeToY, durationToHeight } from "@/lib/timelineUtils";
-import { ENV_COLORS } from "./types";
+import { ENV_COLORS, type ComparisonItineraryRef } from "./types";
 import { TimelineTransferScheme } from "./TimelineTransferScheme";
 import { VerticalTransferSchemeStrip } from "./VerticalTransferSchemeStrip";
 
@@ -19,7 +19,7 @@ export function EnvColumn({
   hourMarkers,
   isDark,
   hoveredItinerary,
-  selectedItinerary,
+  selectedItineraries,
   onHover,
   onSelect,
   onHoverLeg,
@@ -33,7 +33,7 @@ export function EnvColumn({
   hourMarkers: { y: number }[];
   isDark: boolean;
   hoveredItinerary?: { envId: string; itineraryIndex: number } | null;
-  selectedItinerary?: { envId: string; itineraryIndex: number } | null;
+  selectedItineraries?: ComparisonItineraryRef[];
   onHover?: (envId: string, itineraryIndex: number | null) => void;
   onSelect?: (envId: string, itineraryIndex: number) => void;
   onHoverLeg?: (index: number | null) => void;
@@ -103,7 +103,9 @@ export function EnvColumn({
       {sorted.map(({ itinerary, originalIndex }, sortedIdx) => {
         const { y, height } = positions[sortedIdx];
         const isHovered = hoveredItinerary?.envId === envId && hoveredItinerary?.itineraryIndex === originalIndex;
-        const isSelected = selectedItinerary?.envId === envId && selectedItinerary?.itineraryIndex === originalIndex;
+        const selectedSlotIndex = (selectedItineraries ?? []).findIndex(
+          (r) => r.envId === envId && r.itineraryIndex === originalIndex
+        );
 
         return mode === "horizontal" ? (
           <TimelineTransferScheme
@@ -115,10 +117,9 @@ export function EnvColumn({
             envColor={envColor}
             isDark={isDark}
             isHovered={isHovered}
-            isSelected={isSelected}
+            selectedSlotIndex={selectedSlotIndex}
             onHover={onHover}
             onSelect={onSelect}
-            onHoverLeg={onHoverLeg}
           />
         ) : (
           <VerticalTransferSchemeStrip
@@ -131,7 +132,7 @@ export function EnvColumn({
             envColor={envColor}
             isDark={isDark}
             isHovered={isHovered}
-            isSelected={isSelected}
+            selectedSlotIndex={selectedSlotIndex}
             onHover={onHover}
             onSelect={onSelect}
             onHoverLeg={onHoverLeg}

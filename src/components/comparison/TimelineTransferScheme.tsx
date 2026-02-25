@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 import type { Itinerary } from "@/lib/routing";
-import ItineraryCard from "../ItineraryCard";
 import {
   MODE_LABELS,
   formatTimestamp,
@@ -10,8 +9,9 @@ import {
   getLegColor,
   getUniqueProducts,
 } from "@/lib/legUtils";
+import { ITINERARY_COLORS } from "./types";
 
-// FR14.4/14.5/14.6: Compact transfer scheme bar positioned on the timeline
+// FR14.4/14.5/FR17: Compact transfer scheme bar positioned on the timeline
 export function TimelineTransferScheme({
   itinerary,
   envId,
@@ -20,10 +20,9 @@ export function TimelineTransferScheme({
   envColor,
   isDark,
   isHovered,
-  isSelected,
+  selectedSlotIndex,
   onHover,
   onSelect,
-  onHoverLeg,
 }: {
   itinerary: Itinerary;
   envId: string;
@@ -32,14 +31,16 @@ export function TimelineTransferScheme({
   envColor: string;
   isDark: boolean;
   isHovered: boolean;
-  isSelected: boolean;
+  /** -1 = not selected, 0/1/2 = slot index in detail comparison */
+  selectedSlotIndex: number;
   onHover?: (envId: string, itineraryIndex: number | null) => void;
   onSelect?: (envId: string, itineraryIndex: number) => void;
-  onHoverLeg?: (index: number | null) => void;
 }) {
   const tCard = useTranslations("ItineraryCard");
   const walkColor = isDark ? "#ffffff" : "#1a1a1a";
   const totalDuration = itinerary.duration || 1;
+  const isSelected = selectedSlotIndex >= 0;
+  const selectionColor = isSelected ? ITINERARY_COLORS[selectedSlotIndex] : undefined;
 
   const depTime = itinerary.startTimeHHMM ?? formatTimestamp(itinerary.startTime);
   const arrTime = itinerary.endTimeHHMM ?? formatTimestamp(itinerary.endTime);
@@ -48,14 +49,14 @@ export function TimelineTransferScheme({
 
   return (
     <div
-      className={`absolute left-1 right-1 rounded-lg border transition-all cursor-pointer ${
+      className={`absolute left-1 right-1 rounded-lg border-2 transition-all cursor-pointer ${
         isSelected
-          ? "border-lvb-yellow bg-yellow-50 dark:bg-zinc-900 shadow-lg z-30"
+          ? "bg-white dark:bg-zinc-900 shadow-lg z-30"
           : isHovered
           ? "border-zinc-400 dark:border-zinc-500 bg-white dark:bg-zinc-800 shadow-sm z-10"
           : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-600 z-0"
       }`}
-      style={{ top: y }}
+      style={{ top: y, borderColor: isSelected ? selectionColor : undefined }}
       onMouseEnter={() => onHover?.(envId, itineraryIndex)}
       onMouseLeave={() => onHover?.(envId, null)}
       onClick={() => onSelect?.(envId, itineraryIndex)}
@@ -65,6 +66,16 @@ export function TimelineTransferScheme({
         className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-lg"
         style={{ backgroundColor: envColor }}
       />
+
+      {/* FR17: Selection badge — numbered circle */}
+      {isSelected && (
+        <div
+          className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white z-40"
+          style={{ backgroundColor: selectionColor }}
+        >
+          {selectedSlotIndex + 1}
+        </div>
+      )}
 
       {/* Compact view: time + transfer scheme + products */}
       <div className="px-2 py-1.5 pl-2.5">
@@ -124,19 +135,6 @@ export function TimelineTransferScheme({
           </div>
         )}
       </div>
-
-      {/* FR14.6: Expanded detail view when selected (click to open) */}
-      {isSelected && (
-        <div className="border-t border-zinc-200 dark:border-zinc-700 bg-yellow-50 dark:bg-zinc-900">
-          <ItineraryCard
-            itinerary={itinerary}
-            index={itineraryIndex}
-            isSelected={true}
-            onSelect={() => {}}
-            onHoverLeg={onHoverLeg}
-          />
-        </div>
-      )}
     </div>
   );
 }

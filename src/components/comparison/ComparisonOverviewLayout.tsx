@@ -12,7 +12,7 @@ import {
   getUniqueProducts,
 } from "@/lib/legUtils";
 import type { TimelineComparisonLayoutProps } from "./types";
-import { ENV_COLORS, getEnvLabel } from "./types";
+import { ENV_COLORS, ITINERARY_COLORS, getEnvLabel } from "./types";
 import { ComparisonEmptyState } from "./ComparisonEmptyState";
 
 // --- FR13.3 + FR16: Horizontal overview — Gantt-chart timeline with env color coding ---
@@ -22,9 +22,9 @@ export function ComparisonOverviewLayout({
   selectedEnvironments,
   customEnvironments,
   comparisonHoveredItinerary,
-  comparisonSelectedItinerary,
+  comparisonSelectedItineraries,
   onComparisonHover,
-  onComparisonSelect,
+  onComparisonToggleSelect,
   onComparisonHoverLeg,
 }: TimelineComparisonLayoutProps) {
   const t = useTranslations("Comparison");
@@ -144,14 +144,18 @@ export function ComparisonOverviewLayout({
             const duration = itinerary.durationHHMM ?? formatDuration(itinerary.duration);
 
             const isHovered = comparisonHoveredItinerary?.envId === envId && comparisonHoveredItinerary?.itineraryIndex === originalIndex;
-            const isSelected = comparisonSelectedItinerary?.envId === envId && comparisonSelectedItinerary?.itineraryIndex === originalIndex;
+            const selectedSlotIndex = (comparisonSelectedItineraries ?? []).findIndex(
+              (r) => r.envId === envId && r.itineraryIndex === originalIndex
+            );
+            const isSelected = selectedSlotIndex >= 0;
+            const selectionColor = isSelected ? ITINERARY_COLORS[selectedSlotIndex] : undefined;
 
             return (
               <div
                 key={`${envId}-${originalIndex}-${i}`}
-                className={`absolute rounded-lg border transition-all cursor-pointer ${
+                className={`absolute rounded-lg border-2 transition-all cursor-pointer ${
                   isSelected
-                    ? "border-lvb-yellow bg-yellow-50 dark:bg-zinc-900 shadow-lg z-30"
+                    ? "bg-white dark:bg-zinc-900 shadow-lg z-30"
                     : isHovered
                     ? "border-zinc-400 dark:border-zinc-500 bg-white dark:bg-zinc-800 shadow-md z-20"
                     : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-600 z-0"
@@ -162,11 +166,21 @@ export function ComparisonOverviewLayout({
                   top,
                   height: BAR_HEIGHT,
                   minWidth: 120,
+                  borderColor: isSelected ? selectionColor : undefined,
                 }}
                 onMouseEnter={() => onComparisonHover?.(envId, originalIndex)}
                 onMouseLeave={() => onComparisonHover?.(envId, null)}
-                onClick={() => onComparisonSelect?.(envId, originalIndex)}
+                onClick={() => onComparisonToggleSelect?.(envId, originalIndex)}
               >
+                {/* FR17: Selection badge */}
+                {isSelected && (
+                  <div
+                    className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white z-40"
+                    style={{ backgroundColor: selectionColor }}
+                  >
+                    {selectedSlotIndex + 1}
+                  </div>
+                )}
                 {/* FR16.2: Left accent bar showing env color */}
                 <div
                   className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg"
