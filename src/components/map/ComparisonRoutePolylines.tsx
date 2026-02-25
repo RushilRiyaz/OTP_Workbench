@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { ComparisonMapItinerary, DetailHoveredLeg } from "@/components/comparison/types";
+import { computePolylineStyle } from "@/lib/comparisonPolylineUtils";
 
 // FR17.4: Render polylines for multiple itineraries simultaneously
 export default function ComparisonRoutePolylines({
@@ -50,29 +51,7 @@ export default function ComparisonRoutePolylines({
           if (positions.length < 2) return null;
 
           const isWalk = leg.mode === "WALK";
-
-          // FR17: Hover dimming logic
-          const isHoveredLeg = hoveredLeg?.slotIndex === slotIndex && hoveredLeg?.legIndex === legIndex;
-          const isSameItinerary = hoveredLeg?.slotIndex === slotIndex;
-          const hasHover = hoveredLeg !== null;
-
-          let opacity: number;
-          let weight: number;
-          if (hasHover) {
-            if (isHoveredLeg) {
-              opacity = 1;
-              weight = 7;
-            } else if (isSameItinerary) {
-              opacity = 0.5;
-              weight = isWalk ? 5 : 4;
-            } else {
-              opacity = 0.2;
-              weight = isWalk ? 5 : 4;
-            }
-          } else {
-            opacity = isWalk ? 0.7 : 0.85;
-            weight = isWalk ? 5 : 4;
-          }
+          const { opacity, weight } = computePolylineStyle({ isWalk, hoveredLeg, slotIndex, legIndex });
 
           return isWalk ? (
             <Polyline

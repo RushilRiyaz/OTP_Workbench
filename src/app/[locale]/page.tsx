@@ -17,6 +17,7 @@ import { serializeFormState, deserializeUrlParams } from "@/lib/urlParams";
 import { getEnvironmentConfig, getAutocompleteConfig } from "@/components/EnvironmentSelector";
 import type { ComparisonItineraryRef, DetailHoveredLeg, ComparisonMapItinerary } from "@/components/comparison/types";
 import { ITINERARY_COLORS, ENV_COLORS } from "@/components/comparison/types";
+import { toggleComparisonSelection } from "@/lib/comparisonSelectionUtils";
 
 
 export default function Home() {
@@ -115,12 +116,7 @@ export default function Home() {
 
   // FR17.1: Toggle itinerary in/out of detail comparison (cap at 3)
   const handleComparisonToggleSelect = useCallback((envId: string, itineraryIndex: number) => {
-    setComparisonSelectedItineraries((prev) => {
-      const existing = prev.findIndex((r) => r.envId === envId && r.itineraryIndex === itineraryIndex);
-      if (existing >= 0) return prev.filter((_, i) => i !== existing);
-      if (prev.length >= 3) return prev; // max 3 — tooltip handled in UI
-      return [...prev, { envId, itineraryIndex }];
-    });
+    setComparisonSelectedItineraries((prev) => toggleComparisonSelection(prev, envId, itineraryIndex));
     setDetailHoveredLeg(null);
     setComparisonHoveredLegIndex(null);
   }, []);
