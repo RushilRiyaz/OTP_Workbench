@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useIsDark } from "@/lib/useIsDark";
 import {
   computeTimelineRange,
@@ -26,6 +27,7 @@ export function TimelineComparisonLayout({
   onComparisonSelect,
   onComparisonHoverLeg,
 }: TimelineComparisonLayoutProps & { mode: "horizontal" | "vertical" }) {
+  const t = useTranslations("Comparison");
   const hasAnyResults = Object.keys(comparisonResults).length > 0;
   const isDark = useIsDark();
 
@@ -42,7 +44,7 @@ export function TimelineComparisonLayout({
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
           <span className="inline-block w-5 h-5 border-2 border-zinc-300 dark:border-zinc-600 border-t-lvb-yellow rounded-full animate-spin" />
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">Loading results...</p>
+          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">{t("loadingResults")}</p>
         </div>
       </div>
     );
@@ -66,7 +68,7 @@ export function TimelineComparisonLayout({
   if (totalItineraryCount === 0) {
     return (
       <div className="flex-1 flex items-center justify-center p-3">
-        <p className="text-xs text-zinc-400 dark:text-zinc-500">No itineraries found across any environment.</p>
+        <p className="text-xs text-zinc-400 dark:text-zinc-500">{t("noItineraries")}</p>
       </div>
     );
   }
@@ -77,7 +79,7 @@ export function TimelineComparisonLayout({
       <div className="flex-shrink-0 flex border-b border-zinc-200 dark:border-zinc-800">
         {/* Time axis header */}
         <div className="w-14 flex-shrink-0 px-2 py-1.5 bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Time</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">{t("time")}</span>
         </div>
         {/* Env column headers */}
         {envIds.map((envId, i) => {

@@ -29,6 +29,7 @@ function isLocationValid(location: LocationValue): boolean {
 
 // FR6.2: Validate mandatory inputs pre-request
 // FR4.3: Date/time is mandatory (strict validation)
+// Returns translation keys as messages — translate at display site
 export function validateRoutingParams(params: ValidationParams): ValidationError[] {
   const errors: ValidationError[] = [];
 
@@ -36,7 +37,7 @@ export function validateRoutingParams(params: ValidationParams): ValidationError
   if (!isLocationValid(params.start)) {
     errors.push({
       field: "start",
-      message: "Start location is required",
+      message: "startRequired",
     });
   }
 
@@ -44,7 +45,7 @@ export function validateRoutingParams(params: ValidationParams): ValidationError
   if (!isLocationValid(params.destination)) {
     errors.push({
       field: "destination",
-      message: "Destination is required",
+      message: "destinationRequired",
     });
   }
 
@@ -52,7 +53,7 @@ export function validateRoutingParams(params: ValidationParams): ValidationError
   if (!params.dateTime.trim()) {
     errors.push({
       field: "dateTime",
-      message: "Date and time is required",
+      message: "dateTimeRequired",
     });
   }
 
@@ -60,7 +61,7 @@ export function validateRoutingParams(params: ValidationParams): ValidationError
   if (params.routingOptions.travelModes.length === 0) {
     errors.push({
       field: "travelModes",
-      message: "At least one travel mode is required",
+      message: "travelModeRequired",
     });
   }
 

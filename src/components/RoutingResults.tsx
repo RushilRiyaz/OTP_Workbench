@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import type { RoutingResponse } from "@/lib/routing";
 import ItineraryCard from "./ItineraryCard";
 
@@ -21,6 +22,7 @@ export default function RoutingResults({
   onLoadMore,
   onHoverLeg,
 }: RoutingResultsProps) {
+  const t = useTranslations("RoutingResults");
   const itineraries = routingResult?.plan?.itineraries ?? [];
   const [view, setView] = useState<ResultsView>("itineraries");
   const [copyState, setCopyState] = useState<"idle" | "success" | "error">("idle");
@@ -60,8 +62,8 @@ export default function RoutingResults({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
             </svg>
           </div>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">No routing results yet.</p>
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Submit a routing request to see itineraries.</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">{t("noResults")}</p>
+          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">{t("submitToSee")}</p>
         </div>
       </div>
     );
@@ -82,7 +84,7 @@ export default function RoutingResults({
                 : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
             }`}
           >
-            Itineraries ({itineraries.length})
+            {t("itineraries", { count: itineraries.length })}
           </button>
           <button
             type="button"
@@ -93,7 +95,7 @@ export default function RoutingResults({
                 : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
             }`}
           >
-            JSON
+            {t("json")}
           </button>
         </div>
 
@@ -110,21 +112,21 @@ export default function RoutingResults({
                 <svg className="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Copied!</span>
+                <span>{t("copied")}</span>
               </>
             ) : copyState === "error" ? (
               <>
                 <svg className="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                <span>Failed</span>
+                <span>{t("failed")}</span>
               </>
             ) : (
               <>
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
-                <span>Copy</span>
+                <span>{t("copy")}</span>
               </>
             )}
           </button>
@@ -149,7 +151,7 @@ export default function RoutingResults({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                 </svg>
               )}
-              {loadingEarlier ? "Loading..." : "Earlier departures"}
+              {loadingEarlier ? t("loading") : t("earlierDepartures")}
             </button>
           )}
 
@@ -179,7 +181,7 @@ export default function RoutingResults({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               )}
-              {loadingLater ? "Loading..." : "Later departures"}
+              {loadingLater ? t("loading") : t("laterDepartures")}
             </button>
           )}
         </div>

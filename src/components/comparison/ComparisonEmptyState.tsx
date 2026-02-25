@@ -1,7 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 /** Shared empty state for comparison layouts */
 export function ComparisonEmptyState({ selectedEnvironments }: { selectedEnvironments: string[] }) {
+  const t = useTranslations("Comparison");
   return (
     <div className="flex-1 flex items-center justify-center p-4">
       <div className="text-center">
@@ -12,13 +15,13 @@ export function ComparisonEmptyState({ selectedEnvironments }: { selectedEnviron
         </div>
         <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
           {selectedEnvironments.length === 0
-            ? "Select environments to compare"
-            : "Submit a routing request to compare environments"}
+            ? t("selectEnvironments")
+            : t("submitToCompare")}
         </p>
         <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
           {selectedEnvironments.length === 0
-            ? "Choose up to 3 environments from the parameter area."
-            : `${selectedEnvironments.length} environment${selectedEnvironments.length > 1 ? "s" : ""} selected.`}
+            ? t("chooseUpTo3")
+            : t("environmentsSelected", { count: selectedEnvironments.length })}
         </p>
       </div>
     </div>

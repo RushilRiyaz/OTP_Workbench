@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import LocationInput, { LocationValue } from "./LocationInput";
 import DateTimeInput from "./DateTimeInput";
 import RoutingOptionsForm, { RoutingOptions } from "./RoutingOptionsForm";
@@ -61,10 +62,13 @@ export default function JourneyForm({
 }: JourneyFormProps) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [confirmEntryId, setConfirmEntryId] = useState<string | null>(null);
+  const t = useTranslations("JourneyForm");
+  const tValidation = useTranslations("Validation");
 
-  // Helper to get error for a field
+  // Helper to get translated error for a field
   const getFieldError = (field: ValidationError["field"]): string | undefined => {
-    return validationErrors.find((e) => e.field === field)?.message;
+    const key = validationErrors.find((e) => e.field === field)?.message;
+    return key ? tValidation(key) : undefined;
   };
 
   // FR4.9: Swap start and destination
@@ -75,7 +79,7 @@ export default function JourneyForm({
   };
 
   const handleClearHistory = () => {
-    if (window.confirm("Clear all request history?")) {
+    if (window.confirm(t("clearHistoryConfirm"))) {
       onClearHistory();
     }
   };
@@ -86,19 +90,19 @@ export default function JourneyForm({
       <div className="flex items-center gap-2">
         <div className="flex-1 flex flex-col gap-1.5 min-w-0">
           <LocationInput
-            label="Start"
+            label={t("start")}
             value={start}
             onChange={onStartChange}
-            placeholder="Enter start location"
+            placeholder={t("enterStart")}
             required
             error={getFieldError("start")}
             autocompleteEnvId={autocompleteEnvId}
           />
           <LocationInput
-            label="Destination"
+            label={t("destination")}
             value={destination}
             onChange={onDestinationChange}
-            placeholder="Enter destination"
+            placeholder={t("enterDestination")}
             required
             error={getFieldError("destination")}
             autocompleteEnvId={autocompleteEnvId}
@@ -111,7 +115,7 @@ export default function JourneyForm({
           onClick={handleSwap}
           disabled={isLoading}
           className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition-all hover:scale-110 active:scale-95 hover:border-lvb-yellow/50 focus:outline-none focus:ring-2 focus:ring-lvb-yellow flex-shrink-0"
-          title="Swap start and destination"
+          title={t("swapLocations")}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -128,7 +132,7 @@ export default function JourneyForm({
         </button>
       </div>
       <DateTimeInput
-        label="Date & Time"
+        label={t("dateTime")}
         value={dateTime}
         onChange={onDateTimeChange}
         required
@@ -154,7 +158,7 @@ export default function JourneyForm({
             {/* Label + Badge */}
             <span className="flex-1 flex items-center gap-2 min-w-0">
               <span className={`text-sm font-medium transition-colors ${historyOpen ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-600 dark:text-zinc-400"}`}>
-                History
+                {t("history")}
               </span>
               <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full transition-colors ${historyOpen ? "bg-lvb-yellow/20 text-lvb-yellow-dark dark:text-lvb-yellow" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"}`}>
                 {requestHistory.length}
@@ -177,7 +181,7 @@ export default function JourneyForm({
                 }
               }}
               className="p-1 rounded-md text-zinc-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-              title="Clear history"
+              title={t("clearHistory")}
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
                 <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.519.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
@@ -206,7 +210,7 @@ export default function JourneyForm({
                         /* Confirmation prompt */
                         <div className="rounded-lg border border-lvb-yellow/40 bg-lvb-yellow/5 dark:bg-lvb-yellow/10 p-3">
                           <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200 mb-2.5">
-                            Load this request into the form?
+                            {t("loadRequest")}
                           </p>
                           <div className="flex gap-2">
                             <button
@@ -217,14 +221,14 @@ export default function JourneyForm({
                               }}
                               className="flex-1 px-3 py-2 text-sm font-semibold bg-lvb-yellow hover:bg-lvb-yellow-hover text-lvb-dark rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                             >
-                              Load
+                              {t("load")}
                             </button>
                             <button
                               type="button"
                               onClick={() => setConfirmEntryId(null)}
                               className="flex-1 px-3 py-2 text-sm font-medium bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                             >
-                              Cancel
+                              {t("cancel")}
                             </button>
                           </div>
                         </div>
@@ -289,10 +293,10 @@ export default function JourneyForm({
         {isLoading ? (
           <>
             <div className="w-4 h-4 border-2 border-lvb-dark/30 border-t-lvb-dark rounded-full animate-spin" aria-hidden="true" />
-            <span>Requesting...</span>
+            <span>{t("requesting")}</span>
           </>
         ) : (
-          <span>Start Routing</span>
+          <span>{t("startRouting")}</span>
         )}
       </button>
 
@@ -303,7 +307,7 @@ export default function JourneyForm({
             <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
           </svg>
           <div>
-            <div className="font-medium">Request failed</div>
+            <div className="font-medium">{t("requestFailed")}</div>
             <div className="text-xs mt-1">{routingError.message}</div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 // FR5: Time & Routing Options
 
@@ -8,38 +9,26 @@ export type TimingMode = "departAt" | "arriveBy";
 
 // FR5.2: Predefined travel modes (Transit modes from Routing API)
 export const TRAVEL_MODES = [
-  {
-    id: "TRANSIT",
-    label: "Transit",
-    description: "The same as WALK, TRAM, BUS, SUBURB, TRAIN",
-  },
-  { id: "BIKE", label: "Bike", description: null },
-  { id: "BIKERENTAL", label: "Bike Rental", description: null },
-  { id: "WALK", label: "Walk", description: null },
-  { id: "CAR", label: "Car", description: null },
-  { id: "CARRENTAL", label: "Car Rental", description: null },
-  { id: "BUS", label: "Bus", description: null },
-  { id: "TRAM", label: "Tram", description: null },
-  { id: "SUBURB", label: "S-Bahn", description: "Suburban railway" },
-  { id: "TRAIN", label: "Train", description: "Regional and long distance" },
-  {
-    id: "TAXI4884",
-    label: "Taxi4884",
-    description: "CAR routing within TAXI4884 service area",
-  },
-  {
-    id: "ESCOOTER",
-    label: "E-Scooter",
-    description: "Max 15 minutes walking legs",
-  },
-  { id: "FLEXA", label: "Flexa", description: "On-demand bus in Leipzig" },
-  { id: "SUBWAY", label: "U-Bahn", description: null },
-  { id: "RRB", label: "RRB", description: "Rail replacement bus (SEV)" },
-  { id: "OD", label: "OD", description: "On-demand bus (Rufbus)" },
-  { id: "ICE", label: "ICE", description: "Inter-city express" },
-  { id: "IC", label: "IC", description: "Inter-city rail" },
-  { id: "COACH", label: "Coach", description: "Long distance bus" },
-  { id: "RE", label: "RE", description: "Regional express (Regional-Bahn)" },
+  { id: "TRANSIT" },
+  { id: "BIKE" },
+  { id: "BIKERENTAL" },
+  { id: "WALK" },
+  { id: "CAR" },
+  { id: "CARRENTAL" },
+  { id: "BUS" },
+  { id: "TRAM" },
+  { id: "SUBURB" },
+  { id: "TRAIN" },
+  { id: "TAXI4884" },
+  { id: "ESCOOTER" },
+  { id: "FLEXA" },
+  { id: "SUBWAY" },
+  { id: "RRB" },
+  { id: "OD" },
+  { id: "ICE" },
+  { id: "IC" },
+  { id: "COACH" },
+  { id: "RE" },
 ] as const;
 
 export type TravelModeId = (typeof TRAVEL_MODES)[number]["id"];
@@ -52,12 +41,7 @@ export interface OptionalParams {
   transitOnly: boolean;
 }
 
-export const OPTIONAL_PARAMS = [
-  { id: "accessibility", label: "Wheelchair Accessible" },
-  { id: "shortWalk", label: "Short Walk" },
-  { id: "lessTransfers", label: "Less Transfers" },
-  { id: "transitOnly", label: "Transit Only" },
-] as const;
+const OPTIONAL_PARAM_IDS = ["accessibility", "shortWalk", "lessTransfers", "transitOnly"] as const;
 
 export interface RoutingOptions {
   timingMode: TimingMode; // FR5.1
@@ -169,6 +153,9 @@ export default function RoutingOptionsForm({
   const [travelModesOpen, setTravelModesOpen] = useState(true);
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [customParamsOpen, setCustomParamsOpen] = useState(false);
+  const t = useTranslations("RoutingOptionsForm");
+  const tModes = useTranslations("TravelModes");
+  const tParams = useTranslations("OptionalParams");
 
   const activeOptionsCount = Object.values(value.optionalParams).filter(
     Boolean,
@@ -219,12 +206,20 @@ export default function RoutingOptionsForm({
     onChange({ ...value, customParams: e.target.value });
   };
 
+  // Get description for a travel mode (returns undefined if no desc key exists)
+  const getModeDescription = (modeId: string): string | undefined => {
+    const descKey = `${modeId}_desc`;
+    // Use next-intl's has() to check if the key exists before translating
+    if (!tModes.has(descKey)) return undefined;
+    return tModes(descKey);
+  };
+
   return (
     <div className="flex flex-col gap-3">
       {/* FR5.1: Depart At / Arrive By Toggle — iOS-style segmented control */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-wide text-zinc-400 mb-2">
-          Timing
+          {t("timing")}
         </label>
         <div className="flex rounded-xl bg-zinc-100 dark:bg-zinc-800 p-0.5">
           <button
@@ -236,7 +231,7 @@ export default function RoutingOptionsForm({
                 : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
             }`}
           >
-            Depart At
+            {t("departAt")}
           </button>
           <button
             type="button"
@@ -247,14 +242,14 @@ export default function RoutingOptionsForm({
                 : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
             }`}
           >
-            Arrive By
+            {t("arriveBy")}
           </button>
         </div>
       </div>
 
       {/* FR5.2: Travel Mode Selection (collapsible) */}
       <DisclosurePanel
-        label="Travel Modes"
+        label={t("travelModes")}
         icon={
           <svg
             className="w-3.5 h-3.5"
@@ -270,7 +265,7 @@ export default function RoutingOptionsForm({
             />
           </svg>
         }
-        badge={`${value.travelModes.length} selected`}
+        badge={t("selected", { count: value.travelModes.length })}
         isOpen={travelModesOpen}
         onToggle={() => setTravelModesOpen(!travelModesOpen)}
       >
@@ -279,6 +274,7 @@ export default function RoutingOptionsForm({
         >
           {TRAVEL_MODES.map((mode) => {
             const isSelected = value.travelModes.includes(mode.id);
+            const description = getModeDescription(mode.id);
             return (
               <button
                 key={mode.id}
@@ -295,11 +291,11 @@ export default function RoutingOptionsForm({
                 }`}
                 title={
                   isLastSelectedMode(mode.id)
-                    ? "At least one travel mode must be selected"
-                    : (mode.description ?? undefined)
+                    ? t("lastModeWarning")
+                    : description
                 }
               >
-                {mode.label}
+                {tModes(mode.id)}
               </button>
             );
           })}
@@ -310,7 +306,7 @@ export default function RoutingOptionsForm({
 
       {/* FR5.5: Optional Parameters (collapsible) */}
       <DisclosurePanel
-        label="Options"
+        label={t("options")}
         icon={
           <svg
             className="w-3.5 h-3.5"
@@ -327,17 +323,17 @@ export default function RoutingOptionsForm({
           </svg>
         }
         badge={
-          activeOptionsCount > 0 ? `${activeOptionsCount} active` : undefined
+          activeOptionsCount > 0 ? t("active", { count: activeOptionsCount }) : undefined
         }
         isOpen={optionsOpen}
         onToggle={() => setOptionsOpen(!optionsOpen)}
       >
         <div className="flex flex-col gap-0.5">
-          {OPTIONAL_PARAMS.map((param) => {
-            const isChecked = value.optionalParams[param.id];
+          {OPTIONAL_PARAM_IDS.map((paramId) => {
+            const isChecked = value.optionalParams[paramId];
             return (
               <label
-                key={param.id}
+                key={paramId}
                 className="flex items-center gap-2.5 cursor-pointer px-2 py-1.5 hover:bg-white dark:hover:bg-zinc-800 rounded-lg transition-colors"
               >
                 {/* Custom checkbox */}
@@ -345,7 +341,7 @@ export default function RoutingOptionsForm({
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={() => handleOptionalParamToggle(param.id)}
+                    onChange={() => handleOptionalParamToggle(paramId)}
                     className="sr-only"
                   />
                   <div
@@ -375,7 +371,7 @@ export default function RoutingOptionsForm({
                 <span
                   className={`text-sm transition-colors ${isChecked ? "text-zinc-900 dark:text-zinc-100 font-medium" : "text-zinc-600 dark:text-zinc-400"}`}
                 >
-                  {param.label}
+                  {tParams(paramId)}
                 </span>
               </label>
             );
@@ -385,7 +381,7 @@ export default function RoutingOptionsForm({
 
       {/* FR5.6: Custom Parameters (collapsible) */}
       <DisclosurePanel
-        label="Custom Parameters"
+        label={t("customParameters")}
         icon={
           <svg
             className="w-3.5 h-3.5"
@@ -401,21 +397,24 @@ export default function RoutingOptionsForm({
             />
           </svg>
         }
-        badge={value.customParams.trim() ? "set" : undefined}
+        badge={value.customParams.trim() ? t("set") : undefined}
         isOpen={customParamsOpen}
         onToggle={() => setCustomParamsOpen(!customParamsOpen)}
       >
         <textarea
           value={value.customParams}
           onChange={handleCustomParamsChange}
-          placeholder="e.g. numItineraries=3&maxWalkDistance=1000"
+          placeholder={t("customPlaceholder")}
           rows={3}
           className="w-full px-3 py-2 font-mono text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-lvb-yellow focus:border-transparent transition-colors resize-none"
         />
         <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-500">
-          Add extra query parameters (key=value format)
+          {t("customHelp")}
         </p>
       </DisclosurePanel>
     </div>
   );
 }
+
+// Re-export OPTIONAL_PARAMS for backwards compatibility
+export const OPTIONAL_PARAMS = OPTIONAL_PARAM_IDS.map((id) => ({ id }));

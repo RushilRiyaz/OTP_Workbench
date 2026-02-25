@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 export default function ThemeToggle() {
   const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const t = useTranslations("ThemeToggle");
 
   // Only run on client side
   useEffect(() => {
@@ -47,7 +49,7 @@ export default function ThemeToggle() {
     <button
       onClick={toggleTheme}
       className="p-2 rounded-lg bg-lvb-dark text-white hover:bg-lvb-dark/80 dark:bg-white dark:text-lvb-dark dark:hover:bg-zinc-200 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lvb-dark dark:focus:ring-white"
-      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      title={isDark ? t("switchToLight") : t("switchToDark")}
     >
       <div className="relative w-5 h-5">
         {/* Sun icon — visible in dark mode */}

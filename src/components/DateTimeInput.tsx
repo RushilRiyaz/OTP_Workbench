@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 
 /** Current Berlin time as a datetime-local string ("YYYY-MM-DDTHH:mm"). */
 export function getBerlinNow(): string {
@@ -25,6 +26,7 @@ export default function DateTimeInput({
 }: DateTimeInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDark, setIsDark] = useState(false);
+  const t = useTranslations("DateTimeInput");
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -67,16 +69,16 @@ export default function DateTimeInput({
           type="button"
           onClick={() => onChange(getBerlinNow())}
           className="absolute right-8 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs font-medium rounded-md text-zinc-500 hover:text-lvb-yellow-dark dark:text-zinc-400 dark:hover:text-lvb-yellow bg-zinc-100 dark:bg-zinc-700 hover:bg-lvb-yellow/15 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
-          title="Set to current time"
+          title={t("setToCurrentTime")}
         >
-          Now
+          {t("now")}
         </button>
         {/* Custom calendar icon — opens native date picker */}
         <button
           type="button"
           onClick={() => inputRef.current?.showPicker()}
           className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
-          title="Open calendar"
+          title={t("openCalendar")}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
