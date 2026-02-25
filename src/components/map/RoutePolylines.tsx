@@ -36,7 +36,7 @@ export default function RoutePolylines({ itinerary, isDark = false, hoveredLegIn
       const bounds = L.latLngBounds(allPoints);
       map.fitBounds(bounds, { padding: [40, 40] });
     }
-  }, [itinerary, map]);
+  }, [itinerary, map, autoFitBounds]);
 
   if (!itinerary) return null;
 

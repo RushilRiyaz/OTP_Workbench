@@ -123,8 +123,6 @@ export function ComparisonOverviewLayout({
         <div className="relative mx-5" style={{ minHeight: totalChartHeight }}>
           {/* Vertical grid lines with time labels at top */}
           {timeMarkers.map((marker, mi) => {
-            const isFirst = mi === 0;
-            const isLast = mi === timeMarkers.length - 1;
             return (
               <div key={mi} className="absolute top-0" style={{ left: `${marker.pct}%`, height: totalChartHeight }}>
                 <div className="absolute border-l border-dashed border-zinc-300 dark:border-zinc-700" style={{ top: 0, height: totalChartHeight }} />

@@ -388,8 +388,6 @@ export class HomePage {
       const section = await this.driver.findElement(
         By.css('div.rounded-lg.border.cursor-pointer.border-lvb-yellow div.border-t.space-y-0\\.5')
       );
-      // Each leg is either a TransitLegDetail (has a button with mode badge) or WalkLegDetail (has a div with svg)
-      const children = await section.findElements(By.css(':scope > div, :scope > button'));
       // The direct children of space-y-0.5 are the leg detail wrappers
       const legs = await section.findElements(By.xpath('./div'));
       return legs.length;
