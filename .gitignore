@@ -38,6 +38,7 @@ yarn-error.log*
 
 # Claude Ai
 CLAUDE.md
+.claude
 
 # vercel
 .vercel
@@ -46,7 +47,3 @@ CLAUDE.md
 *.tsbuildinfo
 next-env.d.ts
 /.idea/
-
-/md_files
-
-CLAUDE.md
