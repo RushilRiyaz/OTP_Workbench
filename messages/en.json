@@ -204,6 +204,13 @@
   "ErrorBoundary": {
     "genericError": "Something went wrong. Try refreshing."
   },
+  "DetailComparison": {
+    "title": "Detail Comparison",
+    "exit": "Back to Overview",
+    "remove": "Remove",
+    "maxSelected": "Maximum 3 itineraries selected",
+    "compareSelected": "Compare ({count})"
+  },
   "Map": {
     "start": "Start",
     "destination": "Dest.",

@@ -204,6 +204,13 @@
   "ErrorBoundary": {
     "genericError": "Etwas ist schiefgelaufen. Versuchen Sie, die Seite zu aktualisieren."
   },
+  "DetailComparison": {
+    "title": "Detailvergleich",
+    "exit": "Zur Übersicht",
+    "remove": "Entfernen",
+    "maxSelected": "Maximal 3 Reiserouten ausgewählt",
+    "compareSelected": "Vergleichen ({count})"
+  },
   "Map": {
     "start": "Start",
     "destination": "Ziel",
