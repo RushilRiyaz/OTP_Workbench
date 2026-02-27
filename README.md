@@ -50,7 +50,17 @@ Then navigate into the project folder:
 cd otp-client-v2
 ```
 
-### 2. Install Dependencies
+### 2. Set the Correct Node.js Version
+
+The project requires Node.js 24+. If you use [nvm](https://github.com/nvm-sh/nvm) (Node Version Manager), run:
+
+```bash
+nvm install    # installs and switches to Node 24 (reads from .nvmrc)
+```
+
+If you don't use nvm, download Node.js 24 directly from https://nodejs.org/.
+
+### 3. Install Dependencies
 
 Run the following command. This will download all required packages:
 
@@ -60,7 +70,7 @@ npm install
 
 This may take 1-2 minutes. Wait until it finishes completely.
 
-### 3. Environment Variables
+### 4. Environment Variables
 
 The zip file you received should already contain a `.env.local` file in the project root (same folder as `package.json`) with the correct API URLs and keys. **No action needed** — skip to the next step.
 
