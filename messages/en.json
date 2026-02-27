@@ -1,0 +1,221 @@
+{
+  "Header": {
+    "title": "OTP Workbench",
+    "subtitle": "Leipziger Verkehrsbetriebe"
+  },
+  "ThemeToggle": {
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode"
+  },
+  "LanguageSwitcher": {
+    "switchToEn": "Switch to English",
+    "switchToDe": "Switch to German"
+  },
+  "Tabs": {
+    "routing": "Routing",
+    "routingComparison": "Routing Comparison",
+    "autocomplete": "Autocomplete",
+    "stopmonitor": "Stopmonitor",
+    "nearbySearch": "NearBySearch"
+  },
+  "ParameterArea": {
+    "parameters": "Parameters",
+    "collapse": "Collapse",
+    "expand": "Expand"
+  },
+  "EnvironmentSelector": {
+    "environment": "Environment",
+    "environments": "Environments",
+    "selectedCount": "{count}/3 selected",
+    "change": "Change",
+    "custom": "Custom",
+    "autocompleteService": "Autocomplete Service",
+    "addCustomEnvironment": "Add Custom Environment",
+    "environmentName": "Environment name",
+    "otpApiUrl": "OTP API URL",
+    "autocompleteApiUrl": "Autocomplete API URL",
+    "add": "Add",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "removeCustom": "Remove custom environment",
+    "singleModeHelp": "Single environment mode. Switch to \"Routing Comparison\" to compare multiple environments."
+  },
+  "JourneyForm": {
+    "routing": "Routing",
+    "copyLink": "Copy Link",
+    "copyShareableLink": "Copy shareable link",
+    "copied": "Copied!",
+    "failed": "Failed",
+    "start": "Start",
+    "destination": "Destination",
+    "enterStart": "Enter start location",
+    "enterDestination": "Enter destination",
+    "swapLocations": "Swap start and destination",
+    "dateTime": "Date & Time",
+    "history": "History",
+    "clearHistory": "Clear history",
+    "clearHistoryConfirm": "Clear all request history?",
+    "loadRequest": "Load this request into the form?",
+    "load": "Load",
+    "cancel": "Cancel",
+    "startRouting": "Start Routing",
+    "requesting": "Requesting...",
+    "requestFailed": "Request failed"
+  },
+  "LocationInput": {
+    "recentLocations": "Recent Locations",
+    "useAsCoordinates": "Use as Coordinates",
+    "useAsStopId": "Use as Stop ID",
+    "location": "Location",
+    "stopId": "Stop ID",
+    "coordinates": "Coordinates",
+    "resolving": "Resolving {stopId}...",
+    "stopIdLabel": "Stop ID: {stopId}"
+  },
+  "DateTimeInput": {
+    "now": "Now",
+    "setToCurrentTime": "Set to current time",
+    "openCalendar": "Open calendar"
+  },
+  "RoutingOptionsForm": {
+    "timing": "Timing",
+    "departAt": "Depart At",
+    "arriveBy": "Arrive By",
+    "travelModes": "Travel Modes",
+    "selected": "{count} selected",
+    "lastModeWarning": "At least one travel mode must be selected",
+    "options": "Options",
+    "active": "{count} active",
+    "customParameters": "Custom Parameters",
+    "set": "set",
+    "customPlaceholder": "e.g. numItineraries=3&maxWalkDistance=1000",
+    "customHelp": "Add extra query parameters (key=value format)"
+  },
+  "TravelModes": {
+    "TRANSIT": "Transit",
+    "TRANSIT_desc": "The same as WALK, TRAM, BUS, SUBURB, TRAIN",
+    "BIKE": "Bike",
+    "BIKERENTAL": "Bike Rental",
+    "WALK": "Walk",
+    "CAR": "Car",
+    "CARRENTAL": "Car Rental",
+    "BUS": "Bus",
+    "TRAM": "Tram",
+    "SUBURB": "S-Bahn",
+    "SUBURB_desc": "Suburban railway",
+    "TRAIN": "Train",
+    "TRAIN_desc": "Regional and long distance",
+    "TAXI4884": "Taxi4884",
+    "TAXI4884_desc": "CAR routing within TAXI4884 service area",
+    "ESCOOTER": "E-Scooter",
+    "ESCOOTER_desc": "Max 15 minutes walking legs",
+    "FLEXA": "Flexa",
+    "FLEXA_desc": "On-demand bus in Leipzig",
+    "SUBWAY": "U-Bahn",
+    "RRB": "RRB",
+    "RRB_desc": "Rail replacement bus (SEV)",
+    "OD": "OD",
+    "OD_desc": "On-demand bus (Rufbus)",
+    "ICE": "ICE",
+    "ICE_desc": "Inter-city express",
+    "IC": "IC",
+    "IC_desc": "Inter-city rail",
+    "COACH": "Coach",
+    "COACH_desc": "Long distance bus",
+    "RE": "RE",
+    "RE_desc": "Regional express (Regional-Bahn)"
+  },
+  "OptionalParams": {
+    "accessibility": "Wheelchair Accessible",
+    "shortWalk": "Short Walk",
+    "lessTransfers": "Less Transfers",
+    "transitOnly": "Transit Only"
+  },
+  "RoutingResults": {
+    "noResults": "No routing results yet.",
+    "submitToSee": "Submit a routing request to see itineraries.",
+    "itineraries": "Itineraries ({count})",
+    "json": "JSON",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "failed": "Failed",
+    "earlierDepartures": "Earlier departures",
+    "laterDepartures": "Later departures",
+    "loading": "Loading..."
+  },
+  "ItineraryCard": {
+    "direct": "Direct",
+    "transfer": "{count} transfer",
+    "transfers": "{count} transfers",
+    "zones": "Zones: {zones}",
+    "shortDistance": "Short distance",
+    "board": "Board",
+    "exit": "Exit",
+    "platform": "Pl. {track}",
+    "platformChanged": "Pl. {track} (was {scheduled})",
+    "trip": "Trip",
+    "stop": "{count} stop",
+    "stops": "{count} stops",
+    "zone": "Zone {id}"
+  },
+  "RequestHistory": {
+    "title": "Request History",
+    "clearHistory": "Clear history",
+    "clearConfirm": "Clear all request history?",
+    "justNow": "Just now",
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago",
+    "daysAgo": "{count}d ago"
+  },
+  "Validation": {
+    "startRequired": "Start location is required",
+    "destinationRequired": "Destination is required",
+    "dateTimeRequired": "Date and time is required",
+    "travelModeRequired": "At least one travel mode is required"
+  },
+  "EvaluationArea": {
+    "clear": "Clear",
+    "clearTitle": "Clear results",
+    "sideBySide": "Side by side",
+    "stacked": "Stacked",
+    "switchToSideBySide": "Switch to side-by-side layout",
+    "switchToStacked": "Switch to stacked layout",
+    "mapError": "Map failed to load. Try refreshing.",
+    "comingSoon": "Coming soon",
+    "featureInDevelopment": "The {tab} feature is under development.",
+    "clearConfirmTitle": "Clear routing results?",
+    "clearConfirmMessage": "This will remove all itineraries and return to the map view.",
+    "cancel": "Cancel",
+    "submitToCompare": "Submit a routing request to compare environments",
+    "horizontal": "Horizontal",
+    "vertical": "Vertical",
+    "overview": "Overview"
+  },
+  "Comparison": {
+    "selectEnvironments": "Select environments to compare",
+    "submitToCompare": "Submit a routing request to compare environments",
+    "chooseUpTo3": "Choose up to 3 environments from the parameter area.",
+    "environmentsSelected": "{count} environment(s) selected.",
+    "loadingResults": "Loading results...",
+    "noItineraries": "No itineraries found across any environment.",
+    "error": "Error",
+    "time": "Time"
+  },
+  "ErrorBoundary": {
+    "genericError": "Something went wrong. Try refreshing."
+  },
+  "DetailComparison": {
+    "title": "Detail Comparison",
+    "exit": "Back to Overview",
+    "remove": "Remove",
+    "maxSelected": "Maximum 3 itineraries selected",
+    "compareSelected": "Compare ({count})"
+  },
+  "Map": {
+    "start": "Start",
+    "destination": "Dest.",
+    "copyCoordinates": "Copy coordinates",
+    "copied": "Copied!",
+    "copyFailed": "Failed"
+  }
+}

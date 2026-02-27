@@ -1,6 +1,6 @@
 // FR6.6: URL parameter serialization for shareable links
 
-import { LocationValue, emptyLocationValue } from "@/components/LocationInput";
+import { LocationValue } from "@/components/LocationInput";
 import { RoutingOptions, defaultRoutingOptions, TravelModeId, TRAVEL_MODES } from "@/components/RoutingOptionsForm";
 import { Environment } from "@/components/EnvironmentSelector";
 
@@ -11,6 +11,7 @@ export interface SerializableFormState {
   dateTime: string;
   routingOptions: RoutingOptions;
   selectedEnvironment: string;
+  selectedAutocompleteEnv: string;
   customEnvironments: Environment[];
 }
 
@@ -27,6 +28,7 @@ const PARAM_KEYS = {
   transitOnly: "tonly",
   customParams: "cp",
   env: "env",
+  ac: "ac",
   customEnvs: "cenvs",
 } as const;
 
@@ -178,6 +180,11 @@ export function serializeFormState(state: SerializableFormState): string {
     params.set(PARAM_KEYS.env, state.selectedEnvironment);
   }
 
+  // Autocomplete environment (only if different from OTP env)
+  if (state.selectedAutocompleteEnv && state.selectedAutocompleteEnv !== (state.selectedEnvironment || "prod")) {
+    params.set(PARAM_KEYS.ac, state.selectedAutocompleteEnv);
+  }
+
   // Custom environments (full JSON for custom envs)
   if (state.customEnvironments.length > 0) {
     params.set(PARAM_KEYS.customEnvs, JSON.stringify(state.customEnvironments));
@@ -259,6 +266,10 @@ export function deserializeUrlParams(searchParams: URLSearchParams): Partial<Ser
   const env = searchParams.get(PARAM_KEYS.env);
   if (env) state.selectedEnvironment = env;
 
+  // Autocomplete environment
+  const ac = searchParams.get(PARAM_KEYS.ac);
+  if (ac) state.selectedAutocompleteEnv = ac;
+
   // Custom environments
   const cenvs = searchParams.get(PARAM_KEYS.customEnvs);
   if (cenvs) {
@@ -272,7 +283,7 @@ export function deserializeUrlParams(searchParams: URLSearchParams): Partial<Ser
             item !== null &&
             typeof item.id === "string" &&
             typeof item.label === "string" &&
-            typeof item.url === "string"
+            typeof item.otpUrl === "string"
         );
         if (validEnvs.length > 0) {
           state.customEnvironments = validEnvs;

@@ -124,4 +124,14 @@ describe("localStorage operations", () => {
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe("valid");
   });
+
+  it("loads old entries that lack selectedAutocompleteEnv", () => {
+    const oldEntry = historyEntry({ id: "old-format" });
+    delete (oldEntry as unknown as Record<string, unknown>).selectedAutocompleteEnv;
+    localStorageMock.getItem.mockReturnValueOnce(JSON.stringify([oldEntry]));
+    const result = getRequestHistory();
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("old-format");
+    expect(result[0].selectedAutocompleteEnv).toBeUndefined();
+  });
 });

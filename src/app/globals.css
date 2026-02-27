@@ -1,8 +1,32 @@
 @import "tailwindcss";
 
+/* Hide native datetime-local calendar indicator (we use a custom button + showPicker()) */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+/* Enable class-based dark mode for Tailwind 4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* LVB Brand Colors */
+  --lvb-yellow: #FBC10F;
+  --lvb-yellow-hover: #E0AD0D;
+  --lvb-yellow-light: #FEF7E0;
+  --lvb-yellow-dark: #C49A0C;
+  --lvb-dark: #1a1a1a;
+  --lvb-gray: #4a4a4a;
+}
+
+/* Dark mode class-based (for toggle) */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --lvb-yellow-light: #3d3500;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -10,19 +34,51 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* LVB Colors for Tailwind */
+  --color-lvb-yellow: var(--lvb-yellow);
+  --color-lvb-yellow-hover: var(--lvb-yellow-hover);
+  --color-lvb-yellow-light: var(--lvb-yellow-light);
+  --color-lvb-yellow-dark: var(--lvb-yellow-dark);
+  --color-lvb-dark: var(--lvb-dark);
+  --color-lvb-gray: var(--lvb-gray);
 }
 
+/* System preference dark mode (fallback when no class is set) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --lvb-yellow-light: #3d3500;
+    color-scheme: dark;
   }
+}
+
+html {
+  /* Scales from ~15px on 14" screens (1366px) to ~18px on 27" screens (2048px+) */
+  font-size: clamp(15px, 0.44vw + 9px, 18px);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Collapsible section animation */
+@keyframes collapsible-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-collapsible-open {
+  animation: collapsible-open 200ms ease-out;
 }
 
 /* Custom scrollbar styling */
@@ -36,6 +92,19 @@ body {
   * {
     scrollbar-color: #3f3f46 transparent;
   }
+}
+
+/* Class-based dark mode scrollbar */
+.dark * {
+  scrollbar-color: #3f3f46 transparent;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
 }
 
 /* Chrome, Edge, Safari */
@@ -64,5 +133,47 @@ body {
 
   ::-webkit-scrollbar-thumb:hover {
     background: #52525b; /* zinc-600 */
+  }
+}
+
+/* Permanent marker labels — strip default Leaflet tooltip chrome */
+.leaflet-tooltip.marker-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+  text-shadow:
+    -1px -1px 0 #fff,
+     1px -1px 0 #fff,
+    -1px  1px 0 #fff,
+     1px  1px 0 #fff;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.leaflet-tooltip.marker-label::before {
+  display: none;
+}
+
+.dark .leaflet-tooltip.marker-label {
+  color: #e2e8f0;
+  text-shadow:
+    -1px -1px 0 #0f172a,
+     1px -1px 0 #0f172a,
+    -1px  1px 0 #0f172a,
+     1px  1px 0 #0f172a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .leaflet-tooltip.marker-label {
+    color: #e2e8f0;
+    text-shadow:
+      -1px -1px 0 #0f172a,
+       1px -1px 0 #0f172a,
+      -1px  1px 0 #0f172a,
+       1px  1px 0 #0f172a;
   }
 }

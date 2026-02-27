@@ -15,52 +15,77 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  NODE_VERSION: '20'
+  NODE_VERSION: '24'
 
-steps:
-  - task: NodeTool@0
-    displayName: 'Install Node.js $(NODE_VERSION)'
-    inputs:
-      versionSpec: '$(NODE_VERSION)'
+stages:
+  - stage: UnitTests
+    displayName: 'Unit Tests'
+    jobs:
+      - job: unit_tests
+        displayName: 'Run Unit Tests'
+        steps:
+          - task: NodeTool@0
+            displayName: 'Install Node.js $(NODE_VERSION)'
+            inputs:
+              versionSpec: '$(NODE_VERSION)'
 
-  - script: npm ci
-    displayName: 'Install dependencies'
+          - script: npm ci
+            displayName: 'Install dependencies'
 
-  - script: npm run test
-    displayName: 'Run unit tests'
+          - script: npm run test
+            displayName: 'Run unit tests'
 
-  - script: |
-      wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-      sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
-      sudo apt-get update
-      sudo apt-get install -y google-chrome-stable
-    displayName: 'Install Google Chrome'
+  - stage: E2ETests
+    displayName: 'E2E Tests'
+    dependsOn: UnitTests
+    condition: and(succeeded(), eq(variables['RUN_E2E'], 'true'))
+    jobs:
+      - job: e2e_tests
+        displayName: 'Run E2E Tests'
+        steps:
+          - task: NodeTool@0
+            displayName: 'Install Node.js $(NODE_VERSION)'
+            inputs:
+              versionSpec: '$(NODE_VERSION)'
 
-  - script: npm run build
-    displayName: 'Build Next.js app'
-    env:
-      NEXT_PUBLIC_OTP_API_URL: $(NEXT_PUBLIC_OTP_API_URL)
-      NEXT_PUBLIC_API_KEY: $(NEXT_PUBLIC_API_KEY)
+          - script: npm ci
+            displayName: 'Install dependencies'
 
-  - script: |
-      npm run start &
-      echo "Server started in background"
-    displayName: 'Start server in background'
+          - script: |
+              wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+              sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+              sudo apt-get update
+              sudo apt-get install -y google-chrome-stable
+            displayName: 'Install Google Chrome'
 
-  - script: npx wait-on http://localhost:3000 --timeout 60000
-    displayName: 'Wait for server to be ready'
+          - script: npm run build
+            displayName: 'Build Next.js app'
+            env:
+              NEXT_PUBLIC_OTP_API_URL: $(NEXT_PUBLIC_OTP_API_URL)
+              NEXT_PUBLIC_API_KEY: $(NEXT_PUBLIC_API_KEY)
 
-  - script: npm run test:e2e:ci
-    displayName: 'Run E2E tests'
-    env:
-      BASE_URL: http://localhost:3000
-      HEADLESS: 'true'
+          - script: |
+              npm run start &
+              echo "Server started in background"
+            displayName: 'Start server in background'
+            env:
+              NEXT_PUBLIC_OTP_API_URL: $(NEXT_PUBLIC_OTP_API_URL)
+              NEXT_PUBLIC_API_KEY: $(NEXT_PUBLIC_API_KEY)
 
-  - task: PublishTestResults@2
-    displayName: 'Publish test results'
-    condition: always()
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**/test-results.xml'
-      failTaskOnFailedTests: true
-      failTaskOnMissingResultsFile: false
+          - script: npx wait-on http://localhost:3000 --timeout 60000
+            displayName: 'Wait for server to be ready'
+
+          - script: npm run test:e2e:ci
+            displayName: 'Run E2E tests'
+            env:
+              BASE_URL: http://localhost:3000
+              HEADLESS: 'true'
+
+          - task: PublishTestResults@2
+            displayName: 'Publish test results'
+            condition: always()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/test-results.xml'
+              failTaskOnFailedTests: true
+              failTaskOnMissingResultsFile: false

@@ -10,6 +10,7 @@ import type {
   TransitLeg,
   Itinerary,
   RoutingResponse,
+  Alert,
 } from "@/lib/routing";
 
 // --- LocationValue factories ---
@@ -101,6 +102,7 @@ export function historyEntry(overrides?: Partial<RequestHistoryEntry>): RequestH
     dateTime: "2026-02-03T14:30",
     routingOptions: defaultOptions(),
     selectedEnvironment: "prod",
+    selectedAutocompleteEnv: "prod",
     displayLabel: "51.34, 12.37 → Augustusplatz",
     ...overrides,
   };
@@ -224,6 +226,19 @@ export function createRoutingResponse(overrides?: Partial<RoutingResponse>): Rou
       to: { name: "Goerdelerring", lon: 12.3822, lat: 51.3455 },
       itineraries: [createItinerary()],
     },
+    ...overrides,
+  };
+}
+
+// --- Alert factory ---
+
+export function createAlert(overrides?: Partial<Alert>): Alert {
+  return {
+    effectiveStartDate: 1738540800000,
+    effectiveEndDate: 1738627200000,
+    alertHeaderText: "Service disruption",
+    alertDescriptionText: "Tram line 15 is disrupted due to construction work.",
+    alertCategory: 0,
     ...overrides,
   };
 }

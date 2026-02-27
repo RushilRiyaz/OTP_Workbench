@@ -6,12 +6,19 @@ import {
   fetchRouting,
 } from "@/lib/routing";
 import type { RoutingRequestParams, RoutingResponse } from "@/lib/routing";
+import { isStation } from "@/lib/routing";
 import {
   coordsLocation,
   stopIdLocation,
   autocompleteLocation,
   emptyLocation,
   defaultOptions,
+  createRoutingResponse,
+  createTransitLeg,
+  createNonTransitLeg,
+  createStation,
+  createFromToLocation,
+  createItinerary,
 } from "@/test/fixtures";
 
 // --- Pure helper tests ---
@@ -243,5 +250,338 @@ describe("fetchRouting", () => {
     if (!result.success) {
       expect(result.error.type).toBe("timeout");
     }
+  });
+});
+
+// --- isStation type guard ---
+
+describe("isStation", () => {
+  it("returns true for Station objects (have stopId)", () => {
+    expect(isStation(createStation())).toBe(true);
+  });
+
+  it("returns false for FromToLocation objects (no stopId)", () => {
+    expect(isStation(createFromToLocation())).toBe(false);
+  });
+
+  it("returns true for Station with minimal overrides", () => {
+    expect(isStation(createStation({ name: "Custom", stopId: "X" }))).toBe(true);
+  });
+});
+
+// --- Regression: Station delays must not be multiplied (API returns seconds) ---
+
+describe("fetchRouting delay passthrough", () => {
+  let fetchSpy: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function mockFetchOk(response: RoutingResponse) {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve(response),
+    });
+  }
+
+  it("does not multiply Station delays (API returns seconds)", async () => {
+    const response: RoutingResponse = createRoutingResponse({
+      plan: {
+        date: 0,
+        from: { name: "A", lon: 12, lat: 51 },
+        to: { name: "B", lon: 12, lat: 51 },
+        itineraries: [
+          createItinerary({
+            legs: [
+              createTransitLeg({
+                from: createStation({ departureDelay: -60 }),
+                to: createStation({ arrivalDelay: 120 }),
+                intermediateStops: [
+                  createStation({ departureDelay: -60, arrivalDelay: -60 }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      },
+    });
+
+    mockFetchOk(response);
+
+    const result = await fetchRouting({
+      start: coordsLocation(51.34, 12.37),
+      destination: coordsLocation(51.31, 12.37),
+      dateTime: "2026-02-03T14:30",
+      routingOptions: defaultOptions(),
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+
+    const leg = result.data.plan!.itineraries[0].legs[0];
+    if (!leg.transitLeg) throw new Error("expected transit leg");
+
+    // Delays must pass through unchanged — no * 60 multiplication
+    expect(leg.from.departureDelay).toBe(-60);
+    expect(leg.to.arrivalDelay).toBe(120);
+    expect(leg.intermediateStops[0].departureDelay).toBe(-60);
+    expect(leg.intermediateStops[0].arrivalDelay).toBe(-60);
+  });
+
+  it("preserves zero delays (not treated as undefined)", async () => {
+    const response = createRoutingResponse({
+      plan: {
+        date: 0,
+        from: { name: "A", lon: 12, lat: 51 },
+        to: { name: "B", lon: 12, lat: 51 },
+        itineraries: [
+          createItinerary({
+            legs: [
+              createTransitLeg({
+                from: createStation({ departureDelay: 0, arrivalDelay: 0 }),
+                to: createStation({ departureDelay: 0, arrivalDelay: 0 }),
+              }),
+            ],
+          }),
+        ],
+      },
+    });
+
+    mockFetchOk(response);
+    const result = await fetchRouting({
+      start: coordsLocation(), destination: coordsLocation(),
+      dateTime: "2026-02-03T14:30", routingOptions: defaultOptions(),
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    const leg = result.data.plan!.itineraries[0].legs[0];
+    expect(leg.transitLeg).toBe(true);
+    if (!leg.transitLeg) return;
+    expect(leg.from.departureDelay).toBe(0);
+    expect(leg.from.arrivalDelay).toBe(0);
+  });
+
+  it("preserves undefined delays on Stations", async () => {
+    const response = createRoutingResponse({
+      plan: {
+        date: 0,
+        from: { name: "A", lon: 12, lat: 51 },
+        to: { name: "B", lon: 12, lat: 51 },
+        itineraries: [
+          createItinerary({
+            legs: [
+              createTransitLeg({
+                from: createStation({ departureDelay: undefined, arrivalDelay: undefined }),
+                to: createStation({ departureDelay: undefined }),
+              }),
+            ],
+          }),
+        ],
+      },
+    });
+
+    mockFetchOk(response);
+    const result = await fetchRouting({
+      start: coordsLocation(), destination: coordsLocation(),
+      dateTime: "2026-02-03T14:30", routingOptions: defaultOptions(),
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    const leg = result.data.plan!.itineraries[0].legs[0];
+    if (!leg.transitLeg) return;
+    expect(leg.from.departureDelay).toBeUndefined();
+    expect(leg.from.arrivalDelay).toBeUndefined();
+  });
+
+  it("handles Station with only departureDelay (no arrivalDelay)", async () => {
+    const response = createRoutingResponse({
+      plan: {
+        date: 0,
+        from: { name: "A", lon: 12, lat: 51 },
+        to: { name: "B", lon: 12, lat: 51 },
+        itineraries: [
+          createItinerary({
+            legs: [
+              createTransitLeg({
+                from: createStation({ departureDelay: 45, arrivalDelay: undefined }),
+                to: createStation({ departureDelay: undefined, arrivalDelay: 90 }),
+              }),
+            ],
+          }),
+        ],
+      },
+    });
+
+    mockFetchOk(response);
+    const result = await fetchRouting({
+      start: coordsLocation(), destination: coordsLocation(),
+      dateTime: "2026-02-03T14:30", routingOptions: defaultOptions(),
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    const leg = result.data.plan!.itineraries[0].legs[0];
+    if (!leg.transitLeg) return;
+    expect(leg.from.departureDelay).toBe(45);
+    expect(leg.from.arrivalDelay).toBeUndefined();
+    expect(leg.to.departureDelay).toBeUndefined();
+    expect(leg.to.arrivalDelay).toBe(90);
+  });
+
+  it("does not alter FromToLocation delays on non-transit legs", async () => {
+    const response = createRoutingResponse({
+      plan: {
+        date: 0,
+        from: { name: "A", lon: 12, lat: 51 },
+        to: { name: "B", lon: 12, lat: 51 },
+        itineraries: [
+          createItinerary({
+            legs: [
+              createNonTransitLeg({
+                from: createFromToLocation({ departureDelay: 30 }),
+                to: createFromToLocation({ arrivalDelay: 60 }),
+              }),
+            ],
+          }),
+        ],
+      },
+    });
+
+    mockFetchOk(response);
+    const result = await fetchRouting({
+      start: coordsLocation(), destination: coordsLocation(),
+      dateTime: "2026-02-03T14:30", routingOptions: defaultOptions(),
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    const leg = result.data.plan!.itineraries[0].legs[0];
+    expect(isStation(leg.from)).toBe(false);
+    expect(leg.from.departureDelay).toBe(30);
+    expect(leg.to.arrivalDelay).toBe(60);
+  });
+
+  it("handles itinerary with empty legs array", async () => {
+    const response = createRoutingResponse({
+      plan: {
+        date: 0,
+        from: { name: "A", lon: 12, lat: 51 },
+        to: { name: "B", lon: 12, lat: 51 },
+        itineraries: [createItinerary({ legs: [] })],
+      },
+    });
+
+    mockFetchOk(response);
+    const result = await fetchRouting({
+      start: coordsLocation(), destination: coordsLocation(),
+      dateTime: "2026-02-03T14:30", routingOptions: defaultOptions(),
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.data.plan!.itineraries[0].legs).toHaveLength(0);
+  });
+
+  it("handles response with empty itineraries array", async () => {
+    const response = createRoutingResponse({
+      plan: {
+        date: 0,
+        from: { name: "A", lon: 12, lat: 51 },
+        to: { name: "B", lon: 12, lat: 51 },
+        itineraries: [],
+      },
+    });
+
+    mockFetchOk(response);
+    const result = await fetchRouting({
+      start: coordsLocation(), destination: coordsLocation(),
+      dateTime: "2026-02-03T14:30", routingOptions: defaultOptions(),
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.data.plan!.itineraries).toHaveLength(0);
+  });
+
+  it("handles multiple itineraries with mixed leg types", async () => {
+    const response = createRoutingResponse({
+      plan: {
+        date: 0,
+        from: { name: "A", lon: 12, lat: 51 },
+        to: { name: "B", lon: 12, lat: 51 },
+        itineraries: [
+          createItinerary({
+            legs: [
+              createNonTransitLeg({ from: createFromToLocation({ departureDelay: 10 }) }),
+              createTransitLeg({
+                from: createStation({ departureDelay: 120 }),
+                intermediateStops: [
+                  createStation({ departureDelay: 30 }),
+                  createStation({ departureDelay: undefined }),
+                ],
+              }),
+            ],
+          }),
+          createItinerary({
+            legs: [
+              createTransitLeg({ from: createStation({ departureDelay: -45 }) }),
+            ],
+          }),
+        ],
+      },
+    });
+
+    mockFetchOk(response);
+    const result = await fetchRouting({
+      start: coordsLocation(), destination: coordsLocation(),
+      dateTime: "2026-02-03T14:30", routingOptions: defaultOptions(),
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+
+    // First itinerary, walk leg
+    const walk = result.data.plan!.itineraries[0].legs[0];
+    expect(walk.from.departureDelay).toBe(10);
+
+    // First itinerary, transit leg
+    const transit = result.data.plan!.itineraries[0].legs[1];
+    expect(transit.transitLeg).toBe(true);
+    if (transit.transitLeg) {
+      expect(transit.from.departureDelay).toBe(120);
+      expect(transit.intermediateStops[0].departureDelay).toBe(30);
+      expect(transit.intermediateStops[1].departureDelay).toBeUndefined();
+    }
+
+    // Second itinerary
+    const transit2 = result.data.plan!.itineraries[1].legs[0];
+    if (transit2.transitLeg) {
+      expect(transit2.from.departureDelay).toBe(-45);
+    }
+  });
+
+  it("handles response with no plan (error response)", async () => {
+    const response = createRoutingResponse({ plan: undefined });
+    // Override RetStatus to still be OK (edge case: OK but no plan)
+    response.RetStatus = { Value: "OK", Comments: "" };
+
+    mockFetchOk(response);
+    const result = await fetchRouting({
+      start: coordsLocation(), destination: coordsLocation(),
+      dateTime: "2026-02-03T14:30", routingOptions: defaultOptions(),
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.data.plan).toBeUndefined();
   });
 });

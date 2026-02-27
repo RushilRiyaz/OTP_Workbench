@@ -4,6 +4,7 @@ import { useMapEvents } from "react-leaflet";
 import type { LocationValue } from "@/components/LocationInput";
 import { COORD_PRECISION } from "./constants";
 import { getCoords } from "./utils";
+import { reverseGeocode } from "@/lib/reverseGeocode";
 
 interface MapEventsProps {
   start: LocationValue | null;
@@ -24,6 +25,20 @@ function createCoordsLocation(lat: number, lng: number): LocationValue {
   };
 }
 
+// Fire-and-forget reverse geocode, updating text on success
+function resolveAddress(
+  lat: number,
+  lng: number,
+  onChange: (loc: LocationValue) => void,
+  base: LocationValue
+) {
+  reverseGeocode(lat, lng).then((address) => {
+    if (address) {
+      onChange({ ...base, text: address });
+    }
+  });
+}
+
 // FR8.2-8.4: Handle map click events
 export default function MapEvents({
   start,
@@ -38,13 +53,17 @@ export default function MapEvents({
 
       // FR8.2: If start is empty, fill start
       if (!getCoords(start)) {
-        onStartChange(createCoordsLocation(lat, lng));
+        const loc = createCoordsLocation(lat, lng);
+        onStartChange(loc);
+        resolveAddress(lat, lng, onStartChange, loc);
         return;
       }
 
       // FR8.3: If start filled but dest empty, fill dest
       if (!getCoords(destination)) {
-        onDestinationChange(createCoordsLocation(lat, lng));
+        const loc = createCoordsLocation(lat, lng);
+        onDestinationChange(loc);
+        resolveAddress(lat, lng, onDestinationChange, loc);
         return;
       }
 

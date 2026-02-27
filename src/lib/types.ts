@@ -18,5 +18,6 @@ export interface RequestHistoryEntry {
   dateTime: string;
   routingOptions: RoutingOptions;
   selectedEnvironment: string;
+  selectedAutocompleteEnv?: string;
   displayLabel: string; // e.g. "Augustusplatz -> Hauptbahnhof"
 }
