@@ -19,16 +19,16 @@ A developer tool for LVB (Leipziger Verkehrsbetriebe) routing developers to test
 
 Before you begin, make sure you have the following installed on your machine:
 
-1. **Node.js** (version 20 or later) — download from https://nodejs.org/
-2. **npm** (version 10 or later) — bundled with Node.js
+1. **Node.js** (version 24 or later) — download from https://nodejs.org/
+2. **npm** (version 11 or later) — bundled with Node.js
 3. **Git** — download from https://git-scm.com/
 4. **Google Chrome** — only needed for E2E tests
 
 After installing, verify in a terminal:
 
 ```bash
-node -v          # should show v20.x.x or higher
-npm -v           # should show 10.x.x or higher
+node -v          # should show v24.x.x or higher
+npm -v           # should show 11.x.x or higher
 git --version    # should show git version 2.x.x or higher
 ```
 
@@ -266,7 +266,7 @@ otp-client-v2/
 │   ├── i18n/                    #   next-intl routing + locale config
 │   └── test/                    #   Shared test fixtures + localStorage mock
 ├── .env.example                 # Environment variable template
-├── .nvmrc                       # Node 20
+├── .nvmrc                       # Node 24
 ├── package.json
 ├── tsconfig.json
 └── vitest.config.ts
