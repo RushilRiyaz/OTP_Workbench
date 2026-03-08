@@ -7,24 +7,31 @@ import L from "leaflet";
 import type { StopsItem } from "@/lib/stopMonitor";
 
 function createStopIcon(isSelected: boolean): L.DivIcon {
+  const size = isSelected ? 32 : 22;
+  const half = size / 2;
   const bg = isSelected ? "#FBC10F" : "#D8B23E";
   const border = isSelected ? "#a37a00" : "#a07e1e";
-  const textColor = isSelected ? "#1a1200" : "#1a1200";
+  const borderWidth = isSelected ? 3 : 2;
+  const fontSize = isSelected ? 15 : 11;
+  const shadow = isSelected
+    ? "0 2px 10px rgba(251,193,15,0.55),0 1px 4px rgba(0,0,0,0.35)"
+    : "0 1px 4px rgba(0,0,0,0.35)";
   return L.divIcon({
     className: "",
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
-    tooltipAnchor: [0, -13],
+    iconSize: [size, size],
+    iconAnchor: [half, half],
+    tooltipAnchor: [0, -half - 2],
     html: `<div style="
-      width:22px;height:22px;
+      width:${size}px;height:${size}px;
       background:${bg};
-      border:2px solid ${border};
+      border:${borderWidth}px solid ${border};
       border-radius:50%;
       display:flex;align-items:center;justify-content:center;
-      font-size:11px;font-weight:900;color:${textColor};
-      box-shadow:0 1px 4px rgba(0,0,0,0.35);
+      font-size:${fontSize}px;font-weight:900;color:#1a1200;
+      box-shadow:${shadow};
       cursor:pointer;
       line-height:1;
+      transition:all 0.15s ease;
     ">H</div>`,
   });
 }
