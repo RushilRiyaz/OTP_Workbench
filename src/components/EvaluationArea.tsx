@@ -210,6 +210,7 @@ export default function EvaluationArea({
   const [comparisonLayout, setComparisonLayout] = useState<ComparisonLayout>("horizontal"); // FR13.1: default
   const [mapPct, setMapPct] = useState(DEFAULT_MAP_PCT);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showSmClearConfirm, setShowSmClearConfirm] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
 
@@ -276,18 +277,20 @@ export default function EvaluationArea({
 
   return (
     <main className="flex-1 flex flex-col h-full bg-white dark:bg-zinc-950">
-      <Tabs activeTab={activeTab} onTabChange={onTabChange} />
+      <div className="border-b border-zinc-100 dark:border-zinc-800 pb-2">
+        <Tabs activeTab={activeTab} onTabChange={onTabChange} />
+      </div>
       <div className="flex-1 flex flex-col min-h-0">
         {activeTab === "routing" && (
           <div className="flex flex-col h-full">
             {/* Layout toggle button — only show when results present */}
             {hasResults && (
-              <div className="flex items-center justify-between px-2 py-1 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+              <div className="flex items-center justify-between px-2 py-1 border-b border-zinc-100 dark:border-zinc-800">
                 {/* Clear results */}
                 <button
                   type="button"
                   onClick={() => setShowClearConfirm(true)}
-                  className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+                  className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                   title={t("clearTitle")}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -299,7 +302,7 @@ export default function EvaluationArea({
                 <button
                   type="button"
                   onClick={toggleLayout}
-                  className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+                  className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                   title={isVertical ? t("switchToSideBySide") : t("switchToStacked")}
                 >
                   {isVertical ? (
@@ -350,6 +353,8 @@ export default function EvaluationArea({
                     onDestinationChange={onDestinationChange}
                     selectedItinerary={selectedItinerary}
                     hoveredLegIndex={hoveredLegIndex ?? null}
+                    stopMonitorUrl={smStopMonitorUrl}
+                    apiKey={smApiKey}
                   />
                 </ErrorBoundary>
               </div>
@@ -358,18 +363,14 @@ export default function EvaluationArea({
               {hasResults && (
                 <div
                   onMouseDown={handleDragStart}
-                  className={`flex-shrink-0 flex items-center justify-center bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors ${
+                  className={`group flex-shrink-0 flex items-center justify-center bg-zinc-100/80 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80 transition-colors ${
                     isVertical
-                      ? "h-2 cursor-row-resize border-y border-zinc-300 dark:border-zinc-700"
-                      : "w-2 cursor-col-resize border-x border-zinc-300 dark:border-zinc-700"
+                      ? "h-1 cursor-row-resize border-y border-zinc-200/50 dark:border-zinc-700/50"
+                      : "w-1 cursor-col-resize border-x border-zinc-200/50 dark:border-zinc-700/50"
                   }`}
                 >
-                  {/* Grip dots */}
-                  <div className={`flex gap-0.5 ${isVertical ? "flex-row" : "flex-col"}`}>
-                    <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
-                    <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
-                    <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
-                  </div>
+                  {/* Grip pill */}
+                  <div className={`rounded-full bg-zinc-300 dark:bg-zinc-600 group-hover:bg-zinc-400 dark:group-hover:bg-zinc-500 transition-colors ${isVertical ? "w-8 h-0.5" : "w-0.5 h-8"}`} />
                 </div>
               )}
 
@@ -408,13 +409,13 @@ export default function EvaluationArea({
             {(selectedEnvironments?.length ?? 0) >= 2 && (<>
             {/* Toolbar: clear + compare button + layout toggle — only show when comparison has results */}
             {hasComparisonResults && (
-              <div className="flex items-center justify-between px-2 py-1.5 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+              <div className="flex items-center justify-between px-2 py-1.5 border-b border-zinc-100 dark:border-zinc-800">
                 <div className="flex items-center gap-2">
                   {/* Clear results */}
                   <button
                     type="button"
                     onClick={() => setShowClearConfirm(true)}
-                    className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+                    className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                     title={t("clearTitle")}
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -428,7 +429,7 @@ export default function EvaluationArea({
                     <button
                       type="button"
                       onClick={onEnterDetailView}
-                      className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+                      className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                       style={{ backgroundColor: ITINERARY_COLORS[0] }}
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -439,7 +440,7 @@ export default function EvaluationArea({
                   )}
                 </div>
                 {/* Layout toggle */}
-                <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-0.5">
+                <div className="flex items-center bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-xl p-0.5">
                   {([
                     { id: "horizontal" as const, label: t("horizontal") },
                     { id: "vertical" as const, label: t("vertical") },
@@ -449,10 +450,10 @@ export default function EvaluationArea({
                       key={opt.id}
                       type="button"
                       onClick={() => setComparisonLayout(opt.id)}
-                      className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                      className={`px-3 py-1 text-xs font-medium rounded-lg transition-all duration-200 ${
                         comparisonLayout === opt.id
                           ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
-                          : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                          : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700/50"
                       }`}
                     >
                       {opt.label}
@@ -491,6 +492,8 @@ export default function EvaluationArea({
                     autoFitBounds={comparisonAutoFitBounds}
                     comparisonItineraries={isDetailComparisonView ? comparisonMapItineraries : undefined}
                     comparisonHoveredLeg={isDetailComparisonView ? detailHoveredLeg : undefined}
+                    stopMonitorUrl={smStopMonitorUrl}
+                    apiKey={smApiKey}
                   />
                 </ErrorBoundary>
               </div>
@@ -499,13 +502,9 @@ export default function EvaluationArea({
               {hasComparisonResults && (
                 <div
                   onMouseDown={handleDragStart}
-                  className="flex-shrink-0 flex items-center justify-center h-2 cursor-row-resize border-y border-zinc-300 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
+                  className="group flex-shrink-0 flex items-center justify-center h-1 cursor-row-resize border-y border-zinc-200/50 dark:border-zinc-700/50 bg-zinc-100/80 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80 transition-colors"
                 >
-                  <div className="flex gap-0.5 flex-row">
-                    <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
-                    <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
-                    <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
-                  </div>
+                  <div className="w-8 h-0.5 rounded-full bg-zinc-300 dark:bg-zinc-600 group-hover:bg-zinc-400 dark:group-hover:bg-zinc-500 transition-colors" />
                 </div>
               )}
 
@@ -578,7 +577,7 @@ export default function EvaluationArea({
             smApiKey={smApiKey}
             customEnvironments={customEnvironments}
             onStopMonitorMore={onStopMonitorMore}
-            onSmClear={onSmClear}
+            onSmClear={() => setShowSmClearConfirm(true)}
             onSmStopSelect={onSmStopSelect}
             mapError={t("mapError")}
           />
@@ -623,6 +622,39 @@ export default function EvaluationArea({
                 onClick={() => {
                   setShowClearConfirm(false);
                   onClearResults?.();
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+              >
+                {t("clear")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stop Monitor clear confirmation dialog */}
+      {showSmClearConfirm && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-700 p-5 max-w-sm w-full mx-4">
+            <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+              {t("clearConfirmTitle")}
+            </h3>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5">
+              {t("clearConfirmMessage")}
+            </p>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowSmClearConfirm(false)}
+                className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
+              >
+                {t("cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSmClearConfirm(false);
+                  onSmClear?.();
                 }}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
               >
