@@ -255,7 +255,7 @@ function StopMonitorColumn({
     : [];
 
   return (
-    <div className="flex flex-col flex-1 min-w-0 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden">
+    <div className="flex flex-col flex-1 min-w-0 border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden">
       {/* FR19.1.2: Column header */}
       <div className="flex flex-col gap-0.5 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
         <div className="flex items-center gap-2">
@@ -317,7 +317,7 @@ function StopMonitorColumn({
             <button
               onClick={() => onMore(envId)}
               disabled={state.isLoadingMore}
-              className="w-full py-1.5 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-lvb-yellow focus:outline-none"
+              className="w-full py-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-all duration-200 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-lvb-yellow focus:outline-none flex items-center justify-center gap-1"
             >
               {state.isLoadingMore ? (
                 <span className="flex items-center justify-center gap-2">
@@ -395,11 +395,11 @@ export default function StopMonitorResults({
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Toolbar: clear + view toggle + copy */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 shrink-0">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
         {/* Clear button */}
         <button
           onClick={onClear}
-          className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+          className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -407,16 +407,16 @@ export default function StopMonitorResults({
           Clear
         </button>
 
-        {/* FR20.1: Board / JSON toggle */}
-        <div className="flex rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
+        {/* FR20.1: Board / JSON toggle — pill segmented control */}
+        <div className="flex items-center bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-xl p-0.5">
           {(["board", "json"] as const).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
-              className={`px-3 py-1 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
+              className={`px-3 py-1 text-xs font-medium rounded-lg transition-all duration-200 focus:outline-none ${
                 view === v
-                  ? "bg-lvb-yellow text-lvb-dark"
-                  : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
+                  : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700/50"
               }`}
             >
               {v === "board" ? t("viewBoard") : t("viewJson")}

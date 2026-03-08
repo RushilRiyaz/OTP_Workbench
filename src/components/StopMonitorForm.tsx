@@ -80,32 +80,62 @@ export default function StopMonitorForm({
       />
 
       {/* FR18.4–18.6: Arrivals / Departures only checkboxes */}
-      <div className="flex flex-col gap-2">
-        <label className="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={arrOnly}
-            onChange={(e) => handleArrOnly(e.target.checked)}
-            className="w-4 h-4 rounded accent-lvb-yellow focus:ring-2 focus:ring-lvb-yellow focus:outline-none"
-          />
-          <span className="text-sm text-zinc-700 dark:text-zinc-300">{t("arrOnly")}</span>
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={depOnly}
-            onChange={(e) => handleDepOnly(e.target.checked)}
-            className="w-4 h-4 rounded accent-lvb-yellow focus:ring-2 focus:ring-lvb-yellow focus:outline-none"
-          />
-          <span className="text-sm text-zinc-700 dark:text-zinc-300">{t("depOnly")}</span>
-        </label>
+      <div className="flex flex-col gap-0.5">
+        {(
+          [
+            { checked: arrOnly, onChange: handleArrOnly, label: t("arrOnly") },
+            { checked: depOnly, onChange: handleDepOnly, label: t("depOnly") },
+          ] as const
+        ).map(({ checked, onChange, label }, idx) => (
+          <label
+            key={idx}
+            className="flex items-center gap-2.5 cursor-pointer px-2 py-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors select-none"
+          >
+            <div className="relative flex items-center justify-center">
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={(e) => onChange(e.target.checked)}
+                className="sr-only"
+              />
+              <div
+                className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+                  checked
+                    ? "bg-lvb-yellow border-lvb-yellow"
+                    : "border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800"
+                }`}
+              >
+                {checked && (
+                  <svg
+                    className="w-2.5 h-2.5 text-lvb-dark"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={3}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+            </div>
+            <span
+              className={`text-sm transition-colors ${
+                checked
+                  ? "text-zinc-900 dark:text-zinc-100 font-medium"
+                  : "text-zinc-600 dark:text-zinc-400"
+              }`}
+            >
+              {label}
+            </span>
+          </label>
+        ))}
       </div>
 
       {/* FR18.7: Submit button */}
       <button
         onClick={onSubmit}
         disabled={isLoading}
-        className="w-full py-2 px-4 bg-lvb-yellow hover:bg-lvb-yellow-hover disabled:opacity-60 disabled:cursor-not-allowed text-lvb-dark font-semibold rounded-lg transition-colors focus:ring-2 focus:ring-lvb-yellow focus:outline-none text-sm"
+        className="w-full py-2.5 px-4 bg-lvb-yellow hover:bg-lvb-yellow-hover disabled:opacity-60 disabled:cursor-not-allowed text-lvb-dark font-semibold rounded-xl transition-all duration-200 focus:ring-2 focus:ring-lvb-yellow focus:outline-none text-sm shadow-[0_2px_8px_0_rgb(251,193,15,0.35)] hover:shadow-[0_4px_12px_0_rgb(251,193,15,0.45)] disabled:shadow-none"
       >
         {isLoading ? t("requesting") : t("submit")}
       </button>
