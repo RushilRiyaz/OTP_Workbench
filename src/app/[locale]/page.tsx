@@ -581,6 +581,12 @@ export default function Home() {
     setShowDetailView(false);
     setDetailHoveredLeg(null);
     setComparisonHoveredLegIndex(null);
+    // Reset search fields
+    setStartLocation(emptyLocationValue);
+    setDestinationLocation(emptyLocationValue);
+    setDateTime(getBerlinNow());
+    setRoutingError(null);
+    setValidationErrors([]);
   }, []);
 
   // FR12.5: Load earlier/later itineraries
@@ -650,6 +656,11 @@ export default function Home() {
 
   const handleSmClear = useCallback(() => {
     setSmResults({});
+    setSmStop(emptyLocationValue);
+    setSmDateTime(getBerlinNow());
+    setSmValidationErrors([]);
+    setSmArrOnly(false);
+    setSmDepOnly(false);
   }, []);
 
   const smIsLoading = smSelectedEnvs.some((id) => smResults[id]?.isLoading);
