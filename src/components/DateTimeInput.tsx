@@ -53,6 +53,7 @@ export default function DateTimeInput({
       </label>
       <div className="relative">
         <input
+          suppressHydrationWarning
           ref={inputRef}
           type="datetime-local"
           value={value}

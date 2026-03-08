@@ -65,6 +65,21 @@ export function getAutocompleteConfig(envId: string): { url: string; apiKey: str
   return { url: AUTOCOMPLETE_ENVIRONMENTS[0].url, apiKey: AUTOCOMPLETE_ENVIRONMENTS[0].apiKey };
 }
 
+/**
+ * NFR-SM2.1: Resolve Stop Monitor base URL and API key for a given environment.
+ * The Stop Monitor URL is derived from the OTP URL by replacing the trailing
+ * path segment (e.g. "/otp") with "/stopMonitor".
+ */
+export function getStopMonitorConfig(
+  envId: string,
+  customEnvironments: Environment[] = []
+): { stopMonitorUrl: string; apiKey: string } {
+  const { otpUrl, apiKey } = getEnvironmentConfig(envId, customEnvironments);
+  // Replace last path segment: ".../api/otp" → ".../api/stopMonitor"
+  const stopMonitorUrl = otpUrl.replace(/\/[^/]+$/, "/stopMonitor");
+  return { stopMonitorUrl, apiKey };
+}
+
 export interface Environment {
   id: string;
   label: string;
