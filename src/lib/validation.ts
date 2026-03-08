@@ -27,6 +27,29 @@ function isLocationValid(location: LocationValue): boolean {
   }
 }
 
+// FR18.8: Stop Monitor validation params
+export interface StopMonitorValidationParams {
+  stop: LocationValue;
+  dateTime: string;
+}
+
+/** FR18.8: Validate Stop Monitor inputs. Returns translation keys as messages. */
+export function validateStopMonitorParams(
+  params: StopMonitorValidationParams
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (!isLocationValid(params.stop)) {
+    errors.push({ field: "stop", message: "stopRequired" });
+  }
+
+  if (!params.dateTime.trim()) {
+    errors.push({ field: "dateTime", message: "dateTimeRequired" });
+  }
+
+  return errors;
+}
+
 // FR6.2: Validate mandatory inputs pre-request
 // FR4.3: Date/time is mandatory (strict validation)
 // Returns translation keys as messages — translate at display site
