@@ -14,11 +14,50 @@ import { validateRoutingParams } from "@/lib/validation";
 import { fetchRouting, RoutingResponse, RoutingError, Itinerary } from "@/lib/routing";
 import { getRequestHistory, addToRequestHistory, clearRequestHistory, generateDisplayLabel } from "@/lib/requestHistory";
 import { serializeFormState, deserializeUrlParams } from "@/lib/urlParams";
-import { getEnvironmentConfig, getAutocompleteConfig } from "@/components/EnvironmentSelector";
+import { getEnvironmentConfig, getAutocompleteConfig, getStopMonitorConfig } from "@/components/EnvironmentSelector";
 import type { ComparisonItineraryRef, DetailHoveredLeg, ComparisonMapItinerary } from "@/components/comparison/types";
 import { ITINERARY_COLORS, ENV_COLORS } from "@/components/comparison/types";
 import { toggleComparisonSelection } from "@/lib/comparisonSelectionUtils";
+import { fetchStopMonitor, formatDateForMonitor, formatTimeForMonitor, StopMonitorEnvState } from "@/lib/stopMonitor";
+import type { StopsItem } from "@/lib/stopMonitor";
+import { validateStopMonitorParams } from "@/lib/validation";
+import { getBerlinNow } from "@/components/DateTimeInput";
+import StopMonitorForm from "@/components/StopMonitorForm";
+import StopMonitorResults from "@/components/StopMonitorResults";
 
+
+/** NFR-SM-BUG1: Resolve the correct stopId/koord string for the Stop Monitor API.
+ *  Transit stops: use GTFS stop_id from autocomplete tags (or parse from id).
+ *  Non-transit / coordinates: fall back to koord=lat,lon.
+ */
+function getStopIdForMonitor(stop: LocationValue): string {
+  if (stop.type === "stopId" && stop.stopId) {
+    const id = stop.stopId.trim();
+    return id.endsWith("_parent") ? id : `${id}_parent`;
+  }
+  if (stop.type === "autocomplete" && stop.location) {
+    const loc = stop.location;
+    if (loc.ptype === "S") {
+      // Transit stop — prefer GTFS stop_id from tags
+      const tagStopId = loc.tags?.stop_id;
+      if (tagStopId) {
+        const id = String(tagStopId);
+        return id.endsWith("_parent") ? id : `${id}_parent`;
+      }
+      // Fallback: parse "pois_g|0011078" → "0011078_parent"
+      const parts = loc.id?.split("|");
+      if (parts && parts.length >= 2 && parts[1]) {
+        return `${parts[1]}_parent`;
+      }
+    }
+    // Non-transit (POI, address): best-effort via coordinates
+    return `koord=${loc.lat},${loc.lon}`;
+  }
+  if (stop.type === "coordinates" && stop.coordinates) {
+    return `koord=${stop.coordinates.lat},${stop.coordinates.lon}`;
+  }
+  return "";
+}
 
 export default function Home() {
   const t = useTranslations("JourneyForm");
@@ -135,6 +174,130 @@ export default function Home() {
   const handleDetailHoverLeg = useCallback((leg: DetailHoveredLeg | null) => {
     setDetailHoveredLeg(leg);
   }, []);
+
+  // FR18: Stop Monitor state (NFR-SM4.1: lifted to page.tsx)
+  const [smStop, setSmStop] = useState<LocationValue>(emptyLocationValue);
+  const [smDateTime, setSmDateTime] = useState<string>(() => getBerlinNow());
+  const [smArrOnly, setSmArrOnly] = useState(false);
+  const [smDepOnly, setSmDepOnly] = useState(false);
+  const [smSelectedEnvs, setSmSelectedEnvs] = useState<string[]>(["prod"]);
+  const [smValidationErrors, setSmValidationErrors] = useState<ValidationError[]>([]);
+  const [smResults, setSmResults] = useState<Record<string, StopMonitorEnvState>>({});
+
+  // FR18.7: Submit stop monitor request (parallel per env — NFR-SM5.1)
+  const handleStopMonitorSubmit = useCallback(async () => {
+    setSmValidationErrors([]);
+
+    const errors = validateStopMonitorParams({ stop: smStop, dateTime: smDateTime });
+    if (errors.length > 0) {
+      setSmValidationErrors(errors);
+      return;
+    }
+
+    const stopId = getStopIdForMonitor(smStop);
+    if (!stopId) return;
+
+    const date = formatDateForMonitor(smDateTime);
+    const time = formatTimeForMonitor(smDateTime);
+
+    // Initialize all envs to loading state
+    const initialState: Record<string, StopMonitorEnvState> = {};
+    for (const envId of smSelectedEnvs) {
+      initialState[envId] = { data: null, error: null, isLoading: true, isLoadingMore: false, minutes: 60 };
+    }
+    setSmResults(initialState);
+
+    // NFR-SM5.1: Parallel fetch per environment
+    const promises = smSelectedEnvs.map(async (envId) => {
+      try {
+        const { stopMonitorUrl, apiKey } = getStopMonitorConfig(envId, customEnvironments);
+        const result = await fetchStopMonitor(
+          { stopId, date, time, minutes: 60, arrOnly: smArrOnly || undefined, depOnly: smDepOnly || undefined },
+          { baseUrl: stopMonitorUrl, apiKey }
+        );
+        return { envId, result };
+      } catch (err) {
+        console.error(`[StopMonitor] Unexpected error for ${envId}:`, err);
+        return {
+          envId,
+          result: {
+            success: false as const,
+            error: { type: "network" as const, message: err instanceof Error ? err.message : "Unexpected error" },
+          },
+        };
+      }
+    });
+
+    const settled = await Promise.all(promises);
+    const nextState: Record<string, StopMonitorEnvState> = {};
+    for (const { envId, result } of settled) {
+      if (result.success) {
+        nextState[envId] = { data: result.data, error: null, isLoading: false, isLoadingMore: false, minutes: 60 };
+      } else {
+        nextState[envId] = { data: null, error: result.error, isLoading: false, isLoadingMore: false, minutes: 60 };
+      }
+    }
+    setSmResults(nextState);
+  }, [smStop, smDateTime, smArrOnly, smDepOnly, smSelectedEnvs, customEnvironments]);
+
+  // FR19.3: "More" — extend time window by 60 min and re-fetch, appending new items
+  const handleStopMonitorMore = useCallback(async (envId: string) => {
+    const current = smResults[envId];
+    if (!current || current.isLoading || current.isLoadingMore) return;
+
+    const stopId = getStopIdForMonitor(smStop);
+    if (!stopId) return;
+
+    const newMinutes = current.minutes + 60;
+    setSmResults((prev) => ({
+      ...prev,
+      [envId]: { ...prev[envId], isLoadingMore: true },
+    }));
+
+    try {
+      const { stopMonitorUrl, apiKey } = getStopMonitorConfig(envId, customEnvironments);
+      const result = await fetchStopMonitor(
+        {
+          stopId,
+          date: formatDateForMonitor(smDateTime),
+          time: formatTimeForMonitor(smDateTime),
+          minutes: newMinutes,
+          arrOnly: smArrOnly || undefined,
+          depOnly: smDepOnly || undefined,
+        },
+        { baseUrl: stopMonitorUrl, apiKey }
+      );
+
+      if (result.success) {
+        // FR19.3.2: Dedup by trip_id + stop_id, then replace with full new result
+        const existingKeys = new Set(
+          (current.data ?? []).map((item) => `${item.trip_id}|${item.stop_id}`)
+        );
+        const newItems = result.data.filter(
+          (item) => !existingKeys.has(`${item.trip_id}|${item.stop_id}`)
+        );
+        setSmResults((prev) => ({
+          ...prev,
+          [envId]: {
+            ...prev[envId],
+            data: [...(current.data ?? []), ...newItems],
+            isLoadingMore: false,
+            minutes: newMinutes,
+          },
+        }));
+      } else {
+        setSmResults((prev) => ({
+          ...prev,
+          [envId]: { ...prev[envId], isLoadingMore: false },
+        }));
+      }
+    } catch {
+      setSmResults((prev) => ({
+        ...prev,
+        [envId]: { ...prev[envId], isLoadingMore: false },
+      }));
+    }
+  }, [smResults, smStop, smDateTime, smArrOnly, smDepOnly, customEnvironments]);
 
   // FR6.4: Request history (loaded from localStorage)
   const [requestHistory, setRequestHistory] = useState<RequestHistoryEntry[]>([]);
@@ -485,25 +648,87 @@ export default function Home() {
     }
   }, [routingResult, startLocation, destinationLocation, routingOptions, selectedEnvironments, customEnvironments]);
 
+  const handleSmClear = useCallback(() => {
+    setSmResults({});
+  }, []);
+
+  const smIsLoading = smSelectedEnvs.some((id) => smResults[id]?.isLoading);
+
+  // Derive stop monitor API config for the map (first selected env)
+  const smMapConfig = useMemo(() => {
+    if (smSelectedEnvs.length === 0) return { stopMonitorUrl: "", apiKey: "" };
+    return getStopMonitorConfig(smSelectedEnvs[0], customEnvironments);
+  }, [smSelectedEnvs, customEnvironments]);
+
+  // Derive selected stop ID for map highlighting
+  const smSelectedStopId = smStop.type === "stopId" ? smStop.stopId : null;
+
+  // Handle stop marker click on the map → set as monitored stop
+  const handleSmStopSelect = useCallback((stop: StopsItem) => {
+    setSmStop({
+      text: stop.stop_name,
+      type: "stopId",
+      location: null,
+      stopId: stop.stop_id,
+      coordinates: { lat: stop.lat, lon: stop.lon },
+    });
+  }, []);
+
   return (
     <div className="flex h-[calc(100vh-56px)] w-full">
       <ParameterArea>
-        {/* Environment Selection - FR3.x */}
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
-          <EnvironmentSelector
-            singleSelectMode={singleSelectMode}
-            selectedEnvironments={selectedEnvironments}
-            onSelectionChange={handleEnvironmentChange}
-            customEnvironments={customEnvironments}
-            onAddCustomEnvironment={handleAddCustomEnvironment}
-            onRemoveCustomEnvironment={handleRemoveCustomEnvironment}
-            selectedAutocompleteEnv={selectedAutocompleteEnv}
-            onAutocompleteEnvChange={setSelectedAutocompleteEnv}
-          />
-        </div>
+        {activeTab === "stopmonitor" ? (
+          /* FR18: Stop Monitor parameter area */
+          <>
+            {/* FR18.1: Environment selector (multi-select mode) */}
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
+              <EnvironmentSelector
+                singleSelectMode={false}
+                selectedEnvironments={smSelectedEnvs}
+                onSelectionChange={setSmSelectedEnvs}
+                customEnvironments={customEnvironments}
+                onAddCustomEnvironment={handleAddCustomEnvironment}
+                onRemoveCustomEnvironment={handleRemoveCustomEnvironment}
+                selectedAutocompleteEnv={selectedAutocompleteEnv}
+                onAutocompleteEnvChange={setSelectedAutocompleteEnv}
+              />
+            </div>
+            {/* FR18.2–18.7: Stop + DateTime + filters + submit */}
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs mb-3">
+              <StopMonitorForm
+                stopLocation={smStop}
+                onStopChange={setSmStop}
+                dateTime={smDateTime}
+                onDateTimeChange={setSmDateTime}
+                arrOnly={smArrOnly}
+                onArrOnlyChange={setSmArrOnly}
+                depOnly={smDepOnly}
+                onDepOnlyChange={setSmDepOnly}
+                validationErrors={smValidationErrors}
+                isLoading={smIsLoading}
+                onSubmit={handleStopMonitorSubmit}
+                autocompleteEnvId={selectedAutocompleteEnv}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Environment Selection - FR3.x */}
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
+              <EnvironmentSelector
+                singleSelectMode={singleSelectMode}
+                selectedEnvironments={selectedEnvironments}
+                onSelectionChange={handleEnvironmentChange}
+                customEnvironments={customEnvironments}
+                onAddCustomEnvironment={handleAddCustomEnvironment}
+                onRemoveCustomEnvironment={handleRemoveCustomEnvironment}
+                selectedAutocompleteEnv={selectedAutocompleteEnv}
+                onAutocompleteEnvChange={setSelectedAutocompleteEnv}
+              />
+            </div>
 
-        {/* Journey Form */}
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
+            {/* Journey Form */}
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
           {/* Section label + Copy Link */}
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">{t("routing")}</span>
@@ -557,8 +782,9 @@ export default function Home() {
             onClearHistory={handleClearHistory}
             autocompleteEnvId={selectedAutocompleteEnv}
           />
-        </div>
-
+          </div>
+          </>
+        )}
       </ParameterArea>
       <EvaluationArea
         activeTab={activeTab}
@@ -589,6 +815,18 @@ export default function Home() {
         isDetailComparisonView={isDetailComparisonView}
         detailHoveredLeg={detailHoveredLeg}
         onDetailHoverLeg={handleDetailHoverLeg}
+        smResults={smResults}
+        smSelectedEnvs={smSelectedEnvs}
+        smStop={smStop}
+        smDateTime={smDateTime}
+        smArrOnly={smArrOnly}
+        smDepOnly={smDepOnly}
+        onStopMonitorMore={handleStopMonitorMore}
+        smStopMonitorUrl={smMapConfig.stopMonitorUrl}
+        smApiKey={smMapConfig.apiKey}
+        smSelectedStopId={smSelectedStopId}
+        onSmStopSelect={handleSmStopSelect}
+        onSmClear={handleSmClear}
       />
     </div>
   );

@@ -15,10 +15,82 @@ import { ComparisonEmptyState } from "./comparison/ComparisonEmptyState";
 import { TimelineComparisonLayout } from "./comparison/TimelineComparisonLayout";
 import { ComparisonOverviewLayout } from "./comparison/ComparisonOverviewLayout";
 import { DetailComparisonLayout } from "./comparison/DetailComparisonLayout";
+import StopMonitorResults from "./StopMonitorResults";
+import type { StopMonitorEnvState } from "@/lib/stopMonitor";
+import type { LocationValue as LV } from "./LocationInput";
+import StopMonitorMap from "./map/DynamicStopMonitorMapLoader";
+import type { StopsItem } from "@/lib/stopMonitor";
 
 type SplitLayout = "vertical" | "horizontal";
 // FR13: Three comparison layout modes
 type ComparisonLayout = "horizontal" | "vertical" | "overview";
+
+// Extracted as a named component to avoid IIFE-in-JSX pattern
+function StopMonitorTabView({
+  smResults, smSelectedEnvs, smStop, smDateTime, smArrOnly, smDepOnly,
+  smSelectedStopId, smStopMonitorUrl, smApiKey, customEnvironments,
+  onStopMonitorMore, onSmClear, onSmStopSelect, mapError,
+}: {
+  smResults?: Record<string, StopMonitorEnvState>;
+  smSelectedEnvs?: string[];
+  smStop?: LV;
+  smDateTime?: string;
+  smArrOnly?: boolean;
+  smDepOnly?: boolean;
+  smSelectedStopId?: string | null;
+  smStopMonitorUrl?: string;
+  smApiKey?: string;
+  customEnvironments?: Environment[];
+  onStopMonitorMore?: (envId: string) => void;
+  onSmClear?: () => void;
+  onSmStopSelect?: (stop: StopsItem) => void;
+  mapError: string;
+}) {
+  const hasSmResults = Object.keys(smResults ?? {}).length > 0;
+  const numEnvs = Math.max(1, Object.keys(smResults ?? {}).length);
+  const cardWidth = numEnvs === 1 ? 420 : numEnvs === 2 ? 780 : 1120;
+  return (
+    <div className="relative flex-1 min-h-0 overflow-hidden">
+      {/* Full-width map */}
+      <ErrorBoundary
+        fallback={
+          <div className="flex items-center justify-center h-full bg-zinc-100 dark:bg-zinc-900">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">{mapError}</p>
+          </div>
+        }
+      >
+        <StopMonitorMap
+          selectedStopId={smSelectedStopId ?? null}
+          onStopSelect={onSmStopSelect ?? (() => {})}
+          stopMonitorUrl={smStopMonitorUrl ?? ""}
+          apiKey={smApiKey ?? ""}
+        />
+      </ErrorBoundary>
+
+      {/* Floating results card — slides in from right, expands with more envs */}
+      <div
+        style={{ zIndex: 1000, width: `${cardWidth}px` }}
+        className={`absolute top-3 bottom-3 right-3 flex flex-col rounded-2xl shadow-2xl overflow-hidden border border-zinc-200/60 dark:border-zinc-700/60 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md transition-all duration-300 ease-out ${
+          hasSmResults
+            ? "opacity-100 translate-x-0 pointer-events-auto"
+            : "opacity-0 translate-x-8 pointer-events-none"
+        }`}
+      >
+        <StopMonitorResults
+          selectedEnvironments={smSelectedEnvs ?? []}
+          customEnvironments={customEnvironments ?? []}
+          results={smResults ?? {}}
+          stopName={smStop?.text ?? ""}
+          dateTime={smDateTime ?? ""}
+          onMore={onStopMonitorMore ?? (() => {})}
+          onClear={onSmClear ?? (() => {})}
+          arrOnly={smArrOnly}
+          depOnly={smDepOnly}
+        />
+      </div>
+    </div>
+  );
+}
 
 interface EvaluationAreaProps {
   activeTab: TabId;
@@ -53,6 +125,19 @@ interface EvaluationAreaProps {
   onEnterDetailView?: () => void;
   onExitDetailView?: () => void;
   onDetailHoverLeg?: (leg: DetailHoveredLeg | null) => void;
+  // FR18-FR21: Stop Monitor
+  smResults?: Record<string, StopMonitorEnvState>;
+  smSelectedEnvs?: string[];
+  smStop?: LV;
+  smDateTime?: string;
+  smArrOnly?: boolean;
+  smDepOnly?: boolean;
+  onStopMonitorMore?: (envId: string) => void;
+  smStopMonitorUrl?: string;
+  smApiKey?: string;
+  smSelectedStopId?: string | null;
+  onSmStopSelect?: (stop: StopsItem) => void;
+  onSmClear?: () => void;
 }
 
 const MIN_PANEL_PCT = 20;
@@ -100,6 +185,18 @@ export default function EvaluationArea({
   onEnterDetailView,
   onExitDetailView,
   onDetailHoverLeg,
+  smResults,
+  smSelectedEnvs,
+  smStop,
+  smDateTime,
+  smArrOnly,
+  smDepOnly,
+  onStopMonitorMore,
+  smStopMonitorUrl,
+  smApiKey,
+  smSelectedStopId,
+  onSmStopSelect,
+  onSmClear,
 }: EvaluationAreaProps) {
   const t = useTranslations("EvaluationArea");
   const tDetail = useTranslations("DetailComparison");
@@ -467,7 +564,27 @@ export default function EvaluationArea({
           </div>
         )}
 
-        {activeTab !== "routing" && activeTab !== "routing-comparison" && (
+        {/* FR19: Stop Monitor tab — full-width map with floating results card */}
+        {activeTab === "stopmonitor" && (
+          <StopMonitorTabView
+            smResults={smResults}
+            smSelectedEnvs={smSelectedEnvs}
+            smStop={smStop}
+            smDateTime={smDateTime}
+            smArrOnly={smArrOnly}
+            smDepOnly={smDepOnly}
+            smSelectedStopId={smSelectedStopId}
+            smStopMonitorUrl={smStopMonitorUrl}
+            smApiKey={smApiKey}
+            customEnvironments={customEnvironments}
+            onStopMonitorMore={onStopMonitorMore}
+            onSmClear={onSmClear}
+            onSmStopSelect={onSmStopSelect}
+            mapError={t("mapError")}
+          />
+        )}
+
+        {activeTab !== "routing" && activeTab !== "routing-comparison" && activeTab !== "stopmonitor" && (
           <div className="flex-1 flex items-center justify-center p-4">
             <div className="text-center">
               <div className="mx-auto w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-3">
