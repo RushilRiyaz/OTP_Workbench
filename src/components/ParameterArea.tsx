@@ -57,14 +57,14 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
   return (
     <aside
       ref={sidebarRef}
-      className="h-full bg-zinc-100 dark:bg-zinc-900 border-r border-zinc-300 dark:border-zinc-700 overflow-hidden flex flex-col relative flex-shrink-0"
+      className="h-full bg-zinc-100 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col relative flex-shrink-0"
       style={{
         width: isExpanded ? `${widthPercent}vw` : COLLAPSED_WIDTH,
         transition: isDragging ? "none" : "width 250ms cubic-bezier(0.4, 0, 0.2, 1)",
       }}
     >
       {/* Header with toggle button */}
-      <div className={`flex-shrink-0 flex items-center transition-all duration-250 ${isExpanded ? "justify-between p-4 pb-3 border-b border-zinc-200 dark:border-zinc-800" : "justify-center p-2"}`}>
+      <div className={`flex-shrink-0 flex items-center transition-all duration-250 ${isExpanded ? "justify-between p-3 pb-2.5 border-b border-zinc-200 dark:border-zinc-800" : "justify-center p-2"}`}>
         <h2
           className={`text-xs font-semibold uppercase tracking-widest text-zinc-400 whitespace-nowrap transition-all duration-250 overflow-hidden ${
             isExpanded ? "max-w-40 opacity-100" : "max-w-0 opacity-0"
@@ -74,7 +74,7 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
         </h2>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+          className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
           title={isExpanded ? t("collapse") : t("expand")}
         >
           <svg
@@ -107,7 +107,7 @@ export default function ParameterArea({ children }: ParameterAreaProps) {
       {isExpanded && (
         <div
           onMouseDown={handleMouseDown}
-          className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-lvb-yellow/40 active:bg-lvb-yellow/60 transition-colors"
+          className="absolute top-0 right-0 w-[3px] h-full cursor-col-resize hover:bg-lvb-yellow/50 active:bg-lvb-yellow/70 transition-colors"
         />
       )}
     </aside>
