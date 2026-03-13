@@ -2,7 +2,7 @@
 
 // FR19–FR21: Stop Monitor results display (multi-column departure/arrival board)
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { MonitorItem, StopMonitorAlert, StopMonitorEnvState } from "@/lib/stopMonitor";
 import { formatDelay, formatAlertCategory } from "@/lib/legUtils";
@@ -22,19 +22,27 @@ interface MonitorEntryRowProps {
 function MonitorEntryRow({ item, arrOnly, depOnly, t }: MonitorEntryRowProps) {
   const [alertsExpanded, setAlertsExpanded] = useState(false);
 
-  // FR19.2.1: Scheduled departure time (HH:MM from HH:MM:SS)
-  const scheduledTime = item.departure_time?.slice(0, 5) ?? "??:??";
+  // FR19.2.1: Use arrival_time for arrival events, departure_time otherwise
+  const isArrivalEvent =
+    arrOnly === true ? true
+    : depOnly === true ? false
+    : item.arrival_time?.slice(0, 5) === item.departure_time?.slice(0, 5);
+
+  const baseTime = isArrivalEvent ? item.arrival_time : item.departure_time;
+  const baseDelay = isArrivalEvent ? item.delay_time : item.departure_delay;
+
+  const scheduledTime = baseTime?.slice(0, 5) ?? "??:??";
 
   // FR19.2.2: Realtime time + delay badge
-  const delayStr = formatDelay(item.departure_delay ?? undefined);
+  const delayStr = formatDelay(baseDelay ?? undefined);
   const isDelayed = delayStr !== null;
   const isLate = isDelayed && !delayStr!.startsWith("-");
 
-  // Compute realtime departure time if delayed
+  // Compute realtime time if delayed
   let realtimeTime: string | null = null;
-  if (isDelayed && item.departure_delay !== null) {
-    const [h, m, s] = item.departure_time.split(":").map(Number);
-    const totalSeconds = h * 3600 + m * 60 + (s ?? 0) + item.departure_delay;
+  if (isDelayed && baseDelay !== null && baseTime) {
+    const [h, m, s] = baseTime.split(":").map(Number);
+    const totalSeconds = h * 3600 + m * 60 + (s ?? 0) + (baseDelay ?? 0);
     const rh = Math.floor(totalSeconds / 3600) % 24;
     const rm = Math.floor((totalSeconds % 3600) / 60);
     realtimeTime = `${String(rh).padStart(2, "0")}:${String(rm).padStart(2, "0")}`;
@@ -48,12 +56,7 @@ function MonitorEntryRow({ item, arrOnly, depOnly, t }: MonitorEntryRowProps) {
   const cancelLabel = item.trip_cancelled ? t("tripCancelled") : t("stopCancelled");
 
   // ARR/DEP tag: shown when neither filter forces a single type
-  // arrOnly/depOnly=true → forced label; neither → infer from dwell time
   const showEventTag = !arrOnly && !depOnly;
-  const isArrivalEvent =
-    arrOnly === true ? true
-    : depOnly === true ? false
-    : item.arrival_time?.slice(0, 5) === item.departure_time?.slice(0, 5);
 
   // FR21.2: Track info
   const hasTrackChange =
@@ -65,7 +68,7 @@ function MonitorEntryRow({ item, arrOnly, depOnly, t }: MonitorEntryRowProps) {
   // FR21.1: Alerts
   const hasAlerts = (item.alerts?.length ?? 0) > 0;
 
-  const delayMinutes = Math.abs(Math.round((item.departure_delay ?? 0) / 60));
+  const delayMinutes = Math.abs(Math.round((baseDelay ?? 0) / 60));
 
   return (
     <div
@@ -221,6 +224,8 @@ interface StopMonitorColumnProps {
   showJson: boolean;
   arrOnly?: boolean;
   depOnly?: boolean;
+  scrollRef?: React.RefObject<HTMLDivElement | null>;
+  onScroll?: (scrollTop: number) => void;
   t: ReturnType<typeof useTranslations<"StopMonitor">>;
 }
 
@@ -234,6 +239,8 @@ function StopMonitorColumn({
   showJson,
   arrOnly,
   depOnly,
+  scrollRef,
+  onScroll,
   t,
 }: StopMonitorColumnProps) {
   // FR19.1.3: Format query date
@@ -296,7 +303,11 @@ function StopMonitorColumn({
         </div>
       ) : showJson ? (
         /* FR20.2: JSON view */
-        <div className="flex-1 overflow-y-auto p-2">
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto p-2"
+          onScroll={(e) => onScroll?.((e.target as HTMLDivElement).scrollTop)}
+        >
           <pre className="text-xs font-mono leading-5">
             {JSON.stringify(state.data, null, 2)
               .split("\n")
@@ -307,7 +318,11 @@ function StopMonitorColumn({
         </div>
       ) : (
         /* FR19.2: Board view */
-        <div className="flex flex-col flex-1 overflow-y-auto">
+        <div
+          ref={scrollRef}
+          className="flex flex-col flex-1 overflow-y-auto"
+          onScroll={(e) => onScroll?.((e.target as HTMLDivElement).scrollTop)}
+        >
           {sortedItems.map((item, i) => (
             <MonitorEntryRow key={`${item.trip_id}-${item.stop_id}-${i}`} item={item} arrOnly={arrOnly} depOnly={depOnly} t={t} />
           ))}
@@ -366,6 +381,28 @@ export default function StopMonitorResults({
   const [view, setView] = useState<"board" | "json">("board");
   // FR20.3: Copy state — keyed per envId
   const [copyStates, setCopyStates] = useState<Record<string, "idle" | "success" | "error">>({});
+  // Scroll sync
+  const [syncScroll, setSyncScroll] = useState(false);
+  const scrollRefs = useRef<Record<string, React.RefObject<HTMLDivElement | null>>>({});
+  const isSyncingRef = useRef(false);
+
+  // Ensure a ref exists for each env
+  for (const envId of selectedEnvironments) {
+    if (!scrollRefs.current[envId]) {
+      scrollRefs.current[envId] = { current: null };
+    }
+  }
+
+  const handleColumnScroll = useCallback((sourceEnvId: string, scrollTop: number) => {
+    if (!syncScroll || isSyncingRef.current) return;
+    isSyncingRef.current = true;
+    for (const [envId, ref] of Object.entries(scrollRefs.current)) {
+      if (envId !== sourceEnvId && ref.current) {
+        ref.current.scrollTop = scrollTop;
+      }
+    }
+    isSyncingRef.current = false;
+  }, [syncScroll]);
 
   const handleCopyJson = useCallback(
     async (envId: string) => {
@@ -424,6 +461,24 @@ export default function StopMonitorResults({
           ))}
         </div>
 
+        {/* Scroll sync toggle — multiple columns in either view */}
+        {selectedEnvironments.length > 1 && (
+          <button
+            onClick={() => setSyncScroll((v) => !v)}
+            className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
+              syncScroll
+                ? "bg-lvb-yellow text-lvb-dark"
+                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            }`}
+            title={syncScroll ? t("syncScrollOn") : t("syncScrollOff")}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+            {t("syncScroll")}
+          </button>
+        )}
+
         {/* FR20.3: Copy JSON (one per env in JSON view, else global) */}
         {view === "json" && selectedEnvironments.length === 1 && (
           <button
@@ -473,6 +528,8 @@ export default function StopMonitorResults({
                 showJson={view === "json"}
                 arrOnly={arrOnly}
                 depOnly={depOnly}
+                scrollRef={scrollRefs.current[envId]}
+                onScroll={(top) => handleColumnScroll(envId, top)}
                 t={t}
               />
             </div>

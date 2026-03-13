@@ -199,7 +199,10 @@
     "errorTitle": "Laden fehlgeschlagen",
     "envBadge": "{label}",
     "arrTag": "ANK",
-    "depTag": "ABF"
+    "depTag": "ABF",
+    "syncScroll": "Scroll sync",
+    "syncScrollOn": "Scroll-Sync aktiv",
+    "syncScrollOff": "Scroll-Sync inaktiv"
   },
   "EvaluationArea": {
     "clear": "Löschen",

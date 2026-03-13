@@ -199,7 +199,10 @@
     "errorTitle": "Failed to load",
     "envBadge": "{label}",
     "arrTag": "ARR",
-    "depTag": "DEP"
+    "depTag": "DEP",
+    "syncScroll": "Sync scroll",
+    "syncScrollOn": "Scroll sync on",
+    "syncScrollOff": "Scroll sync off"
   },
   "EvaluationArea": {
     "clear": "Clear",
