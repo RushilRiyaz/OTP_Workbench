@@ -86,6 +86,8 @@ function StopMarkersLayer({
       type: "coordinates",
       text: stop.stop_name,
       coordinates: { lat: stop.lat, lon: stop.lon },
+      location: null,
+      stopId: null,
     };
     setLastClickedId(stop.stop_id);
     if (!start?.text) {
