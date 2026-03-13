@@ -26,6 +26,9 @@ type SplitLayout = "vertical" | "horizontal";
 type ComparisonLayout = "horizontal" | "vertical" | "overview";
 
 // Extracted as a named component to avoid IIFE-in-JSX pattern
+const SM_CARD_MIN_WIDTH = 320;
+const SM_CARD_MAX_WIDTH = 1200;
+
 function StopMonitorTabView({
   smResults, smSelectedEnvs, smStop, smDateTime, smArrOnly, smDepOnly,
   smSelectedStopId, smStopMonitorUrl, smApiKey, customEnvironments,
@@ -48,7 +51,48 @@ function StopMonitorTabView({
 }) {
   const hasSmResults = Object.keys(smResults ?? {}).length > 0;
   const numEnvs = Math.max(1, Object.keys(smResults ?? {}).length);
-  const cardWidth = numEnvs === 1 ? 420 : numEnvs === 2 ? 780 : 1120;
+  const defaultWidth = numEnvs === 1 ? 520 : numEnvs === 2 ? 880 : 1200;
+
+  const [cardWidth, setCardWidth] = useState(defaultWidth);
+
+  // Auto-resize when number of environments changes
+  useEffect(() => {
+    setCardWidth(defaultWidth);
+  }, [numEnvs]); // eslint-disable-line react-hooks/exhaustive-deps
+  const isDraggingCard = useRef(false);
+  const dragStartX = useRef(0);
+  const dragStartWidth = useRef(0);
+
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isDraggingCard.current = true;
+    dragStartX.current = e.clientX;
+    dragStartWidth.current = cardWidth;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  }, [cardWidth]);
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!isDraggingCard.current) return;
+      const delta = dragStartX.current - e.clientX; // drag left = wider
+      const next = Math.max(SM_CARD_MIN_WIDTH, Math.min(SM_CARD_MAX_WIDTH, dragStartWidth.current + delta));
+      setCardWidth(next);
+    };
+    const onUp = () => {
+      if (!isDraggingCard.current) return;
+      isDraggingCard.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, []);
+
   return (
     <div className="relative flex-1 min-h-0 overflow-hidden">
       {/* Full-width map */}
@@ -67,15 +111,23 @@ function StopMonitorTabView({
         />
       </ErrorBoundary>
 
-      {/* Floating results card — slides in from right, expands with more envs */}
+      {/* Floating results card — slides in from right, drag-resizable from left edge */}
       <div
         style={{ zIndex: 1000, width: `${cardWidth}px` }}
-        className={`absolute top-3 bottom-3 right-3 flex flex-col rounded-2xl shadow-2xl overflow-hidden border border-zinc-200/60 dark:border-zinc-700/60 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md transition-all duration-300 ease-out ${
+        className={`absolute top-3 bottom-3 right-3 flex flex-col rounded-2xl shadow-2xl overflow-hidden border border-zinc-200/60 dark:border-zinc-700/60 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md transition-[opacity,transform] duration-300 ease-out ${
           hasSmResults
             ? "opacity-100 translate-x-0 pointer-events-auto"
             : "opacity-0 translate-x-8 pointer-events-none"
         }`}
       >
+        {/* Drag handle on left edge */}
+        <div
+          onMouseDown={handleResizeStart}
+          className="absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize z-10 group flex items-center justify-center"
+        >
+          <div className="w-0.5 h-10 rounded-full bg-zinc-300 dark:bg-zinc-600 group-hover:bg-lvb-yellow transition-colors" />
+        </div>
+
         <StopMonitorResults
           selectedEnvironments={smSelectedEnvs ?? []}
           customEnvironments={customEnvironments ?? []}
