@@ -177,3 +177,31 @@ body {
        1px  1px 0 #0f172a;
   }
 }
+
+/* Stop hierarchy popup — Apple-style */
+.stop-children-popup .leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
+  border: none;
+  padding: 0;
+  overflow: hidden;
+}
+.stop-children-popup .leaflet-popup-content {
+  margin: 0;
+}
+.stop-children-popup .leaflet-popup-tip-container {
+  display: none;
+}
+.dark .stop-children-popup .leaflet-popup-content-wrapper {
+  background: rgba(24, 24, 27, 0.97);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+}
