@@ -32,6 +32,8 @@ interface LocationInputProps {
   required?: boolean;
   error?: string; // FR6: Validation error message
   autocompleteEnvId?: string;
+  /** Filter autocomplete results by point type (e.g. "S" for transit stops only) */
+  pointType?: string;
 }
 
 function isStopId(input: string): boolean {
@@ -75,6 +77,7 @@ export default function LocationInput({
   required = false,
   error,
   autocompleteEnvId,
+  pointType,
 }: LocationInputProps) {
   const [suggestions, setSuggestions] = useState<AutocompleteResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -216,6 +219,7 @@ export default function LocationInput({
           {
             search: text,
             signal: abortControllerRef.current.signal,
+            ...(pointType ? { pointType } : {}),
           },
           acConfig ? { baseUrl: acConfig.url, apiKey: acConfig.apiKey } : undefined
         );
@@ -343,6 +347,7 @@ export default function LocationInput({
       </label>
       <div className="relative">
         <input
+          suppressHydrationWarning
           type="text"
           value={value.text}
           onChange={(e) => handleInputChange(e.target.value)}

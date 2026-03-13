@@ -60,7 +60,7 @@ function TransitLegDetail({ leg, t }: { leg: TransitLeg; t: ReturnType<typeof us
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-        className="w-full flex items-center gap-2 py-1.5 px-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-left"
+        className="w-full flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-left"
       >
         {/* Mode badge */}
         <span
@@ -276,7 +276,7 @@ function AlertList({ alerts }: { alerts: Alert[] }) {
       {alerts.map((alert, i) => {
         const style = ALERT_CATEGORY_STYLES[alert.alertCategory] ?? ALERT_CATEGORY_STYLES[3];
         return (
-          <div key={i} className={`rounded px-2 py-1.5 text-[11px] ${style}`}>
+          <div key={i} className={`rounded-lg px-2 py-1.5 text-[11px] ${style}`}>
             <span className="font-semibold">{formatAlertCategory(alert.alertCategory)}</span>
             {alert.alertHeaderText && <span className="font-medium">: {alert.alertHeaderText}</span>}
             <p className="mt-0.5 opacity-80">{alert.alertDescriptionText}</p>
@@ -314,10 +314,10 @@ export default function ItineraryCard({ itinerary, index, isSelected, onSelect, 
   return (
     <div
       onClick={() => onSelect(index)}
-      className={`w-full text-left rounded-lg border p-3 transition-colors cursor-pointer ${
+      className={`w-full text-left rounded-xl border p-3 transition-all duration-200 cursor-pointer ${
         isSelected
-          ? "border-lvb-yellow bg-yellow-50/60 dark:bg-yellow-950/20 dark:border-yellow-600"
-          : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-600"
+          ? "border-lvb-yellow bg-yellow-50/60 dark:bg-yellow-950/20 dark:border-yellow-600 shadow-sm"
+          : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-600 hover:shadow-sm"
       }`}
     >
       {/* Row 1: Times + Duration */}

@@ -5,9 +5,9 @@ import { useTranslations } from "next-intl";
 const TAB_IDS = [
   "routing",
   "routing-comparison",
-  "autocomplete",
   "stopmonitor",
   "nearby-search",
+  "autocomplete",
 ] as const;
 
 export type TabId = (typeof TAB_IDS)[number];
@@ -30,20 +30,22 @@ export default function Tabs({ activeTab, onTabChange }: TabsProps) {
   const t = useTranslations("Tabs");
 
   return (
-    <div className="flex gap-1 px-3 pt-2 bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
-      {TAB_IDS.map((tabId) => (
-        <button
-          key={tabId}
-          onClick={() => onTabChange(tabId)}
-          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
-            activeTab === tabId
-              ? "bg-white dark:bg-zinc-950 text-zinc-900 dark:text-lvb-yellow border border-zinc-200 dark:border-zinc-800 border-b-transparent -mb-px shadow-[0_-1px_3px_0_rgb(0,0,0,0.05)]"
-              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60"
-          }`}
-        >
-          {t(TAB_KEYS[tabId])}
-        </button>
-      ))}
+    <div className="flex justify-center px-2 pt-2">
+      <div className="flex gap-0.5 bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-xl p-1">
+        {TAB_IDS.map((tabId) => (
+          <button
+            key={tabId}
+            onClick={() => onTabChange(tabId)}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-lvb-yellow whitespace-nowrap ${
+              activeTab === tabId
+                ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
+                : "text-zinc-500 dark:text-zinc-400 hover:bg-white/50 dark:hover:bg-zinc-700/50 hover:text-zinc-800 dark:hover:text-zinc-200"
+            }`}
+          >
+            {t(TAB_KEYS[tabId])}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

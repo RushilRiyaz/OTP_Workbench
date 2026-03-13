@@ -65,6 +65,21 @@ export function getAutocompleteConfig(envId: string): { url: string; apiKey: str
   return { url: AUTOCOMPLETE_ENVIRONMENTS[0].url, apiKey: AUTOCOMPLETE_ENVIRONMENTS[0].apiKey };
 }
 
+/**
+ * NFR-SM2.1: Resolve Stop Monitor base URL and API key for a given environment.
+ * The Stop Monitor URL is derived from the OTP URL by replacing the trailing
+ * path segment (e.g. "/otp") with "/stopMonitor".
+ */
+export function getStopMonitorConfig(
+  envId: string,
+  customEnvironments: Environment[] = []
+): { stopMonitorUrl: string; apiKey: string } {
+  const { otpUrl, apiKey } = getEnvironmentConfig(envId, customEnvironments);
+  // Replace last path segment: ".../api/otp" → ".../api/stopMonitor"
+  const stopMonitorUrl = otpUrl.replace(/\/[^/]+$/, "/stopMonitor");
+  return { stopMonitorUrl, apiKey };
+}
+
 export interface Environment {
   id: string;
   label: string;
@@ -198,10 +213,7 @@ export default function EnvironmentSelector({
         >
           <div className="flex items-center gap-2.5">
             {/* Active indicator dot */}
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-            </span>
+            <span className="inline-flex h-2 w-2 rounded-full bg-green-500" />
 
             <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
               {selectedEnvObjects[0].label}
@@ -292,7 +304,7 @@ export default function EnvironmentSelector({
                         e.stopPropagation();
                         handleRemoveCustom(env.id);
                       }}
-                      className="p-1 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+                      className="p-1 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                       title={t("removeCustom")}
                     >
                       <svg
@@ -321,17 +333,16 @@ export default function EnvironmentSelector({
             <div className="space-y-1">
               <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">
                 {t("autocompleteService")}
-              </span>
-              <div className="inline-flex p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/60 dark:border-zinc-700/60">
+              </span>              <div className="inline-flex p-0.5 rounded-xl bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-sm">
                 {AUTOCOMPLETE_ENVIRONMENTS.map((acEnv) => (
                   <button
                     key={acEnv.id}
                     type="button"
                     onClick={() => onAutocompleteEnvChange(acEnv.id)}
-                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all ${
+                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all duration-200 ${
                       selectedAutocompleteEnv === acEnv.id
                         ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
-                        : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                        : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-white/50 dark:hover:bg-zinc-700/50"
                     }`}
                   >
                     {acEnv.label}

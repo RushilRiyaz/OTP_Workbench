@@ -15,10 +15,134 @@ import { ComparisonEmptyState } from "./comparison/ComparisonEmptyState";
 import { TimelineComparisonLayout } from "./comparison/TimelineComparisonLayout";
 import { ComparisonOverviewLayout } from "./comparison/ComparisonOverviewLayout";
 import { DetailComparisonLayout } from "./comparison/DetailComparisonLayout";
+import StopMonitorResults from "./StopMonitorResults";
+import type { StopMonitorEnvState } from "@/lib/stopMonitor";
+import type { LocationValue as LV } from "./LocationInput";
+import StopMonitorMap from "./map/DynamicStopMonitorMapLoader";
+import type { StopsItem } from "@/lib/stopMonitor";
 
 type SplitLayout = "vertical" | "horizontal";
 // FR13: Three comparison layout modes
 type ComparisonLayout = "horizontal" | "vertical" | "overview";
+
+// Extracted as a named component to avoid IIFE-in-JSX pattern
+const SM_CARD_MIN_WIDTH = 320;
+const SM_CARD_MAX_WIDTH = 1200;
+
+function StopMonitorTabView({
+  smResults, smSelectedEnvs, smStop, smDateTime, smArrOnly, smDepOnly,
+  smSelectedStopId, smStopMonitorUrl, smApiKey, customEnvironments,
+  onStopMonitorMore, onSmClear, onSmStopSelect, mapError,
+}: {
+  smResults?: Record<string, StopMonitorEnvState>;
+  smSelectedEnvs?: string[];
+  smStop?: LV;
+  smDateTime?: string;
+  smArrOnly?: boolean;
+  smDepOnly?: boolean;
+  smSelectedStopId?: string | null;
+  smStopMonitorUrl?: string;
+  smApiKey?: string;
+  customEnvironments?: Environment[];
+  onStopMonitorMore?: (envId: string) => void;
+  onSmClear?: () => void;
+  onSmStopSelect?: (stop: StopsItem) => void;
+  mapError: string;
+}) {
+  const hasSmResults = Object.keys(smResults ?? {}).length > 0;
+  const numEnvs = Math.max(1, Object.keys(smResults ?? {}).length);
+  const defaultWidth = numEnvs === 1 ? 520 : numEnvs === 2 ? 880 : 1200;
+
+  const [cardWidth, setCardWidth] = useState(defaultWidth);
+
+  // Auto-resize when number of environments changes
+  useEffect(() => {
+    setCardWidth(defaultWidth);
+  }, [numEnvs]); // eslint-disable-line react-hooks/exhaustive-deps
+  const isDraggingCard = useRef(false);
+  const dragStartX = useRef(0);
+  const dragStartWidth = useRef(0);
+
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isDraggingCard.current = true;
+    dragStartX.current = e.clientX;
+    dragStartWidth.current = cardWidth;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  }, [cardWidth]);
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!isDraggingCard.current) return;
+      const delta = dragStartX.current - e.clientX; // drag left = wider
+      const next = Math.max(SM_CARD_MIN_WIDTH, Math.min(SM_CARD_MAX_WIDTH, dragStartWidth.current + delta));
+      setCardWidth(next);
+    };
+    const onUp = () => {
+      if (!isDraggingCard.current) return;
+      isDraggingCard.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, []);
+
+  return (
+    <div className="relative flex-1 min-h-0 overflow-hidden">
+      {/* Full-width map */}
+      <ErrorBoundary
+        fallback={
+          <div className="flex items-center justify-center h-full bg-zinc-100 dark:bg-zinc-900">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">{mapError}</p>
+          </div>
+        }
+      >
+        <StopMonitorMap
+          selectedStopId={smSelectedStopId ?? null}
+          onStopSelect={onSmStopSelect ?? (() => {})}
+          stopMonitorUrl={smStopMonitorUrl ?? ""}
+          apiKey={smApiKey ?? ""}
+        />
+      </ErrorBoundary>
+
+      {/* Floating results card — slides in from right, drag-resizable from left edge */}
+      <div
+        style={{ zIndex: 1000, width: `${cardWidth}px` }}
+        className={`absolute top-3 bottom-3 right-3 flex flex-col rounded-2xl shadow-2xl overflow-hidden border border-zinc-200/60 dark:border-zinc-700/60 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md transition-[opacity,transform] duration-300 ease-out ${
+          hasSmResults
+            ? "opacity-100 translate-x-0 pointer-events-auto"
+            : "opacity-0 translate-x-8 pointer-events-none"
+        }`}
+      >
+        {/* Drag handle on left edge */}
+        <div
+          onMouseDown={handleResizeStart}
+          className="absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize z-10 group flex items-center justify-center"
+        >
+          <div className="w-0.5 h-10 rounded-full bg-zinc-300 dark:bg-zinc-600 group-hover:bg-lvb-yellow transition-colors" />
+        </div>
+
+        <StopMonitorResults
+          selectedEnvironments={smSelectedEnvs ?? []}
+          customEnvironments={customEnvironments ?? []}
+          results={smResults ?? {}}
+          stopName={smStop?.text ?? ""}
+          dateTime={smDateTime ?? ""}
+          onMore={onStopMonitorMore ?? (() => {})}
+          onClear={onSmClear ?? (() => {})}
+          arrOnly={smArrOnly}
+          depOnly={smDepOnly}
+        />
+      </div>
+    </div>
+  );
+}
 
 interface EvaluationAreaProps {
   activeTab: TabId;
@@ -53,6 +177,19 @@ interface EvaluationAreaProps {
   onEnterDetailView?: () => void;
   onExitDetailView?: () => void;
   onDetailHoverLeg?: (leg: DetailHoveredLeg | null) => void;
+  // FR18-FR21: Stop Monitor
+  smResults?: Record<string, StopMonitorEnvState>;
+  smSelectedEnvs?: string[];
+  smStop?: LV;
+  smDateTime?: string;
+  smArrOnly?: boolean;
+  smDepOnly?: boolean;
+  onStopMonitorMore?: (envId: string) => void;
+  smStopMonitorUrl?: string;
+  smApiKey?: string;
+  smSelectedStopId?: string | null;
+  onSmStopSelect?: (stop: StopsItem) => void;
+  onSmClear?: () => void;
 }
 
 const MIN_PANEL_PCT = 20;
@@ -100,6 +237,18 @@ export default function EvaluationArea({
   onEnterDetailView,
   onExitDetailView,
   onDetailHoverLeg,
+  smResults,
+  smSelectedEnvs,
+  smStop,
+  smDateTime,
+  smArrOnly,
+  smDepOnly,
+  onStopMonitorMore,
+  smStopMonitorUrl,
+  smApiKey,
+  smSelectedStopId,
+  onSmStopSelect,
+  onSmClear,
 }: EvaluationAreaProps) {
   const t = useTranslations("EvaluationArea");
   const tDetail = useTranslations("DetailComparison");
@@ -113,6 +262,7 @@ export default function EvaluationArea({
   const [comparisonLayout, setComparisonLayout] = useState<ComparisonLayout>("horizontal"); // FR13.1: default
   const [mapPct, setMapPct] = useState(DEFAULT_MAP_PCT);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showSmClearConfirm, setShowSmClearConfirm] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
 
@@ -179,18 +329,20 @@ export default function EvaluationArea({
 
   return (
     <main className="flex-1 flex flex-col h-full bg-white dark:bg-zinc-950">
-      <Tabs activeTab={activeTab} onTabChange={onTabChange} />
+      <div className="border-b border-zinc-100 dark:border-zinc-800 pb-2">
+        <Tabs activeTab={activeTab} onTabChange={onTabChange} />
+      </div>
       <div className="flex-1 flex flex-col min-h-0">
         {activeTab === "routing" && (
           <div className="flex flex-col h-full">
             {/* Layout toggle button — only show when results present */}
             {hasResults && (
-              <div className="flex items-center justify-between px-2 py-1 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+              <div className="flex items-center justify-between px-2 py-1 border-b border-zinc-100 dark:border-zinc-800">
                 {/* Clear results */}
                 <button
                   type="button"
                   onClick={() => setShowClearConfirm(true)}
-                  className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+                  className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                   title={t("clearTitle")}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,7 +354,7 @@ export default function EvaluationArea({
                 <button
                   type="button"
                   onClick={toggleLayout}
-                  className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+                  className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                   title={isVertical ? t("switchToSideBySide") : t("switchToStacked")}
                 >
                   {isVertical ? (
@@ -253,6 +405,8 @@ export default function EvaluationArea({
                     onDestinationChange={onDestinationChange}
                     selectedItinerary={selectedItinerary}
                     hoveredLegIndex={hoveredLegIndex ?? null}
+                    stopMonitorUrl={smStopMonitorUrl}
+                    apiKey={smApiKey}
                   />
                 </ErrorBoundary>
               </div>
@@ -261,18 +415,14 @@ export default function EvaluationArea({
               {hasResults && (
                 <div
                   onMouseDown={handleDragStart}
-                  className={`flex-shrink-0 flex items-center justify-center bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors ${
+                  className={`group flex-shrink-0 flex items-center justify-center bg-zinc-100/80 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80 transition-colors ${
                     isVertical
-                      ? "h-2 cursor-row-resize border-y border-zinc-300 dark:border-zinc-700"
-                      : "w-2 cursor-col-resize border-x border-zinc-300 dark:border-zinc-700"
+                      ? "h-1 cursor-row-resize border-y border-zinc-200/50 dark:border-zinc-700/50"
+                      : "w-1 cursor-col-resize border-x border-zinc-200/50 dark:border-zinc-700/50"
                   }`}
                 >
-                  {/* Grip dots */}
-                  <div className={`flex gap-0.5 ${isVertical ? "flex-row" : "flex-col"}`}>
-                    <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
-                    <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
-                    <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
-                  </div>
+                  {/* Grip pill */}
+                  <div className={`rounded-full bg-zinc-300 dark:bg-zinc-600 group-hover:bg-zinc-400 dark:group-hover:bg-zinc-500 transition-colors ${isVertical ? "w-8 h-0.5" : "w-0.5 h-8"}`} />
                 </div>
               )}
 
@@ -311,13 +461,13 @@ export default function EvaluationArea({
             {(selectedEnvironments?.length ?? 0) >= 2 && (<>
             {/* Toolbar: clear + compare button + layout toggle — only show when comparison has results */}
             {hasComparisonResults && (
-              <div className="flex items-center justify-between px-2 py-1.5 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+              <div className="flex items-center justify-between px-2 py-1.5 border-b border-zinc-100 dark:border-zinc-800">
                 <div className="flex items-center gap-2">
                   {/* Clear results */}
                   <button
                     type="button"
                     onClick={() => setShowClearConfirm(true)}
-                    className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+                    className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                     title={t("clearTitle")}
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -331,7 +481,7 @@ export default function EvaluationArea({
                     <button
                       type="button"
                       onClick={onEnterDetailView}
-                      className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
+                      className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow"
                       style={{ backgroundColor: ITINERARY_COLORS[0] }}
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -342,7 +492,7 @@ export default function EvaluationArea({
                   )}
                 </div>
                 {/* Layout toggle */}
-                <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-0.5">
+                <div className="flex items-center bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-xl p-0.5">
                   {([
                     { id: "horizontal" as const, label: t("horizontal") },
                     { id: "vertical" as const, label: t("vertical") },
@@ -352,10 +502,10 @@ export default function EvaluationArea({
                       key={opt.id}
                       type="button"
                       onClick={() => setComparisonLayout(opt.id)}
-                      className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                      className={`px-3 py-1 text-xs font-medium rounded-lg transition-all duration-200 ${
                         comparisonLayout === opt.id
                           ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
-                          : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                          : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700/50"
                       }`}
                     >
                       {opt.label}
@@ -394,6 +544,8 @@ export default function EvaluationArea({
                     autoFitBounds={comparisonAutoFitBounds}
                     comparisonItineraries={isDetailComparisonView ? comparisonMapItineraries : undefined}
                     comparisonHoveredLeg={isDetailComparisonView ? detailHoveredLeg : undefined}
+                    stopMonitorUrl={smStopMonitorUrl}
+                    apiKey={smApiKey}
                   />
                 </ErrorBoundary>
               </div>
@@ -402,13 +554,9 @@ export default function EvaluationArea({
               {hasComparisonResults && (
                 <div
                   onMouseDown={handleDragStart}
-                  className="flex-shrink-0 flex items-center justify-center h-2 cursor-row-resize border-y border-zinc-300 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
+                  className="group flex-shrink-0 flex items-center justify-center h-1 cursor-row-resize border-y border-zinc-200/50 dark:border-zinc-700/50 bg-zinc-100/80 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80 transition-colors"
                 >
-                  <div className="flex gap-0.5 flex-row">
-                    <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
-                    <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
-                    <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
-                  </div>
+                  <div className="w-8 h-0.5 rounded-full bg-zinc-300 dark:bg-zinc-600 group-hover:bg-zinc-400 dark:group-hover:bg-zinc-500 transition-colors" />
                 </div>
               )}
 
@@ -467,7 +615,27 @@ export default function EvaluationArea({
           </div>
         )}
 
-        {activeTab !== "routing" && activeTab !== "routing-comparison" && (
+        {/* FR19: Stop Monitor tab — full-width map with floating results card */}
+        {activeTab === "stopmonitor" && (
+          <StopMonitorTabView
+            smResults={smResults}
+            smSelectedEnvs={smSelectedEnvs}
+            smStop={smStop}
+            smDateTime={smDateTime}
+            smArrOnly={smArrOnly}
+            smDepOnly={smDepOnly}
+            smSelectedStopId={smSelectedStopId}
+            smStopMonitorUrl={smStopMonitorUrl}
+            smApiKey={smApiKey}
+            customEnvironments={customEnvironments}
+            onStopMonitorMore={onStopMonitorMore}
+            onSmClear={() => setShowSmClearConfirm(true)}
+            onSmStopSelect={onSmStopSelect}
+            mapError={t("mapError")}
+          />
+        )}
+
+        {activeTab !== "routing" && activeTab !== "routing-comparison" && activeTab !== "stopmonitor" && (
           <div className="flex-1 flex items-center justify-center p-4">
             <div className="text-center">
               <div className="mx-auto w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-3">
@@ -506,6 +674,39 @@ export default function EvaluationArea({
                 onClick={() => {
                   setShowClearConfirm(false);
                   onClearResults?.();
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+              >
+                {t("clear")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stop Monitor clear confirmation dialog */}
+      {showSmClearConfirm && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-700 p-5 max-w-sm w-full mx-4">
+            <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+              {t("clearConfirmTitle")}
+            </h3>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5">
+              {t("clearConfirmMessage")}
+            </p>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowSmClearConfirm(false)}
+                className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
+              >
+                {t("cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSmClearConfirm(false);
+                  onSmClear?.();
                 }}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
               >

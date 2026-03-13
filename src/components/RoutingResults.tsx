@@ -74,14 +74,14 @@ export default function RoutingResults({
       {/* View toggle header */}
       <div className="flex items-center justify-between px-3 pt-2 pb-1 flex-shrink-0">
         {/* Segmented control — Apple style */}
-        <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-0.5">
+        <div className="flex items-center bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-xl p-0.5">
           <button
             type="button"
             onClick={() => setView("itineraries")}
-            className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+            className={`px-3 py-1 text-xs font-medium rounded-lg transition-all duration-200 ${
               view === "itineraries"
                 ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
-                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700/50"
             }`}
           >
             {t("itineraries", { count: itineraries.length })}
@@ -89,10 +89,10 @@ export default function RoutingResults({
           <button
             type="button"
             onClick={() => setView("json")}
-            className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+            className={`px-3 py-1 text-xs font-medium rounded-lg transition-all duration-200 ${
               view === "json"
                 ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
-                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-white/50 dark:hover:bg-zinc-700/50"
             }`}
           >
             {t("json")}
@@ -142,7 +142,7 @@ export default function RoutingResults({
               type="button"
               onClick={handleLoadEarlier}
               disabled={loadingEarlier || loadingLater}
-              className="w-full py-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+              className="w-full py-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-all duration-200 hover:shadow-sm disabled:opacity-50 flex items-center justify-center gap-1"
             >
               {loadingEarlier ? (
                 <span className="inline-block w-3 h-3 border-2 border-zinc-300 dark:border-zinc-600 border-t-zinc-600 dark:border-t-zinc-300 rounded-full animate-spin" />
@@ -172,7 +172,7 @@ export default function RoutingResults({
               type="button"
               onClick={handleLoadLater}
               disabled={loadingEarlier || loadingLater}
-              className="w-full py-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+              className="w-full py-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-all duration-200 hover:shadow-sm disabled:opacity-50 flex items-center justify-center gap-1"
             >
               {loadingLater ? (
                 <span className="inline-block w-3 h-3 border-2 border-zinc-300 dark:border-zinc-600 border-t-zinc-600 dark:border-t-zinc-300 rounded-full animate-spin" />

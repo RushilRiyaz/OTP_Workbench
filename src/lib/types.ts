@@ -5,7 +5,7 @@ import { RoutingOptions } from "@/components/RoutingOptionsForm";
 
 // FR6.2-6.3: Validation error type
 export interface ValidationError {
-  field: "start" | "destination" | "dateTime" | "travelModes";
+  field: "start" | "destination" | "dateTime" | "travelModes" | "stop";
   message: string;
 }
 
