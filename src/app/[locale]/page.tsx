@@ -24,6 +24,8 @@ import { validateStopMonitorParams } from "@/lib/validation";
 import { getBerlinNow } from "@/components/DateTimeInput";
 import StopMonitorForm from "@/components/StopMonitorForm";
 import StopMonitorResults from "@/components/StopMonitorResults";
+import NearbySearchForm, { NearbySearchFormState, defaultNearbySearchFormState, toNearbySearchParams } from "@/components/NearbySearchForm";
+import { fetchNearbySearch, type NearbySearchItem } from "@/lib/nearbySearch";
 
 
 /** NFR-SM-BUG1: Resolve the correct stopId/koord string for the Stop Monitor API.
@@ -97,6 +99,22 @@ export default function Home() {
   const [comparisonResults, setComparisonResults] = useState<
     Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }>
   >({});
+
+  // NearbySearch state
+  const [nearbySearchFormState, setNearbySearchFormState] = useState<NearbySearchFormState>(defaultNearbySearchFormState);
+  const [nearbySearchResults, setNearbySearchResults] = useState<NearbySearchItem[] | null>(null);
+  const [nearbySearchLoading, setNearbySearchLoading] = useState(false);
+  const [nearbySearchError, setNearbySearchError] = useState<string | null>(null);
+  const [nearbySearchSelectedItem, setNearbySearchSelectedItem] = useState<NearbySearchItem | null>(null);
+
+  // Clear NearbySearch results when center is removed (from form input clearing)
+  useEffect(() => {
+    if (!nearbySearchFormState.center) {
+      setNearbySearchResults(null);
+      setNearbySearchSelectedItem(null);
+      setNearbySearchError(null);
+    }
+  }, [nearbySearchFormState.center]);
 
   // FR11.8: Hovered leg index for map polyline highlighting
   const [hoveredLegIndex, setHoveredLegIndex] = useState<number | null>(null);
@@ -309,7 +327,7 @@ export default function Home() {
 
   // Determine if single select mode based on active tab
   // FR3.5: Single environment only when Routing use case selected
-  const singleSelectMode = activeTab === "routing";
+  const singleSelectMode = activeTab === "routing" || activeTab === "nearby-search";
 
   // FR3.5: When switching to single-select mode, keep only first selection
   useEffect(() => {
@@ -569,6 +587,45 @@ export default function Home() {
     setRequestHistory([]);
   };
 
+  // NearbySearch: update center from map click
+  const handleNearbySearchCenterChange = useCallback((center: { lat: number; lon: number }) => {
+    setNearbySearchFormState((prev) => ({ ...prev, center }));
+    setNearbySearchResults(null);
+    setNearbySearchSelectedItem(null);
+    setNearbySearchError(null);
+  }, []);
+
+  // NearbySearch: update radius from hold-to-radius map interaction
+  const handleNearbySearchRadiusChange = useCallback((radius: number) => {
+    setNearbySearchFormState((prev) => ({ ...prev, radius }));
+  }, []);
+
+  // NearbySearch: submit search
+  const handleNearbySearchSubmit = useCallback(async () => {
+    const params = toNearbySearchParams(nearbySearchFormState);
+    if (!params) return;
+
+    setNearbySearchLoading(true);
+    setNearbySearchError(null);
+    setNearbySearchSelectedItem(null);
+
+    const apiKey = getEnvironmentConfig(selectedEnvironments[0] || "prod", customEnvironments).apiKey;
+
+    const result = await fetchNearbySearch(params, undefined, {
+      baseUrl: process.env.NEXT_PUBLIC_NEARBYSEARCH_API_URL || "",
+      apiKey,
+    });
+
+    if (result.success) {
+      setNearbySearchResults(result.data);
+    } else {
+      setNearbySearchError(result.error.message);
+      console.error("[NearbySearch] Error:", result.error);
+    }
+
+    setNearbySearchLoading(false);
+  }, [nearbySearchFormState, selectedEnvironments, customEnvironments]);
+
   // Clear routing results and return to map-only view
   const handleClearResults = useCallback(() => {
     setRoutingResult(null);
@@ -738,7 +795,8 @@ export default function Home() {
               />
             </div>
 
-            {/* Journey Form */}
+            {/* Journey Form — shown on routing tabs */}
+            {(activeTab === "routing" || activeTab === "routing-comparison") && (
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
           {/* Section label + Copy Link */}
           <div className="flex items-center justify-between mb-3">
@@ -793,7 +851,21 @@ export default function Home() {
             onClearHistory={handleClearHistory}
             autocompleteEnvId={selectedAutocompleteEnv}
           />
-          </div>
+            </div>
+            )}
+
+            {/* NearbySearch Form — shown on nearby-search tab */}
+            {activeTab === "nearby-search" && (
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
+                <NearbySearchForm
+                  formState={nearbySearchFormState}
+                  onFormStateChange={setNearbySearchFormState}
+                  isLoading={nearbySearchLoading}
+                  onSubmit={handleNearbySearchSubmit}
+                  error={nearbySearchError}
+                />
+              </div>
+            )}
           </>
         )}
       </ParameterArea>
@@ -838,6 +910,13 @@ export default function Home() {
         smSelectedStopId={smSelectedStopId}
         onSmStopSelect={handleSmStopSelect}
         onSmClear={handleSmClear}
+        nearbySearchCenter={nearbySearchFormState.center}
+        nearbySearchRadius={nearbySearchFormState.radius}
+        nearbySearchResults={nearbySearchResults}
+        nearbySearchSelectedItem={nearbySearchSelectedItem}
+        onNearbySearchCenterChange={handleNearbySearchCenterChange}
+        onNearbySearchRadiusChange={handleNearbySearchRadiusChange}
+        onNearbySearchSelectItem={setNearbySearchSelectedItem}
       />
     </div>
   );

@@ -5,8 +5,11 @@ import { useTranslations } from "next-intl";
 import Tabs, { TabId } from "./Tabs";
 import { LocationValue } from "./LocationInput";
 import Map from "./map/DynamicMapLoader";
+import NearbySearchMap from "./map/DynamicNearbySearchMapLoader";
 import ErrorBoundary from "./ErrorBoundary";
 import RoutingResults from "./RoutingResults";
+import NearbySearchResults from "./NearbySearchResults";
+import type { NearbySearchItem } from "@/lib/nearbySearch";
 import type { RoutingResponse, RoutingError, Itinerary } from "@/lib/routing";
 import type { Environment } from "./EnvironmentSelector";
 import type { ComparisonItineraryRef, DetailHoveredLeg, ComparisonMapItinerary } from "./comparison/types";
@@ -190,6 +193,14 @@ interface EvaluationAreaProps {
   smSelectedStopId?: string | null;
   onSmStopSelect?: (stop: StopsItem) => void;
   onSmClear?: () => void;
+  // NearbySearch props
+  nearbySearchCenter?: { lat: number; lon: number } | null;
+  nearbySearchRadius?: number;
+  nearbySearchResults?: NearbySearchItem[] | null;
+  nearbySearchSelectedItem?: NearbySearchItem | null;
+  onNearbySearchCenterChange?: (center: { lat: number; lon: number }) => void;
+  onNearbySearchRadiusChange?: (radius: number) => void;
+  onNearbySearchSelectItem?: (item: NearbySearchItem | null) => void;
 }
 
 const MIN_PANEL_PCT = 20;
@@ -249,6 +260,13 @@ export default function EvaluationArea({
   smSelectedStopId,
   onSmStopSelect,
   onSmClear,
+  nearbySearchCenter,
+  nearbySearchRadius = 500,
+  nearbySearchResults,
+  nearbySearchSelectedItem,
+  onNearbySearchCenterChange,
+  onNearbySearchRadiusChange,
+  onNearbySearchSelectItem,
 }: EvaluationAreaProps) {
   const t = useTranslations("EvaluationArea");
   const tDetail = useTranslations("DetailComparison");
@@ -635,7 +653,82 @@ export default function EvaluationArea({
           />
         )}
 
-        {activeTab !== "routing" && activeTab !== "routing-comparison" && activeTab !== "stopmonitor" && (
+        {/* NearbySearch tab */}
+        {activeTab === "nearby-search" && (
+          <div className="flex flex-col h-full">
+            {/* Split: map on top, results below */}
+            <div
+              ref={activeTab === "nearby-search" ? containerRef : undefined}
+              className="flex-1 flex flex-col min-h-0"
+            >
+              {/* Map panel */}
+              <div
+                className="min-h-0 min-w-0"
+                style={
+                  nearbySearchResults && nearbySearchResults.length > 0
+                    ? { height: `${mapPct}%` }
+                    : { flex: 1 }
+                }
+              >
+                <ErrorBoundary
+                  fallback={
+                    <div className="flex items-center justify-center h-full bg-zinc-100 dark:bg-zinc-900">
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                        {t("mapError")}
+                      </p>
+                    </div>
+                  }
+                >
+                  <NearbySearchMap
+                    center={nearbySearchCenter ?? null}
+                    radius={nearbySearchRadius}
+                    results={nearbySearchResults ?? null}
+                    onCenterChange={onNearbySearchCenterChange ?? (() => {})}
+                    onRadiusChange={onNearbySearchRadiusChange ?? (() => {})}
+                  />
+                </ErrorBoundary>
+              </div>
+
+              {/* Drag divider */}
+              {nearbySearchResults && nearbySearchResults.length > 0 && (
+                <div
+                  onMouseDown={handleDragStart}
+                  className="flex-shrink-0 flex items-center justify-center h-2 cursor-row-resize border-y border-zinc-300 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
+                >
+                  <div className="flex gap-0.5 flex-row">
+                    <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
+                    <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
+                    <div className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
+                  </div>
+                </div>
+              )}
+
+              {/* Results panel */}
+              {nearbySearchResults && nearbySearchResults.length > 0 ? (
+                <div
+                  className="min-h-0 min-w-0 bg-zinc-50 dark:bg-zinc-950"
+                  style={{ height: `${100 - mapPct}%` }}
+                >
+                  <NearbySearchResults
+                    results={nearbySearchResults}
+                    selectedItem={nearbySearchSelectedItem ?? null}
+                    onSelectItem={onNearbySearchSelectItem ?? (() => {})}
+                  />
+                </div>
+              ) : (
+                !nearbySearchResults && (
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+                    <p className="text-xs text-zinc-400 dark:text-zinc-500 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+                      {t("featureInDevelopment", { tab: "NearBySearch" })}
+                    </p>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab !== "routing" && activeTab !== "routing-comparison" && activeTab !== "stopmonitor" && activeTab !== "nearby-search" && (
           <div className="flex-1 flex items-center justify-center p-4">
             <div className="text-center">
               <div className="mx-auto w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-3">
