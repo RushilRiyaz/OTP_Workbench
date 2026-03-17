@@ -121,17 +121,38 @@ export default function NearbySearchForm({
         <label className="block text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-1">
           {t("center")}
         </label>
-        <input
-          type="text"
-          value={displayCenter}
-          onChange={(e) => handleCenterInputChange(e.target.value)}
-          placeholder={t("centerPlaceholder")}
-          className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
-            validationErrors.some((e) => e === tVal("centerRequired"))
-              ? "border-red-400"
-              : "border-zinc-200 dark:border-zinc-700"
-          }`}
-        />
+        <div className="relative">
+          <input
+            type="text"
+            value={displayCenter}
+            onChange={(e) => handleCenterInputChange(e.target.value)}
+            placeholder={t("centerPlaceholder")}
+            className={`w-full px-3 py-2 pr-8 text-sm border rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-lvb-yellow ${
+              validationErrors.some((e) => e === tVal("centerRequired"))
+                ? "border-red-400"
+                : "border-zinc-200 dark:border-zinc-700"
+            }`}
+          />
+          {displayCenter && (
+            <button
+              type="button"
+              onClick={() => {
+                setCenterInput("");
+                onFormStateChange({ ...formState, center: null });
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors focus:outline-none focus:ring-2 focus:ring-lvb-yellow rounded"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="w-4 h-4"
+              >
+                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+              </svg>
+            </button>
+          )}
+        </div>
         {formState.center && (
           <p className="text-[10px] text-zinc-400 mt-0.5">
             {t("clickMapToSetCenter")}
