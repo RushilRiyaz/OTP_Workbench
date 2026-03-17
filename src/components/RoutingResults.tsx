@@ -27,6 +27,7 @@ export default function RoutingResults({
   const itineraries = routingResult?.plan?.itineraries ?? [];
   const [view, setView] = useState<ResultsView>("itineraries");
   const [copyState, setCopyState] = useState<"idle" | "success" | "error">("idle");
+  const [jsonMode, setJsonMode] = useState<"normalized" | "raw">("normalized");
   const [loadingEarlier, setLoadingEarlier] = useState(false);
   const [loadingLater, setLoadingLater] = useState(false);
 
@@ -188,8 +189,42 @@ export default function RoutingResults({
         </div>
       ) : (
         <div className="flex-1 overflow-auto p-3 pt-1">
+          {/* FR28: Raw/Normalized toggle — only for INSA (when _rawApiResponse present) */}
+          {routingResult._rawApiResponse && (
+            <div className="flex items-center gap-1 mb-2">
+              <div className="inline-flex bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-lg p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setJsonMode("normalized")}
+                  className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all duration-200 ${
+                    jsonMode === "normalized"
+                      ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
+                      : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                  }`}
+                >
+                  {t("viewNormalized")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setJsonMode("raw")}
+                  className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all duration-200 ${
+                    jsonMode === "raw"
+                      ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
+                      : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                  }`}
+                >
+                  {t("viewRaw")}
+                </button>
+              </div>
+            </div>
+          )}
           <pre className="text-[11px] leading-relaxed font-mono text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-900 rounded-xl p-3 overflow-x-auto whitespace-pre">
-            <JsonHighlighted json={JSON.stringify(routingResult, null, 2)} />
+            <JsonHighlighted json={JSON.stringify(
+              jsonMode === "raw" && routingResult._rawApiResponse
+                ? routingResult._rawApiResponse
+                : routingResult,
+              null, 2
+            )} />
           </pre>
         </div>
       )}
