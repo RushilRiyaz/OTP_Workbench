@@ -26,6 +26,7 @@ import StopMonitorForm from "@/components/StopMonitorForm";
 import StopMonitorResults from "@/components/StopMonitorResults";
 import NearbySearchForm, { NearbySearchFormState, defaultNearbySearchFormState, toNearbySearchParams } from "@/components/NearbySearchForm";
 import { fetchNearbySearch, type NearbySearchItem } from "@/lib/nearbySearch";
+import { fetchInsaRouting } from "@/lib/insa";
 
 
 /** NFR-SM-BUG1: Resolve the correct stopId/koord string for the Stop Monitor API.
@@ -453,17 +454,21 @@ export default function Home() {
     setRoutingResult(null);
 
     try {
-      const envConfig = getEnvironmentConfig(selectedEnvironments[0] || "prod", customEnvironments);
-      const result = await fetchRouting(
-        {
-          start: startLocation,
-          destination: destinationLocation,
-          dateTime,
-          routingOptions,
-        },
-        undefined,
-        { baseUrl: envConfig.otpUrl, apiKey: envConfig.apiKey }
-      );
+      const envId = selectedEnvironments[0] || "prod";
+      const routingParams = {
+        start: startLocation,
+        destination: destinationLocation,
+        dateTime,
+        routingOptions,
+      };
+
+      const result = envId === "insa"
+        ? await fetchInsaRouting(routingParams)
+        : await fetchRouting(
+            routingParams,
+            undefined,
+            { baseUrl: getEnvironmentConfig(envId, customEnvironments).otpUrl, apiKey: getEnvironmentConfig(envId, customEnvironments).apiKey }
+          );
 
       if (result.success) {
         setRoutingResult(result.data);
@@ -525,19 +530,22 @@ export default function Home() {
 
     // Fetch concurrently for each environment
     // Wrap in try/catch so promises never reject — envId is always preserved
+    const routingParams = {
+      start: startLocation,
+      destination: destinationLocation,
+      dateTime,
+      routingOptions,
+    };
+
     const promises = selectedEnvironments.map(async (envId) => {
       try {
-        const envConfig = getEnvironmentConfig(envId, customEnvironments);
-        const result = await fetchRouting(
-          {
-            start: startLocation,
-            destination: destinationLocation,
-            dateTime,
-            routingOptions,
-          },
-          undefined,
-          { baseUrl: envConfig.otpUrl, apiKey: envConfig.apiKey }
-        );
+        const result = envId === "insa"
+          ? await fetchInsaRouting(routingParams)
+          : await fetchRouting(
+              routingParams,
+              undefined,
+              { baseUrl: getEnvironmentConfig(envId, customEnvironments).otpUrl, apiKey: getEnvironmentConfig(envId, customEnvironments).apiKey }
+            );
         return { envId, result };
       } catch (err) {
         console.error(`[Comparison] Unexpected error for ${envId}:`, err);
