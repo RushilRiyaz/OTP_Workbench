@@ -38,18 +38,18 @@ export class HomePage {
   }
 
   async getTabCount(): Promise<number> {
-    // Tab buttons live inside the Tabs container which has gap-1 and border-b
+    // Tab buttons live inside the Tabs pill container (justify-center > rounded-xl)
     const tabs = await this.driver.findElements(
-      By.css('div.gap-1.border-b button')
+      By.css('div[class*="justify-center"][class*="pt-2"] button')
     );
     return tabs.length;
   }
 
   async getActiveTabName(): Promise<string> {
     try {
-      // Active tab has border-b-transparent class (sits on the content edge)
+      // Active tab has shadow-sm class (pill-style selected state)
       const activeTab = await this.driver.findElement(
-        By.css('div.gap-1.border-b button.border-b-transparent')
+        By.css('div[class*="justify-center"][class*="pt-2"] button[class*="shadow-sm"]')
       );
       return await activeTab.getText();
     } catch {
@@ -60,7 +60,7 @@ export class HomePage {
   async clickTab(name: string): Promise<void> {
     const tab = await this.driver.findElement(
       By.xpath(
-        `//div[contains(@class, 'gap-1') and contains(@class, 'border-b')]//button[contains(text(), '${name}')]`
+        `//div[contains(@class, 'justify-center') and contains(@class, 'pt-2')]//button[contains(text(), '${name}')]`
       )
     );
     await tab.click();
@@ -268,14 +268,14 @@ export class HomePage {
 
   async getItineraryCardCount(): Promise<number> {
     const cards = await this.driver.findElements(
-      By.css('div.rounded-lg.border.cursor-pointer')
+      By.css('div.rounded-xl.border.cursor-pointer')
     );
     return cards.length;
   }
 
   async clickItineraryCard(index: number): Promise<void> {
     const cards = await this.driver.findElements(
-      By.css('div.rounded-lg.border.cursor-pointer')
+      By.css('div.rounded-xl.border.cursor-pointer')
     );
     if (index >= cards.length) {
       throw new Error(
@@ -287,7 +287,7 @@ export class HomePage {
 
   async isItinerarySelected(index: number): Promise<boolean> {
     const cards = await this.driver.findElements(
-      By.css('div.rounded-lg.border.cursor-pointer')
+      By.css('div.rounded-xl.border.cursor-pointer')
     );
     if (index >= cards.length) return false;
     const classes = await cards[index].getAttribute('class');
@@ -299,7 +299,7 @@ export class HomePage {
   /** Get departure and arrival times from the first (selected) itinerary card */
   async getItineraryTimes(index: number): Promise<{ dep: string; arr: string }> {
     const cards = await this.driver.findElements(
-      By.css('div.rounded-lg.border.cursor-pointer')
+      By.css('div.rounded-xl.border.cursor-pointer')
     );
     if (index >= cards.length) throw new Error(`Card ${index} not found`);
     const times = await cards[index].findElements(
@@ -314,7 +314,7 @@ export class HomePage {
   /** Get the duration text from an itinerary card */
   async getItineraryDuration(index: number): Promise<string> {
     const cards = await this.driver.findElements(
-      By.css('div.rounded-lg.border.cursor-pointer')
+      By.css('div.rounded-xl.border.cursor-pointer')
     );
     if (index >= cards.length) throw new Error(`Card ${index} not found`);
     // Duration is the text-sm text-zinc-500 span on the right side of the first row
@@ -327,7 +327,7 @@ export class HomePage {
   /** Get the transfer info text (e.g. "Direct" or "2 transfers") */
   async getItineraryTransferText(index: number): Promise<string> {
     const cards = await this.driver.findElements(
-      By.css('div.rounded-lg.border.cursor-pointer')
+      By.css('div.rounded-xl.border.cursor-pointer')
     );
     if (index >= cards.length) throw new Error(`Card ${index} not found`);
     const transfer = await cards[index].findElement(
@@ -340,7 +340,7 @@ export class HomePage {
   async isTransferBarVisible(index: number): Promise<boolean> {
     try {
       const cards = await this.driver.findElements(
-        By.css('div.rounded-lg.border.cursor-pointer')
+        By.css('div.rounded-xl.border.cursor-pointer')
       );
       if (index >= cards.length) return false;
       const bar = await cards[index].findElement(
@@ -355,7 +355,7 @@ export class HomePage {
   /** Get product badge texts (e.g. ["Tram 11", "Bus 70"]) from an itinerary card */
   async getItineraryProductBadges(index: number): Promise<string[]> {
     const cards = await this.driver.findElements(
-      By.css('div.rounded-lg.border.cursor-pointer')
+      By.css('div.rounded-xl.border.cursor-pointer')
     );
     if (index >= cards.length) return [];
     const badges = await cards[index].findElements(
@@ -374,7 +374,7 @@ export class HomePage {
   async isLegDetailsVisible(): Promise<boolean> {
     try {
       const section = await this.driver.findElement(
-        By.css('div.rounded-lg.border.cursor-pointer.border-lvb-yellow div.border-t')
+        By.css('div.rounded-xl.border.cursor-pointer.border-lvb-yellow div.border-t')
       );
       return await section.isDisplayed();
     } catch {
@@ -386,7 +386,7 @@ export class HomePage {
   async getLegDetailCount(): Promise<number> {
     try {
       const section = await this.driver.findElement(
-        By.css('div.rounded-lg.border.cursor-pointer.border-lvb-yellow div.border-t.space-y-0\\.5')
+        By.css('div.rounded-xl.border.cursor-pointer.border-lvb-yellow div.border-t.space-y-0\\.5')
       );
       // The direct children of space-y-0.5 are the leg detail wrappers
       const legs = await section.findElements(By.xpath('./div'));
@@ -399,7 +399,7 @@ export class HomePage {
   /** Click a transit leg header to expand intermediate stops */
   async clickTransitLegDetail(legIndex: number): Promise<void> {
     const section = await this.driver.findElement(
-      By.css('div.rounded-lg.border.cursor-pointer.border-lvb-yellow div.border-t')
+      By.css('div.rounded-xl.border.cursor-pointer.border-lvb-yellow div.border-t')
     );
     const legButtons = await section.findElements(
       By.css('button.w-full')
@@ -710,7 +710,7 @@ export class HomePage {
     // Simplest: read the first and last stop names from the expanded details
     try {
       const selectedCard = await this.driver.findElement(
-        By.css('div.rounded-lg.border.cursor-pointer.border-lvb-yellow')
+        By.css('div.rounded-xl.border.cursor-pointer.border-lvb-yellow')
       );
       const detailSection = await selectedCard.findElement(
         By.css('div.border-t')
@@ -732,7 +732,7 @@ export class HomePage {
   async getSelectedCardDetailsText(): Promise<string> {
     try {
       const selectedCard = await this.driver.findElement(
-        By.css('div.rounded-lg.border.cursor-pointer.border-lvb-yellow')
+        By.css('div.rounded-xl.border.cursor-pointer.border-lvb-yellow')
       );
       const detailSection = await selectedCard.findElement(
         By.css('div.border-t')
@@ -780,6 +780,96 @@ export class HomePage {
       // No confirm
     }
   }
+
+  // --- Stop Monitor ---
+
+  /** Check if the Stop Monitor form is visible (stop input present) */
+  async isStopMonitorFormVisible(): Promise<boolean> {
+    try {
+      const input = await this.driver.findElement(
+        By.css('input[placeholder="Search for a stop..."]')
+      );
+      return await input.isDisplayed();
+    } catch {
+      return false;
+    }
+  }
+
+  /** Enter a stop name via autocomplete on the Stop Monitor form */
+  async enterStopMonitorStop(searchTerm: string): Promise<string> {
+    return this.enterAutocompleteInField('Search for a stop...', searchTerm);
+  }
+
+  /** Click the "Monitor" submit button on Stop Monitor form */
+  async clickMonitorButton(): Promise<void> {
+    const button = await this.driver.findElement(
+      By.xpath(`//button[contains(@class, 'bg-lvb-yellow') and contains(text(), 'Monitor')]`)
+    );
+    await this.driver.executeScript(
+      'arguments[0].scrollIntoView({block: "center"});',
+      button
+    );
+    await this.driver.sleep(200);
+    await button.click();
+  }
+
+  /** Check if stop monitor results panel is visible (Board/JSON toggle present) */
+  async isStopMonitorResultsVisible(): Promise<boolean> {
+    try {
+      const boardBtn = await this.driver.findElement(
+        By.xpath(`//button[text()='Board']`)
+      );
+      return await boardBtn.isDisplayed();
+    } catch {
+      return false;
+    }
+  }
+
+  /** Get the number of departure/arrival entry rows in stop monitor results */
+  async getStopMonitorEntryCount(): Promise<number> {
+    // Each entry has a route badge: rounded-full text-white font-bold span
+    const badges = await this.driver.findElements(
+      By.css('span.rounded-full.text-white.font-bold')
+    );
+    return badges.length;
+  }
+
+  /** Click the JSON view toggle in stop monitor results */
+  async clickStopMonitorJsonView(): Promise<void> {
+    const jsonBtn = await this.driver.findElement(
+      By.xpath(`//button[text()='JSON'][../button[text()='Board']]`)
+    );
+    await jsonBtn.click();
+  }
+
+  /** Check if stop monitor JSON view is visible */
+  async isStopMonitorJsonVisible(): Promise<boolean> {
+    try {
+      const pre = await this.driver.findElement(By.css('pre.font-mono'));
+      return await pre.isDisplayed();
+    } catch {
+      return false;
+    }
+  }
+
+  /** Click Board view toggle in stop monitor results */
+  async clickStopMonitorBoardView(): Promise<void> {
+    const boardBtn = await this.driver.findElement(
+      By.xpath(`//button[text()='Board']`)
+    );
+    await boardBtn.click();
+  }
+
+  /** Click the Clear button in stop monitor results toolbar */
+  async clickStopMonitorClear(): Promise<void> {
+    const clearBtn = await this.driver.findElement(
+      By.xpath(`//button[contains(text(), 'Clear')]`)
+    );
+    // Use JS click to bypass any overlay from the card drag handle
+    await this.driver.executeScript('arguments[0].click();', clearBtn);
+  }
+
+  // --- Autocomplete environment ---
 
   async getSelectedAutocompleteEnvironment(): Promise<string> {
     try {
