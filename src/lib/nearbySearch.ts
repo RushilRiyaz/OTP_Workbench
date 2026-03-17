@@ -1,4 +1,4 @@
-// NearbySearch API client
+// FR22: NearbySearch API client
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_NEARBYSEARCH_API_URL || "";
@@ -7,10 +7,10 @@ const API_KEY =
   process.env.NEXT_PUBLIC_API_KEY ||
   "";
 
-// 30s timeout per CLAUDE.md
+// 30s timeout
 const REQUEST_TIMEOUT_MS = 30000;
 
-// --- Enum values from API spec ---
+// FR22.4-FR22.6: Enum values from API spec (types, vehicleTypes, sources)
 
 export const NEARBY_TYPES = [
   "station",
@@ -39,7 +39,7 @@ export const NEARBY_SOURCES = [
 ] as const;
 export type NearbySource = (typeof NEARBY_SOURCES)[number];
 
-// --- Request types ---
+// FR22: Request types
 
 export interface NearbySearchParams {
   center: { lat: number; lon: number };
@@ -51,7 +51,7 @@ export interface NearbySearchParams {
   maxResults?: number;
 }
 
-// --- Response types (from swagger searchItemJson) ---
+// FR22: Response types (from swagger searchItemJson)
 
 export interface NearbySearchItem {
   id: string;
@@ -78,7 +78,7 @@ export type NearbySearchResult =
   | { success: true; data: NearbySearchItem[] }
   | { success: false; error: NearbySearchError };
 
-// --- Helper: categorize items for map coloring ---
+// FR24.1: categorize items for map marker coloring
 
 export type MarkerCategory =
   | "bike"
@@ -125,7 +125,7 @@ function parseCount(value: unknown): number | null {
   return null;
 }
 
-/** Get the count to display on station markers (bikes/escooters available) */
+/** FR24.2: Get the count to display on station markers (bikes/escooters available) */
 export function getStationCount(item: NearbySearchItem): number | null {
   const data = item.data;
   return (
@@ -136,7 +136,7 @@ export function getStationCount(item: NearbySearchItem): number | null {
   );
 }
 
-// --- API fetch ---
+// FR22: API fetch
 
 export async function fetchNearbySearch(
   params: NearbySearchParams,
@@ -169,7 +169,6 @@ export async function fetchNearbySearch(
 
   const url = `${resolvedBaseUrl}/search?${queryParams}`;
 
-  // Log request per CLAUDE.md
   console.log("[NearbySearch API] Request:", url);
 
   // Timeout controller

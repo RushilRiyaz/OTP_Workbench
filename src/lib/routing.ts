@@ -6,7 +6,7 @@ import { RoutingOptions } from "@/components/RoutingOptionsForm";
 const API_BASE_URL = process.env.NEXT_PUBLIC_OTP_API_URL || "";
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
 
-// 30s timeout per CLAUDE.md
+// 30s timeout
 const REQUEST_TIMEOUT_MS = 30000;
 
 // Request params for the routing API
@@ -334,7 +334,6 @@ export async function fetchRouting(
 
   const url = `${resolvedBaseUrl}/otp?${queryParams}`;
 
-  // Log request per CLAUDE.md
   console.log("[Routing API] Request:", url);
 
   // Timeout controller
@@ -368,7 +367,6 @@ export async function fetchRouting(
     let data: RoutingResponse;
     try {
       data = await response.json();
-      // Log response per CLAUDE.md
       console.log("[Routing API] Response:", data);
     } catch {
       return {

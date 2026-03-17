@@ -18,7 +18,7 @@ import JsonHighlighted from "../JsonHighlighted";
 const DARK_MAP_FILTER =
   "invert(1) sepia(0.2) hue-rotate(200deg) saturate(0.55) brightness(0.8) contrast(1.1)";
 
-// Marker colors per requirements
+// FR24.1: Marker colors per requirements
 const MARKER_COLORS: Record<MarkerCategory, string> = {
   bike: "#1e3a5f",           // Dark blue
   bike_station: "#1e3a5f",   // Dark blue
@@ -28,7 +28,7 @@ const MARKER_COLORS: Record<MarkerCategory, string> = {
   other: "#b8860b",          // Dark yellow
 };
 
-// Build a circle marker icon (SVG data URI)
+// FR24.1/FR24.2: Build a circle marker icon with optional count
 function createMarkerIcon(
   category: MarkerCategory,
   count: number | null,
@@ -62,7 +62,7 @@ function createMarkerIcon(
   });
 }
 
-// --- Hold-to-radius constants ---
+// FR23.2: Hold-to-radius constants (nice-to-have)
 const HOLD_THRESHOLD_MS = 400; // ms before hold-mode activates (long enough to not conflict with pan)
 const RADIUS_GROW_INTERVAL_MS = 50; // how often radius grows
 const RADIUS_INITIAL = 100; // starting radius when hold begins (meters)
@@ -73,11 +73,11 @@ const MOVE_THRESHOLD_PX = 5; // pixels of movement to consider a drag (not a hol
 // --- Sub-components ---
 
 /**
- * Handles map interactions for center + radius:
- *  - Quick click on empty map area: sets center only
- *  - Press & hold on empty map area (400ms, no movement): sets center, radius grows while held
+ * FR23.1/FR23.2: Handles map interactions for center + radius:
+ *  - Quick click on empty map area: sets center only (FR23.1)
+ *  - Press & hold on empty map area: radius grows while held (FR23.2)
  *  - Drag: normal map panning
- *  - Clicks on markers/clusters: ignored (handled by their own event handlers)
+ *  - Clicks on markers/clusters: ignored
  */
 function MapClickHandler({
   onCenterChange,
@@ -300,7 +300,7 @@ export default function NearbySearchMapView({
         <BoundsFitter center={center} radius={radius} holdingRef={holdingRef} />
         <CursorTracker />
 
-        {/* Center marker */}
+        {/* FR23.3: Center marker */}
         {center && (
           <Marker
             position={[center.lat, center.lon]}
@@ -315,7 +315,7 @@ export default function NearbySearchMapView({
           </Marker>
         )}
 
-        {/* Radius circle */}
+        {/* FR23.4: Radius circle */}
         {center && (
           <Circle
             center={[center.lat, center.lon]}
@@ -330,12 +330,12 @@ export default function NearbySearchMapView({
           />
         )}
 
-        {/* Result markers with clustering */}
+        {/* FR24.1/FR24.5: Result markers with clustering */}
         {results && results.length > 0 && (
           <MarkerClusterGroup
             ref={clusterRef}
             chunkedLoading
-            spiderfyOnMaxZoom
+            spiderfyOnMaxZoom  // FR24.6: expand clusters at max zoom
             zoomToBoundsOnClick
             showCoverageOnHover={false}
             maxClusterRadius={40}
@@ -352,7 +352,7 @@ export default function NearbySearchMapView({
                   position={[item.lat, item.lon]}
                   icon={icon}
                 >
-                  {/* Hover tooltip: type + ID */}
+                  {/* FR24.3: Hover tooltip — type + ID */}
                   <Tooltip direction="top" offset={[0, -12]}>
                     <div className="text-xs">
                       <span className="font-semibold">{item.type}</span>
@@ -361,7 +361,7 @@ export default function NearbySearchMapView({
                     </div>
                   </Tooltip>
 
-                  {/* Click popup: full info + copy */}
+                  {/* FR24.4: Click popup — full info + copy */}
                   <Popup maxWidth={350} minWidth={250}>
                     <div className="max-h-64 overflow-auto">
                       <div className="flex items-center justify-between mb-1">

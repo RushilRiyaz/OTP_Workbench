@@ -100,14 +100,14 @@ export default function Home() {
     Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }>
   >({});
 
-  // NearbySearch state
+  // FR22-FR25: NearbySearch state
   const [nearbySearchFormState, setNearbySearchFormState] = useState<NearbySearchFormState>(defaultNearbySearchFormState);
   const [nearbySearchResults, setNearbySearchResults] = useState<NearbySearchItem[] | null>(null);
   const [nearbySearchLoading, setNearbySearchLoading] = useState(false);
   const [nearbySearchError, setNearbySearchError] = useState<string | null>(null);
   const [nearbySearchSelectedItem, setNearbySearchSelectedItem] = useState<NearbySearchItem | null>(null);
 
-  // Clear NearbySearch results when center is removed (from form input clearing)
+  // FR22.2: Clear NearbySearch results when center is removed (from form input clearing)
   useEffect(() => {
     if (!nearbySearchFormState.center) {
       setNearbySearchResults(null);
@@ -587,7 +587,7 @@ export default function Home() {
     setRequestHistory([]);
   };
 
-  // NearbySearch: update center from map click
+  // FR23.1: NearbySearch — update center from map click
   const handleNearbySearchCenterChange = useCallback((center: { lat: number; lon: number }) => {
     setNearbySearchFormState((prev) => ({ ...prev, center }));
     setNearbySearchResults(null);
@@ -595,12 +595,12 @@ export default function Home() {
     setNearbySearchError(null);
   }, []);
 
-  // NearbySearch: update radius from hold-to-radius map interaction
+  // FR23.2: NearbySearch — update radius from hold-to-radius map interaction
   const handleNearbySearchRadiusChange = useCallback((radius: number) => {
     setNearbySearchFormState((prev) => ({ ...prev, radius }));
   }, []);
 
-  // NearbySearch: submit search
+  // FR22: NearbySearch — submit search
   const handleNearbySearchSubmit = useCallback(async () => {
     const params = toNearbySearchParams(nearbySearchFormState);
     if (!params) return;
@@ -854,7 +854,7 @@ export default function Home() {
             </div>
             )}
 
-            {/* NearbySearch Form — shown on nearby-search tab */}
+            {/* FR22: NearbySearch Form — shown on nearby-search tab */}
             {activeTab === "nearby-search" && (
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
                 <NearbySearchForm

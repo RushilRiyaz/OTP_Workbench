@@ -6,7 +6,7 @@ import type { NearbySearchItem } from "@/lib/nearbySearch";
 import { categorizeItem, getStationCount } from "@/lib/nearbySearch";
 import JsonHighlighted from "./JsonHighlighted";
 
-// Marker colors matching map markers
+// FR24.1: Marker colors matching map markers
 const CATEGORY_COLORS: Record<string, string> = {
   bike: "#1e3a5f",
   bike_station: "#1e3a5f",
@@ -99,7 +99,7 @@ export default function NearbySearchResults({
         </div>
       </div>
 
-      {/* JSON view for entire result */}
+      {/* FR25.2: JSON view for entire result */}
       {viewMode === "json" && (
         <div className="flex-1 overflow-auto min-h-0 p-3">
           <div className="flex justify-end mb-2">
@@ -119,7 +119,7 @@ export default function NearbySearchResults({
         </div>
       )}
 
-      {/* List view */}
+      {/* FR24.1: List view with colored dots */}
       {viewMode === "list" && !selectedItem && (
         <div className="flex-1 overflow-auto min-h-0">
           {results.map((item) => {
@@ -168,7 +168,7 @@ export default function NearbySearchResults({
         </div>
       )}
 
-      {/* Selected item detail + JSON */}
+      {/* FR25.1: Selected item detail + JSON */}
       {viewMode === "list" && selectedItem && (
         <div className="flex-1 overflow-auto min-h-0 p-3">
           {/* Back button */}

@@ -116,7 +116,7 @@ export default function NearbySearchForm({
 
   return (
     <div className="space-y-3">
-      {/* Center Coordinate */}
+      {/* FR22.2: Center Coordinate */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-1">
           {t("center")}
@@ -144,7 +144,7 @@ export default function NearbySearchForm({
         )}
       </div>
 
-      {/* Radius */}
+      {/* FR22.3: Radius */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-1">
           {t("radius")}
@@ -168,7 +168,7 @@ export default function NearbySearchForm({
         />
       </div>
 
-      {/* Types */}
+      {/* FR22.4: Types */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-1.5">
           {t("types")}
@@ -196,7 +196,7 @@ export default function NearbySearchForm({
         </div>
       </div>
 
-      {/* Vehicle Types */}
+      {/* FR22.5: Vehicle Types */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-1.5">
           {t("vehicleTypes")}
@@ -224,7 +224,7 @@ export default function NearbySearchForm({
         </div>
       </div>
 
-      {/* Sources */}
+      {/* FR22.6: Sources */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-1.5">
           {t("sources")}
@@ -252,7 +252,7 @@ export default function NearbySearchForm({
         </div>
       </div>
 
-      {/* Providers */}
+      {/* FR22.7: Providers */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-1">
           {t("providers")}
@@ -268,7 +268,7 @@ export default function NearbySearchForm({
         />
       </div>
 
-      {/* Max Results */}
+      {/* FR22.8: Max Results */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-1">
           {t("maxResults")}
@@ -303,7 +303,7 @@ export default function NearbySearchForm({
         </div>
       )}
 
-      {/* Submit button */}
+      {/* FR22: Submit button */}
       <button
         type="button"
         onClick={handleSubmit}

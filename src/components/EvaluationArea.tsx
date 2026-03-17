@@ -193,7 +193,7 @@ interface EvaluationAreaProps {
   smSelectedStopId?: string | null;
   onSmStopSelect?: (stop: StopsItem) => void;
   onSmClear?: () => void;
-  // NearbySearch props
+  // FR22-FR25: NearbySearch props
   nearbySearchCenter?: { lat: number; lon: number } | null;
   nearbySearchRadius?: number;
   nearbySearchResults?: NearbySearchItem[] | null;
@@ -653,7 +653,7 @@ export default function EvaluationArea({
           />
         )}
 
-        {/* NearbySearch tab */}
+        {/* FR22-FR25: NearbySearch tab */}
         {activeTab === "nearby-search" && (
           <div className="flex flex-col h-full">
             {/* Split: map on top, results below */}
