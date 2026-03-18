@@ -27,6 +27,7 @@ function resolveCoordinates(
 export async function fetchInsaRouting(
   params: RoutingRequestParams,
   signal?: AbortSignal,
+  options?: { context?: string },
 ): Promise<RoutingResult> {
   const { start, destination, dateTime, routingOptions } = params;
 
@@ -85,6 +86,11 @@ export async function fetchInsaRouting(
   queryParams.set("poly", "1");
   queryParams.set("polyEnc", "GPA");
   queryParams.set("tariff", "false");
+
+  // Scroll pagination: context token overrides date/time positioning
+  if (options?.context) {
+    queryParams.set("context", options.context);
+  }
 
   const url = `${INSA_API_URL}?${queryParams}`;
   console.log("[INSA Routing API] Request:", url);

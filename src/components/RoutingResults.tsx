@@ -190,7 +190,7 @@ export default function RoutingResults({
       ) : (
         <div className="flex-1 overflow-auto p-3 pt-1">
           {/* FR28: Raw/Normalized toggle — only for INSA (when _rawApiResponse present) */}
-          {routingResult._rawApiResponse && (
+          {!!routingResult._rawApiResponse && (
             <div className="flex items-center gap-1 mb-2">
               <div className="inline-flex bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-lg p-0.5">
                 <button
