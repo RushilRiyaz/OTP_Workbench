@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 import { Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
-import type { Itinerary } from "@/lib/routing";
-import { getLegColor } from "@/lib/legUtils";
+import type { Itinerary } from "@/lib/api/routing";
+import { getLegColor } from "@/lib/utils/legUtils";
 
 const DASHED_MODES = new Set(["WALK"]);
 

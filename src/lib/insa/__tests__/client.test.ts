@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { fetchInsaRouting } from "../client";
-import type { RoutingRequestParams } from "@/lib/routing";
+import type { RoutingRequestParams } from "@/lib/api/routing";
 import { coordsLocation, stopIdLocation, autocompleteLocation, defaultOptions } from "@/test/fixtures";
 
 // ---------------------------------------------------------------------------

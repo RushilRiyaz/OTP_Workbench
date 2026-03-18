@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isStation } from "@/lib/routing";
+import { isStation } from "@/lib/api/routing";
 import {
   createStation,
   createFromToLocation,

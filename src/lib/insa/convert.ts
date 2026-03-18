@@ -9,7 +9,7 @@ import type {
   Station,
   FromToLocation,
   LegGeometry,
-} from "../routing";
+} from "../api/routing";
 import type { InsaTripResponse, InsaTrip, InsaLeg, InsaStop, InsaLocation } from "./types";
 import {
   parseInsaDateTime,

@@ -1,9 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import ItineraryCard from "../ItineraryCard";
-import type { DetailComparisonLayoutProps } from "./types";
-import { ITINERARY_COLORS, getEnvLabel } from "./types";
+import ItineraryCard from "../routing/ItineraryCard";
+import type { DetailComparisonLayoutProps } from "@/lib/types";
+import { ITINERARY_COLORS, getEnvLabel } from "@/lib/types";
 
 // FR17.2: Dedicated detail comparison view — side-by-side columns (1-3)
 export function DetailComparisonLayout({

@@ -12,8 +12,8 @@ A developer tool for LVB (Leipziger Verkehrsbetriebe) routing developers to test
 - **Styling**: Tailwind CSS 4
 - **Maps**: Leaflet + react-leaflet
 - **Internationalization**: next-intl (English + German)
-- **Unit Testing**: Vitest (18 test files, 281 tests)
-- **E2E Testing**: Selenium WebDriver (32 tests)
+- **Unit Testing**: Vitest (23 test files, 474 tests)
+- **E2E Testing**: Selenium WebDriver (40 tests)
 
 ## Prerequisites
 
@@ -133,24 +133,29 @@ The app will automatically reload when you make code changes. To stop the server
 ### Unit Tests (no server needed)
 
 ```bash
-npm run test          # run all 281 tests once
+npm run test          # run all 474 tests once
 npm run test:watch    # re-run on file changes (press q to exit)
 ```
 
-#### Unit Test Coverage (18 test files)
+#### Unit Test Coverage (23 test files)
 
 | Area | Tests | What's Tested |
 |------|-------|---------------|
-| Routing API | 34 | Location/date/time formatting, URL building, error handling, timeouts, custom params |
+| INSA utils | 57 | Polyline decoding, mode mapping, date parsing |
+| INSA convert | 41 | INSA → OTP response conversion, leg/stop mapping |
+| Nearby Search API | 40 | Fetch, categorize items, station count, error handling |
 | Leg utilities | 39 | Timestamps, durations, delays, distances, colors, products, alert categories |
+| Routing API | 34 | Location/date/time formatting, URL building, error handling, timeouts, custom params |
 | Coordinate parsing | 33 | Lat/lon formats, boundary values, range validation, invalid input |
+| Timeline utilities | 33 | Range computation, Y positioning, hour markers, height calculations |
 | Routing options | 27 | Travel mode structure, defaults, mode toggling, optional params |
+| INSA client | 23 | INSA routing fetch, error handling, pagination tokens |
 | URL params | 21 | Serialize/deserialize form state, location encoding, round-trip correctness |
-| Timeline utilities | 18 | Range computation, Y positioning, hour markers, height calculations |
-| Request history | 14 | localStorage CRUD, dedup, cap at 20, corrupted data, display labels |
+| Stop Monitor API | 17 | Fetch, format date/time, error handling, loading states |
 | Location history | 14 | Read/write, dedup by text, cap at 10, SSR safety |
-| Validation | 11 | Start/dest/dateTime/travelModes checks, per-field error messages |
+| Request history | 14 | localStorage CRUD, dedup, cap at 20, corrupted data, display labels |
 | Autocomplete | 13 | Input validation, URL building, API key header, abort handling |
+| Validation | 11 | Start/dest/dateTime/travelModes checks, per-field error messages |
 | DateTimeInput | 8 | Berlin timezone utility, dark mode detection, input changes |
 | Comparison types | 8 | Type constants, ENV_COLORS, helper functions |
 | Comparison polylines | 8 | Hover opacity/weight calculation for all states |
@@ -174,7 +179,7 @@ npm run dev
 npm run test:e2e:local
 ```
 
-This will wait until the server is ready, then open a Chrome window and run through all 32 tests automatically.
+This will wait until the server is ready, then open a Chrome window and run through all 40 tests automatically.
 
 For headless mode (no visible browser):
 
@@ -182,7 +187,7 @@ For headless mode (no visible browser):
 npm run test:e2e:ci
 ```
 
-#### E2E Test Coverage (32 tests)
+#### E2E Test Coverage (40 tests)
 
 | # | Test | Description |
 |---|------|-------------|
@@ -218,65 +223,127 @@ npm run test:e2e:ci
 | 30 | Confirm clear | Confirming removes results |
 | 31 | AC env switch | Can switch autocomplete environment |
 | 32 | Full autocomplete flow | Location autocomplete → routing → leg expansion → name validation |
+| 33 | SM tab switch | Can switch to Stopmonitor tab |
+| 34 | SM form | Stop monitor form shows stop input |
+| 35 | SM submit | Can submit a stop monitor request |
+| 36 | SM results | Stop monitor results are visible |
+| 37 | SM departures | Stop monitor shows departure entries |
+| 38 | SM JSON view | Stop monitor JSON view works |
+| 39 | SM clear dialog | Stop monitor clear shows confirmation dialog |
+| 40 | SM confirm clear | Stop monitor confirm clear removes results |
 
 ## Project Structure
 
 ```
 otp-client-v2/
-├── messages/                    # i18n translations (EN + DE, ~220 keys each)
-├── public/                      # Static assets (LVB logo, Leaflet assets)
-├── e2e/                         # Selenium E2E tests (32 tests)
-│   ├── config/driver.ts         #   Chrome WebDriver setup
-│   ├── pages/HomePage.ts        #   Page Object Model (40+ helper methods)
-│   └── runner.ts                #   Sequential test runner
+├── messages/                        # i18n translations (EN + DE)
+├── public/                          # Static assets (LVB logo, Leaflet assets)
+├── e2e/                             # Selenium E2E tests (40 tests)
+│   ├── config/driver.ts             #   Chrome WebDriver setup
+│   ├── pages/HomePage.ts            #   Page Object Model (40+ helper methods)
+│   └── runner.ts                    #   Sequential test runner
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx           #   Root layout (Geist fonts)
-│   │   ├── page.tsx             #   Redirects / → /en
-│   │   ├── globals.css          #   LVB theme, dark mode, Tailwind 4, Leaflet styles
+│   │   ├── layout.tsx               # Root layout (Geist fonts)
+│   │   ├── page.tsx                 # Redirects / → /en
+│   │   ├── globals.css              # LVB theme, dark mode, Tailwind 4
 │   │   └── [locale]/
-│   │       ├── layout.tsx       #   Locale provider + Header
-│   │       └── page.tsx         #   Main page (all state + handlers, ~550 lines)
+│   │       ├── layout.tsx           # Locale provider + Header
+│   │       └── page.tsx             # State orchestrator (hooks + JSX)
 │   ├── components/
-│   │   ├── Header.tsx           #   LVB-yellow header, logo, language/theme toggles
-│   │   ├── ParameterArea.tsx    #   Collapsible left sidebar (drag-resizable)
-│   │   ├── EvaluationArea.tsx   #   Right area: tabs + map + results/comparison
-│   │   ├── Tabs.tsx             #   5-tab navigation
-│   │   ├── JourneyForm.tsx      #   Location inputs + date/time + routing options + history
-│   │   ├── LocationInput.tsx    #   Autocomplete/stopId/coords detection + dropdown
-│   │   ├── DateTimeInput.tsx    #   Datetime picker with "Now" button
-│   │   ├── RoutingOptionsForm.tsx # Travel modes, timing, optional/custom params
-│   │   ├── EnvironmentSelector.tsx # PROD/STAGE/DEV + custom environment management
-│   │   ├── RoutingResults.tsx   #   Itinerary list + JSON viewer + earlier/later
-│   │   ├── ItineraryCard.tsx    #   Itinerary detail (legs, stops, delays, zones, alerts)
-│   │   ├── RequestHistoryList.tsx # Past routing requests
-│   │   ├── comparison/          #   FR13–FR17 comparison components
-│   │   │   ├── TimelineComparisonLayout.tsx  # Horizontal + vertical timeline
-│   │   │   ├── ComparisonOverviewLayout.tsx  # Gantt-chart overview
-│   │   │   ├── DetailComparisonLayout.tsx    # Side-by-side itinerary detail
-│   │   │   ├── EnvColumn.tsx                 # Per-environment column
-│   │   │   ├── TimeAxis.tsx                  # Vertical time ruler
-│   │   │   ├── TimelineTransferScheme.tsx    # Compact horizontal card
-│   │   │   └── VerticalTransferSchemeStrip.tsx # Vertical stop-chain strip
-│   │   └── map/                 #   Leaflet map components
-│   │       ├── MapView.tsx      #     Map container + dark mode tiles
-│   │       ├── RoutePolylines.tsx #   Single-itinerary polylines
+│   │   ├── layout/                  # App shell
+│   │   │   ├── Header.tsx           #   LVB header, language/theme toggles
+│   │   │   ├── ParameterArea.tsx    #   Collapsible left sidebar
+│   │   │   ├── EvaluationArea.tsx   #   Right area: tabs + map + results
+│   │   │   ├── Tabs.tsx             #   Tab navigation
+│   │   │   └── ErrorBoundary.tsx    #   Error boundary
+│   │   ├── routing/                 # Routing feature
+│   │   │   ├── JourneyForm.tsx      #   Location inputs + date/time + options
+│   │   │   ├── RoutingOptionsForm.tsx # Travel modes, timing, custom params
+│   │   │   ├── RoutingResults.tsx   #   Itinerary list + JSON viewer
+│   │   │   ├── ItineraryCard.tsx    #   Itinerary detail (legs, stops, alerts)
+│   │   │   ├── DateTimeInput.tsx    #   Datetime picker
+│   │   │   ├── RequestHistoryPanel.tsx # Collapsible request history
+│   │   │   └── RequestHistoryList.tsx  # History list display
+│   │   ├── stop-monitor/            # Stop Monitor feature
+│   │   │   ├── StopMonitorForm.tsx  #   Stop input, date/time, filters
+│   │   │   └── StopMonitorResults.tsx # Multi-env departure board
+│   │   ├── nearby-search/           # Nearby Search feature
+│   │   │   ├── NearbySearchForm.tsx #   Center, radius, type filters
+│   │   │   └── NearbySearchResults.tsx # Results list + detail view
+│   │   ├── comparison/              # Routing comparison
+│   │   │   ├── ComparisonCardShell.tsx  # Shared card styling
+│   │   │   ├── TimelineComparisonLayout.tsx # Horizontal + vertical timeline
+│   │   │   ├── ComparisonOverviewLayout.tsx # Gantt-chart overview
+│   │   │   ├── DetailComparisonLayout.tsx   # Side-by-side detail
+│   │   │   ├── EnvColumn.tsx        #   Per-environment column
+│   │   │   ├── TimelineTransferScheme.tsx   # Compact timeline card
+│   │   │   ├── VerticalTransferSchemeStrip.tsx # Vertical stop-chain
+│   │   │   ├── TimeAxis.tsx         #   Time ruler
+│   │   │   └── ComparisonEmptyState.tsx     # Empty state
+│   │   ├── shared/                  # Cross-feature components
+│   │   │   ├── EnvironmentSelector.tsx # PROD/STAGE/DEV + custom envs
+│   │   │   ├── LocationInput.tsx    #   Autocomplete/stopId/coords input
+│   │   │   ├── JsonHighlighted.tsx  #   JSON syntax highlighting
+│   │   │   ├── ConfirmDialog.tsx    #   Reusable confirm dialog
+│   │   │   ├── LanguageSwitcher.tsx #   EN/DE toggle
+│   │   │   └── ThemeToggle.tsx      #   Dark/light toggle
+│   │   └── map/                     # Leaflet map components
+│   │       ├── MapView.tsx          #   Main map + stop markers
+│   │       ├── MapEvents.tsx        #   Click-to-set-location
+│   │       ├── MapMarkers.tsx       #   Start/dest markers
+│   │       ├── StopMarkers.tsx      #   Hierarchical stop markers
+│   │       ├── RoutePolylines.tsx   #   Single-itinerary polylines
 │   │       ├── ComparisonRoutePolylines.tsx # Multi-itinerary polylines
-│   │       ├── MapMarkers.tsx   #     Start/dest markers with SVG gradients
-│   │       └── MapEvents.tsx    #     Click-to-set-location + reverse geocode
-│   ├── lib/                     #   Utilities, API clients, types
-│   │   ├── routing.ts           #     OTP routing API client + response types
-│   │   ├── autocomplete.ts      #     Location search API client
-│   │   ├── validation.ts        #     Form validation
-│   │   ├── legUtils.ts          #     Leg formatting (times, colors, delays, distances)
-│   │   ├── timelineUtils.ts     #     Timeline positioning math
-│   │   ├── urlParams.ts         #     URL state serialization for shareable links
-│   │   ├── requestHistory.ts    #     localStorage-backed request history
-│   │   └── locationHistory.ts   #     localStorage-backed location history
-│   ├── i18n/                    #   next-intl routing + locale config
-│   └── test/                    #   Shared test fixtures + localStorage mock
-├── .env.example                 # Environment variable template
-├── .nvmrc                       # Node 24
+│   │       ├── StopMonitorMapView.tsx       # Stop Monitor map
+│   │       ├── NearbySearchMapView.tsx      # Nearby Search map
+│   │       ├── Dynamic*Loader.tsx   #   SSR wrappers (3 files)
+│   │       ├── CursorTracker.tsx    #   Mouse coords display
+│   │       ├── CoordPopup.tsx       #   Copy-to-clipboard popup
+│   │       ├── constants.ts         #   Map defaults
+│   │       └── utils.ts             #   Coordinate helpers
+│   ├── lib/
+│   │   ├── types/                   # Shared type definitions
+│   │   │   ├── index.ts             #   Barrel re-export
+│   │   │   ├── location.ts          #   LocationValue
+│   │   │   ├── routing.ts           #   RoutingOptions, TravelModes
+│   │   │   ├── environment.ts       #   Environment config + helpers
+│   │   │   └── comparison.ts        #   Comparison types + colors
+│   │   ├── api/                     # API clients
+│   │   │   ├── routing.ts           #   OTP routing (30s timeout)
+│   │   │   ├── autocomplete.ts      #   Location search (5s timeout)
+│   │   │   ├── stopMonitor.ts       #   Departure/arrival board
+│   │   │   ├── nearbySearch.ts      #   Nearby mobility objects
+│   │   │   ├── stopLookup.ts        #   Stop ID resolution
+│   │   │   └── reverseGeocode.ts    #   Nominatim reverse geocode
+│   │   ├── hooks/                   # Custom React hooks
+│   │   │   ├── useRouting.ts        #   Routing state + handlers
+│   │   │   ├── useComparison.ts     #   Comparison state + handlers
+│   │   │   ├── useStopMonitor.ts    #   Stop Monitor state + handlers
+│   │   │   ├── useNearbySearch.ts   #   Nearby Search state + handlers
+│   │   │   ├── useEnvironment.ts    #   Environment selection
+│   │   │   ├── useUrlStateSync.ts   #   URL param sync
+│   │   │   └── useIsDark.ts         #   Dark mode detection
+│   │   ├── state/                   # Client-side persistence
+│   │   │   ├── urlParams.ts         #   URL state serialization
+│   │   │   ├── requestHistory.ts    #   Request history (localStorage)
+│   │   │   └── locationHistory.ts   #   Location history (localStorage)
+│   │   ├── utils/                   # Pure utility functions
+│   │   │   ├── validation.ts        #   Form validation
+│   │   │   ├── legUtils.ts          #   Leg formatting (times, colors)
+│   │   │   ├── timelineUtils.ts     #   Timeline positioning math
+│   │   │   ├── comparisonSelectionUtils.ts # Multi-select toggle
+│   │   │   └── comparisonPolylineUtils.ts  # Hover dimming logic
+│   │   └── insa/                    # INSA routing provider
+│   │       ├── client.ts            #   INSA API client
+│   │       ├── convert.ts           #   INSA → OTP response conversion
+│   │       ├── types.ts             #   INSA response types
+│   │       ├── utils.ts             #   Polyline decoding, mode mapping
+│   │       └── index.ts             #   Public API
+│   ├── i18n/                        # next-intl routing + locale config
+│   └── test/                        # Shared test fixtures + localStorage mock
+├── .env.example                     # Environment variable template
+├── .nvmrc                           # Node 24
 ├── package.json
 ├── tsconfig.json
 └── vitest.config.ts
@@ -300,7 +367,7 @@ Workflow file: `.github/workflows/e2e-tests.yml`
 | `npm run build` | Create production build |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
-| `npm run test` | Run all 281 unit tests |
+| `npm run test` | Run all 474 unit tests |
 | `npm run test:watch` | Run unit tests in watch mode |
 | `npm run test:e2e` | Run E2E tests (requires server running) |
 | `npm run test:e2e:ci` | Run E2E tests headless |

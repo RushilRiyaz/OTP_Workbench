@@ -1,19 +1,20 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useIsDark } from "@/lib/useIsDark";
-import type { Itinerary } from "@/lib/routing";
-import { computeTimelineRange, floorToMinute } from "@/lib/timelineUtils";
+import { useIsDark } from "@/lib/hooks/useIsDark";
+import type { Itinerary } from "@/lib/api/routing";
+import { computeTimelineRange, floorToMinute } from "@/lib/utils/timelineUtils";
 import {
   MODE_LABELS,
   formatTimestamp,
   formatDuration,
   getLegColor,
   getUniqueProducts,
-} from "@/lib/legUtils";
-import type { TimelineComparisonLayoutProps } from "./types";
-import { ENV_COLORS, ITINERARY_COLORS, getEnvLabel } from "./types";
+} from "@/lib/utils/legUtils";
+import type { TimelineComparisonLayoutProps } from "@/lib/types";
+import { ENV_COLORS, getEnvLabel } from "@/lib/types";
 import { ComparisonEmptyState } from "./ComparisonEmptyState";
+import { ComparisonCardShell } from "./ComparisonCardShell";
 
 // --- FR13.3 + FR16: Horizontal overview — Gantt-chart timeline with env color coding ---
 
@@ -148,45 +149,27 @@ export function ComparisonOverviewLayout({
               (r) => r.envId === envId && r.itineraryIndex === originalIndex
             );
             const isSelected = selectedSlotIndex >= 0;
-            const selectionColor = isSelected ? ITINERARY_COLORS[selectedSlotIndex] : undefined;
 
             return (
-              <div
+              <ComparisonCardShell
                 key={`${envId}-${originalIndex}-${i}`}
-                className={`absolute rounded-lg border-2 transition-all cursor-pointer ${
-                  isSelected
-                    ? "bg-white dark:bg-zinc-900 shadow-lg z-30"
-                    : isHovered
-                    ? "border-zinc-400 dark:border-zinc-500 bg-white dark:bg-zinc-800 shadow-md z-20"
-                    : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-600 z-0"
-                }`}
+                isSelected={isSelected}
+                isHovered={isHovered}
+                selectedSlotIndex={selectedSlotIndex}
+                envColor={envColor}
+                className="absolute"
                 style={{
                   left: `${leftPct}%`,
                   width: `${widthPct}%`,
                   top,
                   height: BAR_HEIGHT,
                   minWidth: 120,
-                  borderColor: isSelected ? selectionColor : undefined,
                 }}
                 onMouseEnter={() => onComparisonHover?.(envId, originalIndex)}
                 onMouseLeave={() => onComparisonHover?.(envId, null)}
                 onClick={() => onComparisonToggleSelect?.(envId, originalIndex)}
+                accentBarWidth="w-1"
               >
-                {/* FR17: Selection badge */}
-                {isSelected && (
-                  <div
-                    className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white z-40"
-                    style={{ backgroundColor: selectionColor }}
-                  >
-                    {selectedSlotIndex + 1}
-                  </div>
-                )}
-                {/* FR16.2: Left accent bar showing env color */}
-                <div
-                  className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg"
-                  style={{ backgroundColor: envColor }}
-                />
-
                 {/* Content: times, transfer scheme, products */}
                 <div className="px-2 py-1 pl-2.5 h-full flex flex-col justify-center overflow-hidden">
                   {/* Row 1: Env label + Times + Duration */}
@@ -247,7 +230,7 @@ export function ComparisonOverviewLayout({
                     )}
                   </div>
                 </div>
-              </div>
+              </ComparisonCardShell>
             );
           })}
         </div>

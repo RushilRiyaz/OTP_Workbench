@@ -7,13 +7,13 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.css";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.Default.css";
-import { useIsDark } from "@/lib/useIsDark";
-import type { NearbySearchItem } from "@/lib/nearbySearch";
-import { categorizeItem, getStationCount, type MarkerCategory } from "@/lib/nearbySearch";
-import { defaultNearbySearchFormState } from "@/components/NearbySearchForm";
+import { useIsDark } from "@/lib/hooks/useIsDark";
+import type { NearbySearchItem } from "@/lib/api/nearbySearch";
+import { categorizeItem, getStationCount, type MarkerCategory } from "@/lib/api/nearbySearch";
+import { defaultNearbySearchFormState } from "@/components/nearby-search/NearbySearchForm";
 import { LEIPZIG_HBF, DEFAULT_ZOOM, TILE_URL, TILE_ATTRIBUTION } from "./constants";
 import CursorTracker from "./CursorTracker";
-import JsonHighlighted from "../JsonHighlighted";
+import JsonHighlighted from "../shared/JsonHighlighted";
 
 // Dark mode filter (same as MapView.tsx)
 const DARK_MAP_FILTER =

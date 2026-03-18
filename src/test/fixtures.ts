@@ -1,8 +1,6 @@
 // Shared test fixtures for unit tests
 
-import type { LocationValue } from "@/components/LocationInput";
-import type { RoutingOptions } from "@/components/RoutingOptionsForm";
-import type { RequestHistoryEntry } from "@/lib/types";
+import type { LocationValue, RoutingOptions, RequestHistoryEntry } from "@/lib/types";
 import type {
   Station,
   FromToLocation,
@@ -11,8 +9,8 @@ import type {
   Itinerary,
   RoutingResponse,
   Alert,
-} from "@/lib/routing";
-import type { MonitorItem, StopsItem, StopMonitorAlert } from "@/lib/stopMonitor";
+} from "@/lib/api/routing";
+import type { MonitorItem, StopsItem, StopMonitorAlert } from "@/lib/api/stopMonitor";
 
 // --- LocationValue factories ---
 

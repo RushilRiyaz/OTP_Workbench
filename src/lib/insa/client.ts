@@ -1,7 +1,7 @@
 // INSA Routing API fetch client
 
-import type { RoutingRequestParams, RoutingResult } from "../routing";
-import type { LocationValue } from "@/components/LocationInput";
+import type { RoutingRequestParams, RoutingResult } from "../api/routing";
+import type { LocationValue } from "@/lib/types";
 import type { InsaTripResponse } from "./types";
 import { travelModesToProducts } from "./utils";
 import { convertInsaToOtpResponse } from "./convert";

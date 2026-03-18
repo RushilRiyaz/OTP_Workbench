@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useIsDark } from "@/lib/useIsDark";
+import { useIsDark } from "@/lib/hooks/useIsDark";
 import {
   computeTimelineRange,
   computeTotalHeight,
@@ -9,9 +9,9 @@ import {
   computeAlignedPositions,
   DEFAULT_PIXELS_PER_MINUTE,
   TimelineConfig,
-} from "@/lib/timelineUtils";
-import type { TimelineComparisonLayoutProps } from "./types";
-import { ENV_COLORS, getEnvLabel } from "./types";
+} from "@/lib/utils/timelineUtils";
+import type { TimelineComparisonLayoutProps } from "@/lib/types";
+import { ENV_COLORS, getEnvLabel } from "@/lib/types";
 import { ComparisonEmptyState } from "./ComparisonEmptyState";
 import { TimeAxis } from "./TimeAxis";
 import { EnvColumn } from "./EnvColumn";
