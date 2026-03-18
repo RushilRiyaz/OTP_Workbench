@@ -20,11 +20,13 @@ export function parseInsaDateTime(date: string, time: string, tz?: number): numb
   }
 
   // Fallback: parse in Berlin timezone (handles CET/CEST automatically)
-  const berlinStr = new Date(`${isoDate}Z`).toLocaleString("en-US", { timeZone: "Europe/Berlin" });
-  const berlinDate = new Date(berlinStr);
-  const utcMs = new Date(`${isoDate}Z`).getTime();
-  const offsetMs = berlinDate.getTime() - utcMs;
-  return utcMs - offsetMs;
+  // Use sv-SE locale for consistent YYYY-MM-DD HH:mm:ss format
+  const asUtc = new Date(`${isoDate}Z`).getTime();
+  const utcStr = new Date(asUtc).toLocaleString("sv-SE", { timeZone: "UTC" });
+  const berlinStr = new Date(asUtc).toLocaleString("sv-SE", { timeZone: "Europe/Berlin" });
+  // Both parsed in local TZ, so the difference = Berlin-UTC offset
+  const offsetMs = new Date(berlinStr).getTime() - new Date(utcStr).getTime();
+  return asUtc - offsetMs;
 }
 
 /** Parse ISO 8601 duration ("PT1H37M", "PT3M", "P1DT2H") → milliseconds */
