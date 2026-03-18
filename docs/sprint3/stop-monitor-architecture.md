@@ -1,4 +1,4 @@
-# Stop Monitor — High-Level Architecture
+# Stop Monitor — Component Architecture
 
 > **Sprint 3** · OTP Client v2.0 · Ayman Kandouli
 
@@ -13,8 +13,8 @@ graph TD
     Form["<b>StopMonitorForm</b><br/><i>FR18</i><br/>Stop search · Date/Time<br/>Arr/Dep filters · Submit"]
     Map["<b>StopMonitorMapView</b><br/>Leaflet map<br/>Debounced bounds fetch<br/>StopMarkers (H icons)"]
     State["<b>page.tsx</b><br/><i>Central State Hub</i><br/>Promise.allSettled()<br/>Multi-env orchestration"]
-    API["<b>stopMonitor.ts</b><br/><i>API Client</i><br/>fetchStopMonitor()<br/>fetchStops()"]
-    Config["<b>getStopMonitorConfig()</b><br/>Derives Stop Monitor URL<br/>from OTP base URL per env"]
+    API["<b>stopMonitor.ts</b><br/><i>API Client</i><br/>Monitor & stops endpoints<br/>Timeout · error handling"]
+    Config["<b>EnvironmentSelector.tsx</b><br/><i>Environment Config</i><br/>Resolves Stop Monitor URL<br/>per environment"]
     Results["<b>StopMonitorResults</b><br/><i>FR19 – FR21</i><br/>Multi-env departure board<br/>Board/JSON · Synced scroll<br/>Delays · Alerts · Badges"]
     External[("<b>LVB Stop Monitor API</b><br/>PROD · STAGE · DEV")]
 
@@ -22,8 +22,8 @@ graph TD
 
     Form -- "params + submit" --> State
     Map -- "selected stop" --> State
-    Map -- "fetchStops(bounds)" --> API
-    State -- "fetchStopMonitor()<br/>per environment" --> API
+    Map -- "stop bounds query" --> API
+    State -- "monitor request<br/>per environment" --> API
     Config -. "derives URL" .-> API
     API -- "HTTP GET / JSON" --> External
     External -- "MonitorItem[]" --> API
@@ -48,7 +48,7 @@ graph TD
 
 - **Purple** — UI Components (StopMonitorForm, StopMonitorResults)
 - **Orange** — State Management (page.tsx)
-- **Green** — API & Config (stopMonitor.ts, getStopMonitorConfig)
+- **Green** — API & Config (stopMonitor.ts, EnvironmentSelector.tsx)
 - **Blue** — Interactive Map (StopMonitorMapView, StopMarkers)
 - **Red** — External Service (LVB Stop Monitor API)
 
@@ -71,7 +71,7 @@ sequenceDiagram
     U ->> F: Set date/time & filters
     F ->> P: Form parameters
     U ->> F: Click "Monitor"
-    P ->> A: fetchStopMonitor() × N envs
+    P ->> A: Monitor request × N envs
     A ->> E: HTTP GET (per environment)
     E -->> A: MonitorItem[] (JSON)
     A -->> P: Results (Promise.allSettled)
@@ -110,7 +110,7 @@ graph LR
     subgraph Logic ["API & State Layer"]
         direction TB
         ST["stopMonitor.ts<br/><code>lib/stopMonitor.ts</code>"]
-        GC["getStopMonitorConfig<br/><code>components/EnvironmentSelector.tsx</code>"]
+        GC["EnvironmentSelector<br/><code>components/EnvironmentSelector.tsx</code>"]
         PG["page.tsx<br/><code>app/[locale]/page.tsx</code>"]
     end
 
