@@ -1,4 +1,4 @@
-import type { AutocompleteResult } from "@/lib/autocomplete";
+import type { AutocompleteResult } from "@/lib/api/autocomplete";
 
 export interface LocationValue {
   text: string;

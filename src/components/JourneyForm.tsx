@@ -6,7 +6,7 @@ import LocationInput from "./LocationInput";
 import DateTimeInput from "./DateTimeInput";
 import RoutingOptionsForm from "./RoutingOptionsForm";
 import type { LocationValue, RoutingOptions, ValidationError, RequestHistoryEntry } from "@/lib/types";
-import { RoutingError } from "@/lib/routing";
+import { RoutingError } from "@/lib/api/routing";
 
 interface JourneyFormProps {
   start: LocationValue;

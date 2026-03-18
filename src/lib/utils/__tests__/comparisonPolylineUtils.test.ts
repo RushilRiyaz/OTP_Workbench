@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computePolylineStyle } from "@/lib/comparisonPolylineUtils";
+import { computePolylineStyle } from "@/lib/utils/comparisonPolylineUtils";
 
 describe("computePolylineStyle", () => {
   it("no hover + walk → opacity 0.7, weight 5", () => {

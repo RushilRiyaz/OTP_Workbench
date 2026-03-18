@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from "vitest";
 import { renderHook, act, cleanup } from "@testing-library/react";
-import { useIsDark } from "@/lib/useIsDark";
+import { useIsDark } from "@/lib/hooks/useIsDark";
 
 // Mock matchMedia (jsdom doesn't implement it)
 function mockMatchMedia(matches: boolean) {

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import type { RoutingResponse } from "@/lib/routing";
+import type { RoutingResponse } from "@/lib/api/routing";
 import ItineraryCard from "./ItineraryCard";
 import JsonHighlighted from "./JsonHighlighted";
 

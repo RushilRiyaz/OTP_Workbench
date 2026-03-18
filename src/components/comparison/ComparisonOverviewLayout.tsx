@@ -1,16 +1,16 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useIsDark } from "@/lib/useIsDark";
-import type { Itinerary } from "@/lib/routing";
-import { computeTimelineRange, floorToMinute } from "@/lib/timelineUtils";
+import { useIsDark } from "@/lib/hooks/useIsDark";
+import type { Itinerary } from "@/lib/api/routing";
+import { computeTimelineRange, floorToMinute } from "@/lib/utils/timelineUtils";
 import {
   MODE_LABELS,
   formatTimestamp,
   formatDuration,
   getLegColor,
   getUniqueProducts,
-} from "@/lib/legUtils";
+} from "@/lib/utils/legUtils";
 import type { TimelineComparisonLayoutProps } from "@/lib/types";
 import { ENV_COLORS, ITINERARY_COLORS, getEnvLabel } from "@/lib/types";
 import { ComparisonEmptyState } from "./ComparisonEmptyState";

@@ -14,7 +14,7 @@ import {
   STRIP_GAP,
   TimelineConfig,
 } from "../timelineUtils";
-import type { RoutingResponse } from "../routing";
+import type { RoutingResponse } from "@/lib/api/routing";
 import { createItinerary, createRoutingResponse } from "@/test/fixtures";
 
 // Helper to create a minimal comparison results entry

@@ -4,9 +4,9 @@ import {
   formatDate,
   formatTime,
   fetchRouting,
-} from "@/lib/routing";
-import type { RoutingRequestParams, RoutingResponse } from "@/lib/routing";
-import { isStation } from "@/lib/routing";
+} from "@/lib/api/routing";
+import type { RoutingRequestParams, RoutingResponse } from "@/lib/api/routing";
+import { isStation } from "@/lib/api/routing";
 import {
   coordsLocation,
   stopIdLocation,

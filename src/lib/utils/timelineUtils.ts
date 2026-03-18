@@ -1,6 +1,6 @@
 // FR14.2: Timeline math utilities for comparison layouts
 
-import type { RoutingResponse } from "./routing";
+import type { RoutingResponse } from "@/lib/api/routing";
 import { formatTimestamp } from "./legUtils";
 
 export interface TimelineConfig {

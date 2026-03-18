@@ -1,14 +1,14 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { Itinerary } from "@/lib/routing";
+import type { Itinerary } from "@/lib/api/routing";
 import {
   MODE_LABELS,
   formatTimestamp,
   formatDuration,
   getLegColor,
   getUniqueProducts,
-} from "@/lib/legUtils";
+} from "@/lib/utils/legUtils";
 import { ITINERARY_COLORS } from "@/lib/types";
 
 // FR14.4/14.5/FR17: Compact transfer scheme bar positioned on the timeline

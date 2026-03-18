@@ -1,6 +1,6 @@
 // Shared leg display utilities extracted from ItineraryCard
 
-import type { Leg } from "@/lib/routing";
+import type { Leg } from "@/lib/api/routing";
 
 // --- Mode display config ---
 

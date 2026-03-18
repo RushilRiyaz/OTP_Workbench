@@ -6,7 +6,7 @@ import {
   getRequestHistory,
   addToRequestHistory,
   clearRequestHistory,
-} from "@/lib/requestHistory";
+} from "@/lib/state/requestHistory";
 import {
   coordsLocation,
   autocompleteLocation,

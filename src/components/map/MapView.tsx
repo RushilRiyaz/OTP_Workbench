@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useIsDark } from "@/lib/useIsDark";
+import { useIsDark } from "@/lib/hooks/useIsDark";
 import { MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 import type { LocationValue, ComparisonMapItinerary, DetailHoveredLeg } from "@/lib/types";
-import type { Itinerary } from "@/lib/routing";
+import type { Itinerary } from "@/lib/api/routing";
 import { LEIPZIG_HBF, DEFAULT_ZOOM, TILE_URL, TILE_ATTRIBUTION } from "./constants";
 import MapEvents from "./MapEvents";
 import MapMarkers from "./MapMarkers";
@@ -16,8 +16,8 @@ import CoordPopup from "./CoordPopup";
 import RoutePolylines from "./RoutePolylines";
 import ComparisonRoutePolylines from "./ComparisonRoutePolylines";
 import StopMarkers from "./StopMarkers";
-import { fetchStops } from "@/lib/stopMonitor";
-import type { StopsItem } from "@/lib/stopMonitor";
+import { fetchStops } from "@/lib/api/stopMonitor";
+import type { StopsItem } from "@/lib/api/stopMonitor";
 
 const FETCH_DEBOUNCE_MS = 500;
 

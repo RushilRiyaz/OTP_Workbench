@@ -9,8 +9,8 @@ import type {
   Itinerary,
   RoutingResponse,
   Alert,
-} from "@/lib/routing";
-import type { MonitorItem, StopsItem, StopMonitorAlert } from "@/lib/stopMonitor";
+} from "@/lib/api/routing";
+import type { MonitorItem, StopsItem, StopMonitorAlert } from "@/lib/api/stopMonitor";
 
 // --- LocationValue factories ---
 

@@ -3,7 +3,7 @@ import {
   getLocationHistory,
   addToLocationHistory,
   clearLocationHistory,
-} from "@/lib/locationHistory";
+} from "@/lib/state/locationHistory";
 import {
   coordsLocation,
   stopIdLocation,

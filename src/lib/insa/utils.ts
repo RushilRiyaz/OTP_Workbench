@@ -1,6 +1,6 @@
 // INSA utility functions: parsing, mode mapping, polyline decoding
 
-import type { TransitMode } from "../routing";
+import type { TransitMode } from "../api/routing";
 
 // ---------------------------------------------------------------------------
 // Date/Time Parsing

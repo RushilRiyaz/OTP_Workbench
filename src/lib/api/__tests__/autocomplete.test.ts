@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { searchLocations, AutocompleteResult } from "@/lib/autocomplete";
+import { searchLocations, AutocompleteResult } from "@/lib/api/autocomplete";
 
 // FR4.4: Unit tests for LVB autocomplete API integration
 

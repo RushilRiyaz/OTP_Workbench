@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { serializeFormState, deserializeUrlParams } from "@/lib/urlParams";
-import type { SerializableFormState } from "@/lib/urlParams";
+import { serializeFormState, deserializeUrlParams } from "@/lib/state/urlParams";
+import type { SerializableFormState } from "@/lib/state/urlParams";
 import {
   coordsLocation,
   stopIdLocation,

@@ -8,8 +8,8 @@ import NearbySearchMap from "./map/DynamicNearbySearchMapLoader";
 import ErrorBoundary from "./ErrorBoundary";
 import RoutingResults from "./RoutingResults";
 import NearbySearchResults from "./NearbySearchResults";
-import type { NearbySearchItem } from "@/lib/nearbySearch";
-import type { RoutingResponse, RoutingError, Itinerary } from "@/lib/routing";
+import type { NearbySearchItem } from "@/lib/api/nearbySearch";
+import type { RoutingResponse, RoutingError, Itinerary } from "@/lib/api/routing";
 import type { LocationValue, Environment, ComparisonItineraryRef, DetailHoveredLeg, ComparisonMapItinerary } from "@/lib/types";
 import { ITINERARY_COLORS } from "@/lib/types";
 import { ComparisonEmptyState } from "./comparison/ComparisonEmptyState";
@@ -17,9 +17,9 @@ import { TimelineComparisonLayout } from "./comparison/TimelineComparisonLayout"
 import { ComparisonOverviewLayout } from "./comparison/ComparisonOverviewLayout";
 import { DetailComparisonLayout } from "./comparison/DetailComparisonLayout";
 import StopMonitorResults from "./StopMonitorResults";
-import type { StopMonitorEnvState } from "@/lib/stopMonitor";
+import type { StopMonitorEnvState } from "@/lib/api/stopMonitor";
 import StopMonitorMap from "./map/DynamicStopMonitorMapLoader";
-import type { StopsItem } from "@/lib/stopMonitor";
+import type { StopsItem } from "@/lib/api/stopMonitor";
 
 type SplitLayout = "vertical" | "horizontal";
 // FR13: Three comparison layout modes

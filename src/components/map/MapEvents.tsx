@@ -4,7 +4,7 @@ import { useMapEvents } from "react-leaflet";
 import type { LocationValue } from "@/lib/types";
 import { COORD_PRECISION } from "./constants";
 import { getCoords } from "./utils";
-import { reverseGeocode } from "@/lib/reverseGeocode";
+import { reverseGeocode } from "@/lib/api/reverseGeocode";
 
 interface MapEventsProps {
   start: LocationValue | null;

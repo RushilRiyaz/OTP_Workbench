@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import type { NearbySearchItem } from "@/lib/nearbySearch";
-import { categorizeItem, getStationCount } from "@/lib/nearbySearch";
+import type { NearbySearchItem } from "@/lib/api/nearbySearch";
+import { categorizeItem, getStationCount } from "@/lib/api/nearbySearch";
 import JsonHighlighted from "./JsonHighlighted";
 
 // FR24.1: Marker colors matching map markers

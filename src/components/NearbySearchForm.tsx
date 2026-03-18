@@ -10,7 +10,7 @@ import {
   type NearbyVehicleType,
   type NearbySource,
   type NearbySearchParams,
-} from "@/lib/nearbySearch";
+} from "@/lib/api/nearbySearch";
 
 export interface NearbySearchFormState {
   center: { lat: number; lon: number } | null;

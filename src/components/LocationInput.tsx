@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { searchLocations, AutocompleteResult } from "@/lib/autocomplete";
-import { getLocationHistory, addToLocationHistory } from "@/lib/locationHistory";
-import { reverseGeocode } from "@/lib/reverseGeocode";
-import { lookupStopById } from "@/lib/stopLookup";
+import { searchLocations, AutocompleteResult } from "@/lib/api/autocomplete";
+import { getLocationHistory, addToLocationHistory } from "@/lib/state/locationHistory";
+import { reverseGeocode } from "@/lib/api/reverseGeocode";
+import { lookupStopById } from "@/lib/api/stopLookup";
 import { getAutocompleteConfig } from "@/lib/types";
 import type { LocationValue } from "@/lib/types";
 import { emptyLocationValue } from "@/lib/types";

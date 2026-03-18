@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import type { Itinerary, Leg, TransitLeg, Alert } from "@/lib/routing";
-import { isStation } from "@/lib/routing";
-import { useIsDark } from "@/lib/useIsDark";
+import type { Itinerary, Leg, TransitLeg, Alert } from "@/lib/api/routing";
+import { isStation } from "@/lib/api/routing";
+import { useIsDark } from "@/lib/hooks/useIsDark";
 import {
   MODE_LABELS,
   formatTimestamp,
@@ -14,7 +14,7 @@ import {
   formatDelay,
   formatDistance,
   formatAlertCategory,
-} from "@/lib/legUtils";
+} from "@/lib/utils/legUtils";
 
 // --- Leg detail components ---
 

@@ -1,13 +1,13 @@
 "use client";
 
-import type { Itinerary, TransitLeg } from "@/lib/routing";
+import type { Itinerary, TransitLeg } from "@/lib/api/routing";
 import {
   MODE_LABELS,
   formatTimestamp,
   formatDuration,
   getLegColor,
   getUniqueProducts,
-} from "@/lib/legUtils";
+} from "@/lib/utils/legUtils";
 import { ITINERARY_COLORS } from "@/lib/types";
 
 // FR15.2/15.3/FR17: Vertical stop-chain diagram strip

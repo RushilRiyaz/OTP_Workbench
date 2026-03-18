@@ -4,8 +4,8 @@
 
 import { useState, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { MonitorItem, StopMonitorAlert, StopMonitorEnvState } from "@/lib/stopMonitor";
-import { formatDelay, formatAlertCategory } from "@/lib/legUtils";
+import { MonitorItem, StopMonitorAlert, StopMonitorEnvState } from "@/lib/api/stopMonitor";
+import { formatDelay, formatAlertCategory } from "@/lib/utils/legUtils";
 import { getEnvLabel } from "@/lib/types";
 import type { Environment } from "@/lib/types";
 

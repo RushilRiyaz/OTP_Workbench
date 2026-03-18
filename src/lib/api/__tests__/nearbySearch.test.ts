@@ -10,7 +10,7 @@ import {
   NEARBY_SOURCES,
   type NearbySearchItem,
   type NearbySearchParams,
-} from "@/lib/nearbySearch";
+} from "@/lib/api/nearbySearch";
 
 // --- Helpers ---
 

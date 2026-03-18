@@ -8,7 +8,7 @@ import {
   formatDistance,
   formatAlertCategory,
   MODE_COLORS,
-} from "@/lib/legUtils";
+} from "@/lib/utils/legUtils";
 import { createTransitLeg, createNonTransitLeg } from "@/test/fixtures";
 
 describe("formatTimestamp", () => {

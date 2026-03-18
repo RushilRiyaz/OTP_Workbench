@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toggleComparisonSelection } from "@/lib/comparisonSelectionUtils";
+import { toggleComparisonSelection } from "@/lib/utils/comparisonSelectionUtils";
 
 describe("toggleComparisonSelection", () => {
   it("adds new ref to empty array", () => {

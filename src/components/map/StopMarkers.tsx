@@ -6,8 +6,8 @@
 import { useRef, useState } from "react";
 import { Marker, Popup, Tooltip } from "react-leaflet";
 import L from "leaflet";
-import type { StopsItem } from "@/lib/stopMonitor";
-import { useIsDark } from "@/lib/useIsDark";
+import type { StopsItem } from "@/lib/api/stopMonitor";
+import { useIsDark } from "@/lib/hooks/useIsDark";
 
 // --- Icon factory ---
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateRoutingParams } from "@/lib/validation";
+import { validateRoutingParams } from "@/lib/utils/validation";
 import {
   coordsLocation,
   stopIdLocation,
