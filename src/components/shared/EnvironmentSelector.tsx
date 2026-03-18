@@ -23,6 +23,8 @@ interface EnvironmentSelectorProps {
   selectedAutocompleteEnv: string;
   /** Callback when autocomplete environment changes */
   onAutocompleteEnvChange: (id: string) => void;
+  /** Environment IDs to exclude from the list */
+  excludeEnvironmentIds?: string[];
 }
 
 export default function EnvironmentSelector({
@@ -34,6 +36,7 @@ export default function EnvironmentSelector({
   onRemoveCustomEnvironment,
   selectedAutocompleteEnv,
   onAutocompleteEnvChange,
+  excludeEnvironmentIds,
 }: EnvironmentSelectorProps) {
   const [customName, setCustomName] = useState("");
   const [customOtpUrl, setCustomOtpUrl] = useState("");
@@ -42,14 +45,14 @@ export default function EnvironmentSelector({
   const [isListOpen, setIsListOpen] = useState(false);
   const t = useTranslations("EnvironmentSelector");
 
-  // Combine predefined and custom environments
+  // Combine predefined and custom environments, filtering out excluded IDs
   const allEnvironments: Environment[] = [
     ...PREDEFINED_ENVIRONMENTS.map((env) => ({
       ...env,
       isCustom: false,
     })),
     ...customEnvironments,
-  ];
+  ].filter((env) => !excludeEnvironmentIds?.includes(env.id));
 
   // Resolve selected environment labels
   const selectedEnvObjects = selectedEnvironments

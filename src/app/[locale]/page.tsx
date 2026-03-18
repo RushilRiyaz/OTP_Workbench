@@ -84,11 +84,22 @@ export default function Home() {
 
   // FR3.5: Single environment only when Routing or NearbySearch tab
   const singleSelectMode = activeTab === "routing" || activeTab === "nearby-search";
+  const isRoutingTab = activeTab === "routing" || activeTab === "routing-comparison";
   useEffect(() => {
     if (singleSelectMode) {
       env.setSelectedEnvironments((prev: string[]) => (prev.length > 1 ? [prev[0]] : prev));
     }
   }, [singleSelectMode]);
+
+  // INSA only supports routing — strip it when switching to non-routing tabs
+  useEffect(() => {
+    if (!isRoutingTab && env.selectedEnvironments.includes("insa")) {
+      env.setSelectedEnvironments((prev: string[]) => {
+        const filtered = prev.filter((id) => id !== "insa");
+        return filtered.length > 0 ? filtered : ["prod"];
+      });
+    }
+  }, [isRoutingTab]);
 
   // Clear all results (routing + comparison)
   const handleClearResults = useCallback(() => {
@@ -127,6 +138,7 @@ export default function Home() {
                 onRemoveCustomEnvironment={env.handleRemoveCustomEnvironment}
                 selectedAutocompleteEnv={env.selectedAutocompleteEnv}
                 onAutocompleteEnvChange={env.setSelectedAutocompleteEnv}
+                excludeEnvironmentIds={["insa"]}
               />
             </div>
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs mb-3">
@@ -158,6 +170,7 @@ export default function Home() {
                 onRemoveCustomEnvironment={env.handleRemoveCustomEnvironment}
                 selectedAutocompleteEnv={env.selectedAutocompleteEnv}
                 onAutocompleteEnvChange={env.setSelectedAutocompleteEnv}
+                excludeEnvironmentIds={isRoutingTab ? undefined : ["insa"]}
               />
             </div>
 
