@@ -19,8 +19,12 @@ export function parseInsaDateTime(date: string, time: string, tz?: number): numb
     return new Date(`${isoDate}${sign}${tzH}:${tzM}`).getTime();
   }
 
-  // Fallback: assume Europe/Berlin (CET +01:00)
-  return new Date(`${isoDate}+01:00`).getTime();
+  // Fallback: parse in Berlin timezone (handles CET/CEST automatically)
+  const berlinStr = new Date(`${isoDate}Z`).toLocaleString("en-US", { timeZone: "Europe/Berlin" });
+  const berlinDate = new Date(berlinStr);
+  const utcMs = new Date(`${isoDate}Z`).getTime();
+  const offsetMs = berlinDate.getTime() - utcMs;
+  return utcMs - offsetMs;
 }
 
 /** Parse ISO 8601 duration ("PT1H37M", "PT3M", "P1DT2H") → milliseconds */
