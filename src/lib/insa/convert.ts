@@ -171,7 +171,8 @@ export function convertLeg(leg: InsaLeg): Leg {
     ? insaCategoryToOtpMode(product.catOut, product.catCode)
     : "BUS";
 
-  const allStops = leg.Stops?.Stop ?? [];
+  const raw = leg.Stops?.Stop;
+  const allStops = Array.isArray(raw) ? raw : raw ? [raw] : [];
   const intermediateStops =
     allStops.length > 2
       ? allStops.slice(1, -1).map((s) => convertStop(s, leg.Origin.date))
