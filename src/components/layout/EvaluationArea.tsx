@@ -144,9 +144,7 @@ function StopMonitorTabView({
   );
 }
 
-interface EvaluationAreaProps {
-  activeTab: TabId;
-  onTabChange: (tab: TabId) => void;
+export interface RoutingViewData {
   startLocation: LocationValue;
   destinationLocation: LocationValue;
   onStartChange: (value: LocationValue) => void;
@@ -158,12 +156,12 @@ interface EvaluationAreaProps {
   onClearResults?: () => void;
   hoveredLegIndex?: number | null;
   onHoverLeg?: (index: number | null) => void;
-  children?: React.ReactNode;
-  // FR13: Comparison props
+}
+
+export interface ComparisonViewData {
   comparisonResults?: Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }>;
   selectedEnvironments?: string[];
   customEnvironments?: Environment[];
-  // FR14/FR17: Comparison interaction props
   comparisonHoveredItinerary?: { envId: string; itineraryIndex: number } | null;
   comparisonSelectedItineraries?: ComparisonItineraryRef[];
   comparisonMapItineraries?: ComparisonMapItinerary[];
@@ -171,13 +169,14 @@ interface EvaluationAreaProps {
   onComparisonHover?: (envId: string, itineraryIndex: number | null) => void;
   onComparisonToggleSelect?: (envId: string, itineraryIndex: number) => void;
   onComparisonHoverLeg?: (index: number | null) => void;
-  // FR17: Detail comparison
   isDetailComparisonView?: boolean;
   detailHoveredLeg?: DetailHoveredLeg | null;
   onEnterDetailView?: () => void;
   onExitDetailView?: () => void;
   onDetailHoverLeg?: (leg: DetailHoveredLeg | null) => void;
-  // FR18-FR21: Stop Monitor
+}
+
+export interface StopMonitorViewData {
   smResults?: Record<string, StopMonitorEnvState>;
   smSelectedEnvs?: string[];
   smStop?: LocationValue;
@@ -190,7 +189,9 @@ interface EvaluationAreaProps {
   smSelectedStopId?: string | null;
   onSmStopSelect?: (stop: StopsItem) => void;
   onSmClear?: () => void;
-  // FR22-FR25: NearbySearch props
+}
+
+export interface NearbySearchViewData {
   nearbySearchCenter?: { lat: number; lon: number } | null;
   nearbySearchRadius?: number;
   nearbySearchResults?: NearbySearchItem[] | null;
@@ -198,6 +199,16 @@ interface EvaluationAreaProps {
   onNearbySearchCenterChange?: (center: { lat: number; lon: number }) => void;
   onNearbySearchRadiusChange?: (radius: number) => void;
   onNearbySearchSelectItem?: (item: NearbySearchItem | null) => void;
+}
+
+interface EvaluationAreaProps {
+  activeTab: TabId;
+  onTabChange: (tab: TabId) => void;
+  routing: RoutingViewData;
+  comparison: ComparisonViewData;
+  stopMonitor: StopMonitorViewData;
+  nearbySearch: NearbySearchViewData;
+  children?: React.ReactNode;
 }
 
 const MIN_PANEL_PCT = 20;
@@ -218,53 +229,34 @@ function invalidateMapSize() {
 export default function EvaluationArea({
   activeTab,
   onTabChange,
-  startLocation,
-  destinationLocation,
-  onStartChange,
-  onDestinationChange,
-  routingResult,
-  selectedItineraryIndex = 0,
-  onSelectItinerary,
-  onLoadMore,
-  onClearResults,
-  hoveredLegIndex,
-  onHoverLeg,
+  routing,
+  comparison,
+  stopMonitor,
+  nearbySearch,
   children,
-  comparisonResults,
-  selectedEnvironments,
-  customEnvironments,
-  comparisonHoveredItinerary,
-  comparisonSelectedItineraries,
-  comparisonMapItineraries,
-  comparisonHoveredLegIndex,
-  onComparisonHover,
-  onComparisonToggleSelect,
-  onComparisonHoverLeg,
-  isDetailComparisonView,
-  detailHoveredLeg,
-  onEnterDetailView,
-  onExitDetailView,
-  onDetailHoverLeg,
-  smResults,
-  smSelectedEnvs,
-  smStop,
-  smDateTime,
-  smArrOnly,
-  smDepOnly,
-  onStopMonitorMore,
-  smStopMonitorUrl,
-  smApiKey,
-  smSelectedStopId,
-  onSmStopSelect,
-  onSmClear,
-  nearbySearchCenter,
-  nearbySearchRadius = 500,
-  nearbySearchResults,
-  nearbySearchSelectedItem,
-  onNearbySearchCenterChange,
-  onNearbySearchRadiusChange,
-  onNearbySearchSelectItem,
 }: EvaluationAreaProps) {
+  // Destructure bags for internal use
+  const {
+    startLocation, destinationLocation, onStartChange, onDestinationChange,
+    routingResult, selectedItineraryIndex: selectedItineraryIndexProp, onSelectItinerary,
+    onLoadMore, onClearResults, hoveredLegIndex, onHoverLeg,
+  } = routing;
+  const selectedItineraryIndex = selectedItineraryIndexProp ?? 0;
+  const {
+    comparisonResults, selectedEnvironments, customEnvironments,
+    comparisonHoveredItinerary, comparisonSelectedItineraries, comparisonMapItineraries,
+    comparisonHoveredLegIndex, onComparisonHover, onComparisonToggleSelect, onComparisonHoverLeg,
+    isDetailComparisonView, detailHoveredLeg, onEnterDetailView, onExitDetailView, onDetailHoverLeg,
+  } = comparison;
+  const {
+    smResults, smSelectedEnvs, smStop, smDateTime, smArrOnly, smDepOnly,
+    onStopMonitorMore, smStopMonitorUrl, smApiKey, smSelectedStopId, onSmStopSelect, onSmClear,
+  } = stopMonitor;
+  const {
+    nearbySearchCenter, nearbySearchResults, nearbySearchSelectedItem,
+    onNearbySearchCenterChange, onNearbySearchRadiusChange, onNearbySearchSelectItem,
+  } = nearbySearch;
+  const nearbySearchRadius = nearbySearch.nearbySearchRadius ?? 500;
   const t = useTranslations("EvaluationArea");
   const tDetail = useTranslations("DetailComparison");
   const itineraries = routingResult?.plan?.itineraries ?? [];

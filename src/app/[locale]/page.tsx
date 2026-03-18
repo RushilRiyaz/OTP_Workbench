@@ -238,51 +238,59 @@ export default function Home() {
       <EvaluationArea
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        startLocation={routing.startLocation}
-        destinationLocation={routing.destinationLocation}
-        onStartChange={routing.setStartLocation}
-        onDestinationChange={routing.setDestinationLocation}
-        routingResult={routing.routingResult}
-        selectedItineraryIndex={routing.selectedItineraryIndex}
-        onSelectItinerary={routing.handleSelectItinerary}
-        onLoadMore={routing.handleLoadMore}
-        onClearResults={handleClearResults}
-        hoveredLegIndex={routing.hoveredLegIndex}
-        onHoverLeg={routing.setHoveredLegIndex}
-        comparisonResults={comparison.comparisonResults}
-        selectedEnvironments={env.selectedEnvironments}
-        customEnvironments={env.customEnvironments}
-        comparisonHoveredItinerary={comparison.comparisonHoveredItinerary}
-        comparisonSelectedItineraries={comparison.comparisonSelectedItineraries}
-        comparisonMapItineraries={comparison.comparisonMapItineraries}
-        comparisonHoveredLegIndex={comparison.comparisonHoveredLegIndex}
-        onComparisonHover={comparison.handleComparisonHover}
-        onComparisonToggleSelect={comparison.handleComparisonToggleSelect}
-        onEnterDetailView={comparison.handleEnterDetailView}
-        onExitDetailView={comparison.handleExitDetailView}
-        onComparisonHoverLeg={comparison.setComparisonHoveredLegIndex}
-        isDetailComparisonView={comparison.isDetailComparisonView}
-        detailHoveredLeg={comparison.detailHoveredLeg}
-        onDetailHoverLeg={comparison.handleDetailHoverLeg}
-        smResults={stopMonitor.smResults}
-        smSelectedEnvs={stopMonitor.smSelectedEnvs}
-        smStop={stopMonitor.smStop}
-        smDateTime={stopMonitor.smDateTime}
-        smArrOnly={stopMonitor.smArrOnly}
-        smDepOnly={stopMonitor.smDepOnly}
-        onStopMonitorMore={stopMonitor.handleStopMonitorMore}
-        smStopMonitorUrl={stopMonitor.smMapConfig.stopMonitorUrl}
-        smApiKey={stopMonitor.smMapConfig.apiKey}
-        smSelectedStopId={stopMonitor.smSelectedStopId}
-        onSmStopSelect={stopMonitor.handleSmStopSelect}
-        onSmClear={stopMonitor.handleSmClear}
-        nearbySearchCenter={nearbySearch.nearbySearchFormState.center}
-        nearbySearchRadius={nearbySearch.nearbySearchFormState.radius}
-        nearbySearchResults={nearbySearch.nearbySearchResults}
-        nearbySearchSelectedItem={nearbySearch.nearbySearchSelectedItem}
-        onNearbySearchCenterChange={nearbySearch.handleNearbySearchCenterChange}
-        onNearbySearchRadiusChange={nearbySearch.handleNearbySearchRadiusChange}
-        onNearbySearchSelectItem={nearbySearch.setNearbySearchSelectedItem}
+        routing={{
+          startLocation: routing.startLocation,
+          destinationLocation: routing.destinationLocation,
+          onStartChange: routing.setStartLocation,
+          onDestinationChange: routing.setDestinationLocation,
+          routingResult: routing.routingResult,
+          selectedItineraryIndex: routing.selectedItineraryIndex,
+          onSelectItinerary: routing.handleSelectItinerary,
+          onLoadMore: routing.handleLoadMore,
+          onClearResults: handleClearResults,
+          hoveredLegIndex: routing.hoveredLegIndex,
+          onHoverLeg: routing.setHoveredLegIndex,
+        }}
+        comparison={{
+          comparisonResults: comparison.comparisonResults,
+          selectedEnvironments: env.selectedEnvironments,
+          customEnvironments: env.customEnvironments,
+          comparisonHoveredItinerary: comparison.comparisonHoveredItinerary,
+          comparisonSelectedItineraries: comparison.comparisonSelectedItineraries,
+          comparisonMapItineraries: comparison.comparisonMapItineraries,
+          comparisonHoveredLegIndex: comparison.comparisonHoveredLegIndex,
+          onComparisonHover: comparison.handleComparisonHover,
+          onComparisonToggleSelect: comparison.handleComparisonToggleSelect,
+          onComparisonHoverLeg: comparison.setComparisonHoveredLegIndex,
+          isDetailComparisonView: comparison.isDetailComparisonView,
+          detailHoveredLeg: comparison.detailHoveredLeg,
+          onEnterDetailView: comparison.handleEnterDetailView,
+          onExitDetailView: comparison.handleExitDetailView,
+          onDetailHoverLeg: comparison.handleDetailHoverLeg,
+        }}
+        stopMonitor={{
+          smResults: stopMonitor.smResults,
+          smSelectedEnvs: stopMonitor.smSelectedEnvs,
+          smStop: stopMonitor.smStop,
+          smDateTime: stopMonitor.smDateTime,
+          smArrOnly: stopMonitor.smArrOnly,
+          smDepOnly: stopMonitor.smDepOnly,
+          onStopMonitorMore: stopMonitor.handleStopMonitorMore,
+          smStopMonitorUrl: stopMonitor.smMapConfig.stopMonitorUrl,
+          smApiKey: stopMonitor.smMapConfig.apiKey,
+          smSelectedStopId: stopMonitor.smSelectedStopId,
+          onSmStopSelect: stopMonitor.handleSmStopSelect,
+          onSmClear: stopMonitor.handleSmClear,
+        }}
+        nearbySearch={{
+          nearbySearchCenter: nearbySearch.nearbySearchFormState.center,
+          nearbySearchRadius: nearbySearch.nearbySearchFormState.radius,
+          nearbySearchResults: nearbySearch.nearbySearchResults,
+          nearbySearchSelectedItem: nearbySearch.nearbySearchSelectedItem,
+          onNearbySearchCenterChange: nearbySearch.handleNearbySearchCenterChange,
+          onNearbySearchRadiusChange: nearbySearch.handleNearbySearchRadiusChange,
+          onNearbySearchSelectItem: nearbySearch.setNearbySearchSelectedItem,
+        }}
       />
     </div>
   );
