@@ -46,28 +46,11 @@ graph TD
 
 ### Legend
 
-```mermaid
-graph LR
-    L1["UI Component"]:::ui
-    L2["State Management"]:::state
-    L3["API / Config"]:::api
-    L4["Interactive Map"]:::map
-    L5["External Service"]:::ext
-
-    classDef ui fill:#EEF2FF,stroke:#818CF8,stroke-width:2px,color:#1e1b4b
-    classDef state fill:#FFF7ED,stroke:#FB923C,stroke-width:2px,color:#431407
-    classDef api fill:#F0FDF4,stroke:#4ADE80,stroke-width:2px,color:#14532d
-    classDef map fill:#F0F9FF,stroke:#38BDF8,stroke-width:2px,color:#0c4a6e
-    classDef ext fill:#FEF2F2,stroke:#F87171,stroke-width:2px,color:#7f1d1d
-
-    class L1 ui
-    class L2 state
-    class L3 api
-    class L4 map
-    class L5 ext
-
-    linkStyle default stroke:none
-```
+- **Purple** — UI Components (StopMonitorForm, StopMonitorResults)
+- **Orange** — State Management (page.tsx)
+- **Green** — API & Config (stopMonitor.ts, getStopMonitorConfig)
+- **Blue** — Interactive Map (StopMonitorMapView, StopMarkers)
+- **Red** — External Service (LVB Stop Monitor API)
 
 ---
 
