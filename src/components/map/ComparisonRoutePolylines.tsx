@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
-import type { ComparisonMapItinerary, DetailHoveredLeg } from "@/components/comparison/types";
+import type { ComparisonMapItinerary, DetailHoveredLeg } from "@/lib/types";
 import { computePolylineStyle } from "@/lib/comparisonPolylineUtils";
 
 // FR17.4: Render polylines for multiple itineraries simultaneously

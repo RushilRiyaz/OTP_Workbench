@@ -5,7 +5,7 @@ import {
   defaultRoutingOptions,
   type TravelModeId,
   type RoutingOptions,
-} from "@/components/RoutingOptionsForm";
+} from "@/lib/types";
 
 // FR5: Unit tests for Time & Routing Options
 

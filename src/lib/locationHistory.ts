@@ -1,6 +1,6 @@
 // FR4.7: Location history management using localStorage
 
-import { LocationValue } from "@/components/LocationInput";
+import type { LocationValue } from "@/lib/types";
 
 const STORAGE_KEY = "otp-location-history";
 const MAX_HISTORY_SIZE = 10;

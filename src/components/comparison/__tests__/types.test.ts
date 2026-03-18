@@ -4,8 +4,8 @@ import {
   ITINERARY_COLORS,
   ENV_COLORS,
   PREDEFINED_LABELS,
-} from "../types";
-import type { Environment } from "../../EnvironmentSelector";
+} from "@/lib/types";
+import type { Environment } from "@/lib/types";
 
 const customs: Environment[] = [
   { id: "custom-1", label: "My Custom Env", otpUrl: "", autocompleteUrl: "", apiKey: "" },

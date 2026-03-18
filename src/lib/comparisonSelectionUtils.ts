@@ -1,4 +1,4 @@
-import type { ComparisonItineraryRef } from "@/components/comparison/types";
+import type { ComparisonItineraryRef } from "@/lib/types";
 
 // FR17: Extracted from page.tsx — pure function for multi-select toggle logic
 export function toggleComparisonSelection(

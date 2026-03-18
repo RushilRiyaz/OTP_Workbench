@@ -1,7 +1,6 @@
 // FR6.4-6.5: Request history management using localStorage
 
-import { RequestHistoryEntry } from "@/lib/types";
-import { LocationValue } from "@/components/LocationInput";
+import type { RequestHistoryEntry, LocationValue } from "@/lib/types";
 
 const STORAGE_KEY = "otp-request-history";
 const MAX_HISTORY_SIZE = 20; // FR6.4: Maintain last 20 requests

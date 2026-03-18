@@ -3,7 +3,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import Tabs, { TabId } from "./Tabs";
-import { LocationValue } from "./LocationInput";
 import Map from "./map/DynamicMapLoader";
 import NearbySearchMap from "./map/DynamicNearbySearchMapLoader";
 import ErrorBoundary from "./ErrorBoundary";
@@ -11,16 +10,14 @@ import RoutingResults from "./RoutingResults";
 import NearbySearchResults from "./NearbySearchResults";
 import type { NearbySearchItem } from "@/lib/nearbySearch";
 import type { RoutingResponse, RoutingError, Itinerary } from "@/lib/routing";
-import type { Environment } from "./EnvironmentSelector";
-import type { ComparisonItineraryRef, DetailHoveredLeg, ComparisonMapItinerary } from "./comparison/types";
-import { ITINERARY_COLORS } from "./comparison/types";
+import type { LocationValue, Environment, ComparisonItineraryRef, DetailHoveredLeg, ComparisonMapItinerary } from "@/lib/types";
+import { ITINERARY_COLORS } from "@/lib/types";
 import { ComparisonEmptyState } from "./comparison/ComparisonEmptyState";
 import { TimelineComparisonLayout } from "./comparison/TimelineComparisonLayout";
 import { ComparisonOverviewLayout } from "./comparison/ComparisonOverviewLayout";
 import { DetailComparisonLayout } from "./comparison/DetailComparisonLayout";
 import StopMonitorResults from "./StopMonitorResults";
 import type { StopMonitorEnvState } from "@/lib/stopMonitor";
-import type { LocationValue as LV } from "./LocationInput";
 import StopMonitorMap from "./map/DynamicStopMonitorMapLoader";
 import type { StopsItem } from "@/lib/stopMonitor";
 
@@ -39,7 +36,7 @@ function StopMonitorTabView({
 }: {
   smResults?: Record<string, StopMonitorEnvState>;
   smSelectedEnvs?: string[];
-  smStop?: LV;
+  smStop?: LocationValue;
   smDateTime?: string;
   smArrOnly?: boolean;
   smDepOnly?: boolean;
@@ -183,7 +180,7 @@ interface EvaluationAreaProps {
   // FR18-FR21: Stop Monitor
   smResults?: Record<string, StopMonitorEnvState>;
   smSelectedEnvs?: string[];
-  smStop?: LV;
+  smStop?: LocationValue;
   smDateTime?: string;
   smArrOnly?: boolean;
   smDepOnly?: boolean;

@@ -3,7 +3,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { DetailComparisonLayout } from "../DetailComparisonLayout";
 import { createItinerary, createRoutingResponse } from "@/test/fixtures";
-import type { ComparisonResultMap, ComparisonItineraryRef } from "../types";
+import type { ComparisonResultMap, ComparisonItineraryRef } from "@/lib/types";
 
 afterEach(cleanup);
 

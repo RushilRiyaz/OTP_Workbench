@@ -9,7 +9,7 @@ import {
   getLegColor,
   getUniqueProducts,
 } from "@/lib/legUtils";
-import { ITINERARY_COLORS } from "./types";
+import { ITINERARY_COLORS } from "@/lib/types";
 
 // FR14.4/14.5/FR17: Compact transfer scheme bar positioned on the timeline
 export function TimelineTransferScheme({

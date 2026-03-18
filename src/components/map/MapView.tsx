@@ -6,9 +6,8 @@ import { MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-import type { LocationValue } from "@/components/LocationInput";
+import type { LocationValue, ComparisonMapItinerary, DetailHoveredLeg } from "@/lib/types";
 import type { Itinerary } from "@/lib/routing";
-import type { ComparisonMapItinerary, DetailHoveredLeg } from "@/components/comparison/types";
 import { LEIPZIG_HBF, DEFAULT_ZOOM, TILE_URL, TILE_ATTRIBUTION } from "./constants";
 import MapEvents from "./MapEvents";
 import MapMarkers from "./MapMarkers";

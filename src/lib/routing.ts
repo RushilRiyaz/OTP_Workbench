@@ -1,7 +1,7 @@
 // FR6.1: OTP Routing API client
 
-import { LocationValue } from "@/components/LocationInput";
-import { RoutingOptions } from "@/components/RoutingOptionsForm";
+import type { LocationValue } from "@/lib/types";
+import type { RoutingOptions } from "@/lib/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_OTP_API_URL || "";
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";

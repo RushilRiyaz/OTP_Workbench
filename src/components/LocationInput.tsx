@@ -6,23 +6,9 @@ import { searchLocations, AutocompleteResult } from "@/lib/autocomplete";
 import { getLocationHistory, addToLocationHistory } from "@/lib/locationHistory";
 import { reverseGeocode } from "@/lib/reverseGeocode";
 import { lookupStopById } from "@/lib/stopLookup";
-import { getAutocompleteConfig } from "@/components/EnvironmentSelector";
-
-export interface LocationValue {
-  text: string;
-  type: "autocomplete" | "stopId" | "coordinates" | null;
-  location: AutocompleteResult | null;
-  stopId: string | null;
-  coordinates: { lat: number; lon: number } | null;
-}
-
-export const emptyLocationValue: LocationValue = {
-  text: "",
-  type: null,
-  location: null,
-  stopId: null,
-  coordinates: null,
-};
+import { getAutocompleteConfig } from "@/lib/types";
+import type { LocationValue } from "@/lib/types";
+import { emptyLocationValue } from "@/lib/types";
 
 interface LocationInputProps {
   label: string;

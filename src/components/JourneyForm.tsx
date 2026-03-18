@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import LocationInput, { LocationValue } from "./LocationInput";
+import LocationInput from "./LocationInput";
 import DateTimeInput from "./DateTimeInput";
-import RoutingOptionsForm, { RoutingOptions } from "./RoutingOptionsForm";
-import { ValidationError, RequestHistoryEntry } from "@/lib/types";
+import RoutingOptionsForm from "./RoutingOptionsForm";
+import type { LocationValue, RoutingOptions, ValidationError, RequestHistoryEntry } from "@/lib/types";
 import { RoutingError } from "@/lib/routing";
 
 interface JourneyFormProps {

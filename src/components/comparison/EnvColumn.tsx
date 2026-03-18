@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import type { RoutingResponse, RoutingError } from "@/lib/routing";
 import type { TimelineConfig } from "@/lib/timelineUtils";
 import { timeToY, durationToHeight, CARD_HEIGHT, CARD_GAP, MIN_STRIP_HEIGHT, STRIP_GAP } from "@/lib/timelineUtils";
-import { ENV_COLORS, type ComparisonItineraryRef } from "./types";
+import { ENV_COLORS, type ComparisonItineraryRef } from "@/lib/types";
 import { TimelineTransferScheme } from "./TimelineTransferScheme";
 import { VerticalTransferSchemeStrip } from "./VerticalTransferSchemeStrip";
 

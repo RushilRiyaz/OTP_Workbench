@@ -3,9 +3,9 @@
 // FR18: Stop Monitor parameter area form
 
 import { useTranslations } from "next-intl";
-import LocationInput, { LocationValue } from "@/components/LocationInput";
+import LocationInput from "@/components/LocationInput";
 import DateTimeInput from "@/components/DateTimeInput";
-import { ValidationError } from "@/lib/types";
+import type { LocationValue, ValidationError } from "@/lib/types";
 
 interface StopMonitorFormProps {
   stopLocation: LocationValue;

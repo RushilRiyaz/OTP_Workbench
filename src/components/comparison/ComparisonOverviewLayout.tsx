@@ -11,8 +11,8 @@ import {
   getLegColor,
   getUniqueProducts,
 } from "@/lib/legUtils";
-import type { TimelineComparisonLayoutProps } from "./types";
-import { ENV_COLORS, ITINERARY_COLORS, getEnvLabel } from "./types";
+import type { TimelineComparisonLayoutProps } from "@/lib/types";
+import { ENV_COLORS, ITINERARY_COLORS, getEnvLabel } from "@/lib/types";
 import { ComparisonEmptyState } from "./ComparisonEmptyState";
 
 // --- FR13.3 + FR16: Horizontal overview — Gantt-chart timeline with env color coding ---

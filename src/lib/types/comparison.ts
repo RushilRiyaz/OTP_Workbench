@@ -1,5 +1,5 @@
 import type { RoutingResponse, RoutingError, Itinerary } from "@/lib/routing";
-import type { Environment } from "../EnvironmentSelector";
+import type { Environment } from "./environment";
 
 // --- Shared types for comparison layouts ---
 

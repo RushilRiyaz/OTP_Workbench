@@ -3,7 +3,7 @@
 // FR6.4-6.5: Request history list component
 
 import { useTranslations } from "next-intl";
-import { RequestHistoryEntry } from "@/lib/types";
+import type { RequestHistoryEntry } from "@/lib/types";
 
 interface RequestHistoryListProps {
   history: RequestHistoryEntry[];

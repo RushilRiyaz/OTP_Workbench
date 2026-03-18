@@ -10,8 +10,8 @@ import {
   DEFAULT_PIXELS_PER_MINUTE,
   TimelineConfig,
 } from "@/lib/timelineUtils";
-import type { TimelineComparisonLayoutProps } from "./types";
-import { ENV_COLORS, getEnvLabel } from "./types";
+import type { TimelineComparisonLayoutProps } from "@/lib/types";
+import { ENV_COLORS, getEnvLabel } from "@/lib/types";
 import { ComparisonEmptyState } from "./ComparisonEmptyState";
 import { TimeAxis } from "./TimeAxis";
 import { EnvColumn } from "./EnvColumn";

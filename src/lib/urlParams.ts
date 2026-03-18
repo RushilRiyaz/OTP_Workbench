@@ -1,8 +1,7 @@
 // FR6.6: URL parameter serialization for shareable links
 
-import { LocationValue } from "@/components/LocationInput";
-import { RoutingOptions, defaultRoutingOptions, TravelModeId, TRAVEL_MODES } from "@/components/RoutingOptionsForm";
-import { Environment } from "@/components/EnvironmentSelector";
+import type { LocationValue, RoutingOptions, TravelModeId, Environment } from "@/lib/types";
+import { defaultRoutingOptions, TRAVEL_MODES } from "@/lib/types";
 
 // Form state that can be serialized to URL
 export interface SerializableFormState {

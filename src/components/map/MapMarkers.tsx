@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Marker, Tooltip } from "react-leaflet";
 import L from "leaflet";
-import type { LocationValue } from "@/components/LocationInput";
+import type { LocationValue } from "@/lib/types";
 import { getCoords } from "./utils";
 import CoordPopup from "./CoordPopup";
 

@@ -1,8 +1,6 @@
 // FR6.2-6.3: Validation logic for routing requests
 
-import { LocationValue } from "@/components/LocationInput";
-import { RoutingOptions } from "@/components/RoutingOptionsForm";
-import { ValidationError } from "@/lib/types";
+import type { LocationValue, RoutingOptions, ValidationError } from "@/lib/types";
 
 export interface ValidationParams {
   start: LocationValue;

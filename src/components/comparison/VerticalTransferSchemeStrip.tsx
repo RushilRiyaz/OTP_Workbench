@@ -8,7 +8,7 @@ import {
   getLegColor,
   getUniqueProducts,
 } from "@/lib/legUtils";
-import { ITINERARY_COLORS } from "./types";
+import { ITINERARY_COLORS } from "@/lib/types";
 
 // FR15.2/15.3/FR17: Vertical stop-chain diagram strip
 export function VerticalTransferSchemeStrip({

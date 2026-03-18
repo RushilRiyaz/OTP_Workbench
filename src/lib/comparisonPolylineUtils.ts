@@ -1,4 +1,4 @@
-import type { DetailHoveredLeg } from "@/components/comparison/types";
+import type { DetailHoveredLeg } from "@/lib/types";
 
 // FR17: Extracted from ComparisonRoutePolylines — pure function for hover dimming logic
 export function computePolylineStyle(params: {
