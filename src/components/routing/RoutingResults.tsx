@@ -33,15 +33,19 @@ export default function RoutingResults({
 
   const handleCopyJson = useCallback(async () => {
     if (!routingResult) return;
+    const data =
+      jsonMode === "raw" && routingResult._rawApiResponse
+        ? routingResult._rawApiResponse
+        : (() => { const { _rawApiResponse, ...clean } = routingResult; return clean; })();
     try {
-      await navigator.clipboard.writeText(JSON.stringify(routingResult, null, 2));
+      await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
       setCopyState("success");
       setTimeout(() => setCopyState("idle"), 2000);
     } catch {
       setCopyState("error");
       setTimeout(() => setCopyState("idle"), 2000);
     }
-  }, [routingResult]);
+  }, [routingResult, jsonMode]);
 
   const handleLoadEarlier = useCallback(async () => {
     if (!onLoadMore || loadingEarlier) return;
@@ -218,11 +222,11 @@ export default function RoutingResults({
               </div>
             </div>
           )}
-          <pre className="text-[11px] leading-relaxed font-mono text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-900 rounded-xl p-3 overflow-x-auto whitespace-pre">
+          <pre className="text-[11px] leading-relaxed font-mono text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-900 rounded-xl p-3 whitespace-pre-wrap break-all">
             <JsonHighlighted json={JSON.stringify(
               jsonMode === "raw" && routingResult._rawApiResponse
                 ? routingResult._rawApiResponse
-                : routingResult,
+                : (() => { const { _rawApiResponse, ...clean } = routingResult; return clean; })(),
               null, 2
             )} />
           </pre>
