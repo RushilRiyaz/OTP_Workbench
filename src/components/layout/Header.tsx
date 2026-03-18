@@ -1,8 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import ThemeToggle from "./ThemeToggle";
-import LanguageSwitcher from "./LanguageSwitcher";
+import ThemeToggle from "../shared/ThemeToggle";
+import LanguageSwitcher from "../shared/LanguageSwitcher";
 
 export default function Header() {
   const t = useTranslations("Header");

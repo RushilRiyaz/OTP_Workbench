@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { getBerlinNow } from "@/components/DateTimeInput";
+import { getBerlinNow } from "@/components/routing/DateTimeInput";
 
 describe("getBerlinNow", () => {
   afterEach(() => {

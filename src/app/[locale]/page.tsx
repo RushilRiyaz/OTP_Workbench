@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import ParameterArea from "@/components/ParameterArea";
-import EvaluationArea from "@/components/EvaluationArea";
-import JourneyForm from "@/components/JourneyForm";
-import EnvironmentSelector from "@/components/EnvironmentSelector";
-import { TabId } from "@/components/Tabs";
+import ParameterArea from "@/components/layout/ParameterArea";
+import EvaluationArea from "@/components/layout/EvaluationArea";
+import JourneyForm from "@/components/routing/JourneyForm";
+import EnvironmentSelector from "@/components/shared/EnvironmentSelector";
+import { TabId } from "@/components/layout/Tabs";
 import type { LocationValue, RoutingOptions, Environment, ValidationError, RequestHistoryEntry, ComparisonItineraryRef, DetailHoveredLeg, ComparisonMapItinerary } from "@/lib/types";
 import { emptyLocationValue, defaultRoutingOptions, getEnvironmentConfig, getAutocompleteConfig, getStopMonitorConfig, ITINERARY_COLORS, ENV_COLORS } from "@/lib/types";
 import { validateRoutingParams } from "@/lib/utils/validation";
@@ -17,10 +17,10 @@ import { toggleComparisonSelection } from "@/lib/utils/comparisonSelectionUtils"
 import { fetchStopMonitor, formatDateForMonitor, formatTimeForMonitor, StopMonitorEnvState } from "@/lib/api/stopMonitor";
 import type { StopsItem } from "@/lib/api/stopMonitor";
 import { validateStopMonitorParams } from "@/lib/utils/validation";
-import { getBerlinNow } from "@/components/DateTimeInput";
-import StopMonitorForm from "@/components/StopMonitorForm";
-import StopMonitorResults from "@/components/StopMonitorResults";
-import NearbySearchForm, { NearbySearchFormState, defaultNearbySearchFormState, toNearbySearchParams } from "@/components/NearbySearchForm";
+import { getBerlinNow } from "@/components/routing/DateTimeInput";
+import StopMonitorForm from "@/components/stop-monitor/StopMonitorForm";
+import StopMonitorResults from "@/components/stop-monitor/StopMonitorResults";
+import NearbySearchForm, { NearbySearchFormState, defaultNearbySearchFormState, toNearbySearchParams } from "@/components/nearby-search/NearbySearchForm";
 import { fetchNearbySearch, type NearbySearchItem } from "@/lib/api/nearbySearch";
 import { fetchInsaRouting, type InsaTripResponse } from "@/lib/insa";
 

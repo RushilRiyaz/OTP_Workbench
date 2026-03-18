@@ -13,7 +13,7 @@ vi.mock("next-intl", () => ({
 }));
 
 // Mock ItineraryCard — lightweight stub that encodes envId+index for uniqueness
-vi.mock("../../ItineraryCard", () => ({
+vi.mock("../../routing/ItineraryCard", () => ({
   default: ({ index, onHoverLeg }: { index: number; onHoverLeg: (i: number | null) => void }) => (
     <div data-testid={`itinerary-card-${index}`}>
       <button data-testid={`hover-leg-${index}`} onClick={() => onHoverLeg(2)}>hover</button>

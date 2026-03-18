@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import LocationInput from "./LocationInput";
+import LocationInput from "../shared/LocationInput";
 import DateTimeInput from "./DateTimeInput";
 import RoutingOptionsForm from "./RoutingOptionsForm";
 import type { LocationValue, RoutingOptions, ValidationError, RequestHistoryEntry } from "@/lib/types";

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { NearbySearchItem } from "@/lib/api/nearbySearch";
 import { categorizeItem, getStationCount } from "@/lib/api/nearbySearch";
-import JsonHighlighted from "./JsonHighlighted";
+import JsonHighlighted from "../shared/JsonHighlighted";
 
 // FR24.1: Marker colors matching map markers
 const CATEGORY_COLORS: Record<string, string> = {

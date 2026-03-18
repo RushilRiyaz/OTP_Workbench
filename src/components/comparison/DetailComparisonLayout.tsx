@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import ItineraryCard from "../ItineraryCard";
+import ItineraryCard from "../routing/ItineraryCard";
 import type { DetailComparisonLayoutProps } from "@/lib/types";
 import { ITINERARY_COLORS, getEnvLabel } from "@/lib/types";
 
