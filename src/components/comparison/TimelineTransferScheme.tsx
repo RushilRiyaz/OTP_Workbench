@@ -9,7 +9,7 @@ import {
   getLegColor,
   getUniqueProducts,
 } from "@/lib/utils/legUtils";
-import { ITINERARY_COLORS } from "@/lib/types";
+import { ComparisonCardShell } from "./ComparisonCardShell";
 
 // FR14.4/14.5/FR17: Compact transfer scheme bar positioned on the timeline
 export function TimelineTransferScheme({
@@ -40,7 +40,6 @@ export function TimelineTransferScheme({
   const walkColor = isDark ? "#ffffff" : "#1a1a1a";
   const totalDuration = itinerary.duration || 1;
   const isSelected = selectedSlotIndex >= 0;
-  const selectionColor = isSelected ? ITINERARY_COLORS[selectedSlotIndex] : undefined;
 
   const depTime = itinerary.startTimeHHMM ?? formatTimestamp(itinerary.startTime);
   const arrTime = itinerary.endTimeHHMM ?? formatTimestamp(itinerary.endTime);
@@ -48,35 +47,17 @@ export function TimelineTransferScheme({
   const products = getUniqueProducts(itinerary.legs);
 
   return (
-    <div
-      className={`absolute left-1 right-1 rounded-lg border-2 transition-all cursor-pointer ${
-        isSelected
-          ? "bg-white dark:bg-zinc-900 shadow-lg z-30"
-          : isHovered
-          ? "border-zinc-400 dark:border-zinc-500 bg-white dark:bg-zinc-800 shadow-sm z-10"
-          : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-600 z-0"
-      }`}
-      style={{ top: y, borderColor: isSelected ? selectionColor : undefined }}
+    <ComparisonCardShell
+      isSelected={isSelected}
+      isHovered={isHovered}
+      selectedSlotIndex={selectedSlotIndex}
+      envColor={envColor}
+      className="absolute left-1 right-1"
+      style={{ top: y }}
       onMouseEnter={() => onHover?.(envId, itineraryIndex)}
       onMouseLeave={() => onHover?.(envId, null)}
       onClick={() => onSelect?.(envId, itineraryIndex)}
     >
-      {/* Left accent bar showing env color */}
-      <div
-        className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-lg"
-        style={{ backgroundColor: envColor }}
-      />
-
-      {/* FR17: Selection badge — numbered circle */}
-      {isSelected && (
-        <div
-          className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white z-40"
-          style={{ backgroundColor: selectionColor }}
-        >
-          {selectedSlotIndex + 1}
-        </div>
-      )}
-
       {/* Compact view: time + transfer scheme + products */}
       <div className="px-2 py-1.5 pl-2.5">
         {/* Times + duration */}
@@ -135,6 +116,6 @@ export function TimelineTransferScheme({
           </div>
         )}
       </div>
-    </div>
+    </ComparisonCardShell>
   );
 }

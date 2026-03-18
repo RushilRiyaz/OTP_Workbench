@@ -12,6 +12,7 @@ import type { NearbySearchItem } from "@/lib/api/nearbySearch";
 import type { RoutingResponse, RoutingError, Itinerary } from "@/lib/api/routing";
 import type { LocationValue, Environment, ComparisonItineraryRef, DetailHoveredLeg, ComparisonMapItinerary } from "@/lib/types";
 import { ITINERARY_COLORS } from "@/lib/types";
+import { ConfirmDialog } from "../shared/ConfirmDialog";
 import { ComparisonEmptyState } from "../comparison/ComparisonEmptyState";
 import { TimelineComparisonLayout } from "../comparison/TimelineComparisonLayout";
 import { ComparisonOverviewLayout } from "../comparison/ComparisonOverviewLayout";
@@ -734,70 +735,25 @@ export default function EvaluationArea({
       </div>
 
       {/* Clear confirmation dialog */}
-      {showClearConfirm && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-700 p-5 max-w-sm w-full mx-4">
-            <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-              {t("clearConfirmTitle")}
-            </h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5">
-              {t("clearConfirmMessage")}
-            </p>
-            <div className="flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setShowClearConfirm(false)}
-                className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
-              >
-                {t("cancel")}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowClearConfirm(false);
-                  onClearResults?.();
-                }}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-              >
-                {t("clear")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showClearConfirm}
+        title={t("clearConfirmTitle")}
+        message={t("clearConfirmMessage")}
+        confirmLabel={t("clear")}
+        cancelLabel={t("cancel")}
+        onConfirm={() => { setShowClearConfirm(false); onClearResults?.(); }}
+        onCancel={() => setShowClearConfirm(false)}
+      />
 
-      {/* Stop Monitor clear confirmation dialog */}
-      {showSmClearConfirm && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-700 p-5 max-w-sm w-full mx-4">
-            <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-              {t("clearConfirmTitle")}
-            </h3>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5">
-              {t("clearConfirmMessage")}
-            </p>
-            <div className="flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setShowSmClearConfirm(false)}
-                className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
-              >
-                {t("cancel")}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowSmClearConfirm(false);
-                  onSmClear?.();
-                }}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-              >
-                {t("clear")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showSmClearConfirm}
+        title={t("clearConfirmTitle")}
+        message={t("clearConfirmMessage")}
+        confirmLabel={t("clear")}
+        cancelLabel={t("cancel")}
+        onConfirm={() => { setShowSmClearConfirm(false); onSmClear?.(); }}
+        onCancel={() => setShowSmClearConfirm(false)}
+      />
     </main>
   );
 }
