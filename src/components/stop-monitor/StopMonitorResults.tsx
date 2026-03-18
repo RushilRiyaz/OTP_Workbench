@@ -8,6 +8,7 @@ import { MonitorItem, StopMonitorAlert, StopMonitorEnvState } from "@/lib/api/st
 import { formatDelay, formatAlertCategory } from "@/lib/utils/legUtils";
 import { getEnvLabel } from "@/lib/types";
 import type { Environment } from "@/lib/types";
+import JsonHighlighted from "../shared/JsonHighlighted";
 
 // --- Internal sub-components ---
 
@@ -187,31 +188,6 @@ function MonitorEntryRow({ item, arrOnly, depOnly, t }: MonitorEntryRowProps) {
   );
 }
 
-// --- JSON syntax highlighter (reuse pattern from RoutingResults) ---
-
-function JsonLine({ text }: { text: string }) {
-  const keyMatch = text.match(/^(\s*)(".*?")(\s*:\s*)(.*)/);
-  if (keyMatch) {
-    const [, indent, key, colon, value] = keyMatch;
-    const valueColor = value.startsWith('"')
-      ? "text-green-600 dark:text-green-400"
-      : value === "true" || value === "false"
-      ? "text-blue-600 dark:text-blue-400"
-      : value === "null"
-      ? "text-zinc-400"
-      : "text-orange-600 dark:text-orange-400";
-    return (
-      <div>
-        <span className="text-zinc-500">{indent}</span>
-        <span className="text-purple-600 dark:text-purple-400">{key}</span>
-        <span className="text-zinc-500">{colon}</span>
-        <span className={valueColor}>{value}</span>
-      </div>
-    );
-  }
-  return <div className="text-zinc-500">{text}</div>;
-}
-
 // --- Column component ---
 
 interface StopMonitorColumnProps {
@@ -309,11 +285,7 @@ function StopMonitorColumn({
           onScroll={(e) => onScroll?.((e.target as HTMLDivElement).scrollTop)}
         >
           <pre className="text-xs font-mono leading-5">
-            {JSON.stringify(state.data, null, 2)
-              .split("\n")
-              .map((line, i) => (
-                <JsonLine key={i} text={line} />
-              ))}
+            <JsonHighlighted json={JSON.stringify(state.data, null, 2)} />
           </pre>
         </div>
       ) : (
