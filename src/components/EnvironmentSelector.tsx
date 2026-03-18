@@ -26,6 +26,13 @@ const PREDEFINED_ENVIRONMENTS = [
     autocompleteUrl: process.env.NEXT_PUBLIC_DEV_AUTOCOMPLETE_URL || "",
     apiKey: process.env.NEXT_PUBLIC_DEV_API_KEY || "",
   },
+  {
+    id: "insa" as const,
+    label: "INSA",
+    otpUrl: "",
+    autocompleteUrl: "",
+    apiKey: "",
+  },
 ];
 
 // Predefined autocomplete environments — populated from .env

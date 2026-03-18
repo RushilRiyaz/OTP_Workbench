@@ -5,7 +5,13 @@ import {
   durationToHeight,
   computeTotalHeight,
   generateHourMarkers,
+  computeAlignedPositions,
+  floorToMinute,
   DEFAULT_PIXELS_PER_MINUTE,
+  CARD_HEIGHT,
+  CARD_GAP,
+  MIN_STRIP_HEIGHT,
+  STRIP_GAP,
   TimelineConfig,
 } from "../timelineUtils";
 import type { RoutingResponse } from "../routing";
@@ -224,5 +230,228 @@ describe("generateHourMarkers", () => {
       expect(m.label).toBeTruthy();
       expect(m.label).toMatch(/^\d{2}:\d{2}$/);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// floorToMinute
+// ---------------------------------------------------------------------------
+
+describe("floorToMinute", () => {
+  it("returns same value for exact minute", () => {
+    const exact = 100 * 60000;
+    expect(floorToMinute(exact)).toBe(exact);
+  });
+
+  it("floors 30 seconds to start of minute", () => {
+    const base = 100 * 60000;
+    expect(floorToMinute(base + 30000)).toBe(base);
+  });
+
+  it("floors 59.999s to start of minute", () => {
+    const base = 100 * 60000;
+    expect(floorToMinute(base + 59999)).toBe(base);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// timeToY with sub-minute precision
+// ---------------------------------------------------------------------------
+
+describe("timeToY sub-minute flooring", () => {
+  const config: TimelineConfig = {
+    timelineStart: 1000 * 60000,
+    timelineEnd: 1120 * 60000,
+    pixelsPerMinute: DEFAULT_PIXELS_PER_MINUTE,
+  };
+
+  it("two times 30s apart in same minute produce the same Y", () => {
+    const t1 = config.timelineStart + 30 * 60000;          // exactly :30
+    const t2 = config.timelineStart + 30 * 60000 + 30000;  // :30:30
+    expect(timeToY(t1, config)).toBe(timeToY(t2, config));
+  });
+
+  it("times in different minutes produce different Y", () => {
+    const t1 = config.timelineStart + 30 * 60000;  // :30
+    const t2 = config.timelineStart + 31 * 60000;  // :31
+    expect(timeToY(t2, config)).toBeGreaterThan(timeToY(t1, config));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeAlignedPositions
+// ---------------------------------------------------------------------------
+
+describe("computeAlignedPositions", () => {
+  const MIN = 60000;
+  // Use a clean minute-aligned start
+  const T0 = 2000 * MIN;
+  const config: TimelineConfig = {
+    timelineStart: T0 - 60 * MIN,
+    timelineEnd: T0 + 180 * MIN,
+    pixelsPerMinute: DEFAULT_PIXELS_PER_MINUTE,
+  };
+
+  it("aligns same-time cards across two columns", () => {
+    const pos = computeAlignedPositions(
+      [
+        { envId: "a", itineraries: [{ startTime: T0, duration: 1800 }] },
+        { envId: "b", itineraries: [{ startTime: T0, duration: 2400 }] },
+      ],
+      config,
+      "horizontal",
+    );
+    expect(pos["a"][0].y).toBe(pos["b"][0].y);
+  });
+
+  it("aligns cards when overlap prevention pushes one column down (core bug)", () => {
+    // Column A: cards at T0 and T0+10min (10min gap = 80px < 88px card+gap → pushed)
+    // Column B: card at T0+10min only (no push needed)
+    const pos = computeAlignedPositions(
+      [
+        { envId: "a", itineraries: [
+          { startTime: T0, duration: 1800 },
+          { startTime: T0 + 10 * MIN, duration: 1800 },
+        ]},
+        { envId: "b", itineraries: [
+          { startTime: T0 + 10 * MIN, duration: 1800 },
+        ]},
+      ],
+      config,
+      "horizontal",
+    );
+    // The T0+10min cards must be at the same Y
+    expect(pos["a"][1].y).toBe(pos["b"][0].y);
+    // Column A's second card should be pushed past first card
+    expect(pos["a"][1].y).toBe(pos["a"][0].y + CARD_HEIGHT + CARD_GAP);
+  });
+
+  it("groups sub-minute differences to same Y", () => {
+    const pos = computeAlignedPositions(
+      [
+        { envId: "a", itineraries: [{ startTime: T0 + 5000, duration: 1800 }] },
+        { envId: "b", itineraries: [{ startTime: T0 + 45000, duration: 1800 }] },
+      ],
+      config,
+      "horizontal",
+    );
+    expect(pos["a"][0].y).toBe(pos["b"][0].y);
+  });
+
+  it("separates cards in different minutes", () => {
+    const pos = computeAlignedPositions(
+      [
+        { envId: "a", itineraries: [{ startTime: T0, duration: 1800 }] },
+        { envId: "b", itineraries: [{ startTime: T0 + MIN, duration: 1800 }] },
+      ],
+      config,
+      "horizontal",
+    );
+    expect(pos["b"][0].y).toBeGreaterThan(pos["a"][0].y);
+  });
+
+  it("stacks multiple same-minute cards in the same column", () => {
+    const pos = computeAlignedPositions(
+      [
+        { envId: "a", itineraries: [
+          { startTime: T0, duration: 1800 },
+          { startTime: T0 + 10000, duration: 1800 }, // same minute
+        ]},
+        { envId: "b", itineraries: [
+          { startTime: T0, duration: 1800 },
+        ]},
+      ],
+      config,
+      "horizontal",
+    );
+    // First cards aligned
+    expect(pos["a"][0].y).toBe(pos["b"][0].y);
+    // Second card in A stacked below first
+    expect(pos["a"][1].y).toBe(pos["a"][0].y + CARD_HEIGHT + CARD_GAP);
+  });
+
+  it("handles empty column", () => {
+    const pos = computeAlignedPositions(
+      [
+        { envId: "a", itineraries: [{ startTime: T0, duration: 1800 }] },
+        { envId: "b", itineraries: [] },
+      ],
+      config,
+      "horizontal",
+    );
+    expect(pos["a"]).toHaveLength(1);
+    expect(pos["b"]).toHaveLength(0);
+  });
+
+  it("single column matches per-column behavior", () => {
+    const pos = computeAlignedPositions(
+      [{ envId: "a", itineraries: [
+        { startTime: T0, duration: 1800 },
+        { startTime: T0 + 5 * MIN, duration: 1800 },
+        { startTime: T0 + 30 * MIN, duration: 1800 },
+      ]}],
+      config,
+      "horizontal",
+    );
+    // First card at natural position
+    const y0 = timeToY(T0, config);
+    expect(pos["a"][0].y).toBe(y0);
+    // Second card: 5min gap = 40px < 88px, so pushed
+    expect(pos["a"][1].y).toBe(y0 + CARD_HEIGHT + CARD_GAP);
+    // Third card: 30min gap = 240px >> 88px, so at natural position
+    expect(pos["a"][2].y).toBe(timeToY(T0 + 30 * MIN, config));
+  });
+
+  it("uses duration-based heights in vertical mode", () => {
+    const pos = computeAlignedPositions(
+      [
+        { envId: "a", itineraries: [{ startTime: T0, duration: 1800 }] },  // 30min → 240px
+        { envId: "b", itineraries: [{ startTime: T0, duration: 300 }] },   // 5min → 40px < MIN_STRIP_HEIGHT
+      ],
+      config,
+      "vertical",
+    );
+    expect(pos["a"][0].y).toBe(pos["b"][0].y);
+    expect(pos["a"][0].height).toBe(durationToHeight(1800, config)); // 240
+    expect(pos["b"][0].height).toBe(MIN_STRIP_HEIGHT); // clamped to 60
+  });
+
+  it("cascade: push-down in group N propagates to group N+1", () => {
+    // Column A: 3 cards at T0, T0+1min, T0+2min (each pushed by overlap)
+    // Column B: 1 card at T0+2min only
+    const pos = computeAlignedPositions(
+      [
+        { envId: "a", itineraries: [
+          { startTime: T0, duration: 1800 },
+          { startTime: T0 + MIN, duration: 1800 },
+          { startTime: T0 + 2 * MIN, duration: 1800 },
+        ]},
+        { envId: "b", itineraries: [
+          { startTime: T0 + 2 * MIN, duration: 1800 },
+        ]},
+      ],
+      config,
+      "horizontal",
+    );
+    // A's cards cascade: each pushed by CARD_HEIGHT + CARD_GAP
+    const y0 = timeToY(T0, config);
+    expect(pos["a"][0].y).toBe(y0);
+    expect(pos["a"][1].y).toBe(y0 + CARD_HEIGHT + CARD_GAP);
+    expect(pos["a"][2].y).toBe(y0 + 2 * (CARD_HEIGHT + CARD_GAP));
+    // B's card at T0+2min aligns with A's third card
+    expect(pos["b"][0].y).toBe(pos["a"][2].y);
+  });
+
+  it("non-overlapping cards use natural positions", () => {
+    const pos = computeAlignedPositions(
+      [
+        { envId: "a", itineraries: [{ startTime: T0, duration: 1800 }] },
+        { envId: "b", itineraries: [{ startTime: T0 + 60 * MIN, duration: 1800 }] },
+      ],
+      config,
+      "horizontal",
+    );
+    expect(pos["a"][0].y).toBe(timeToY(T0, config));
+    expect(pos["b"][0].y).toBe(timeToY(T0 + 60 * MIN, config));
   });
 });

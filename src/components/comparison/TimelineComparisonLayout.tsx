@@ -6,6 +6,7 @@ import {
   computeTimelineRange,
   computeTotalHeight,
   generateHourMarkers,
+  computeAlignedPositions,
   DEFAULT_PIXELS_PER_MINUTE,
   TimelineConfig,
 } from "@/lib/timelineUtils";
@@ -73,6 +74,26 @@ export function TimelineComparisonLayout({
     );
   }
 
+  // Compute cross-column aligned positions
+  const columnPositions = computeAlignedPositions(
+    envIds.map((envId) => ({
+      envId,
+      itineraries: [...(comparisonResults[envId]?.result?.plan?.itineraries ?? [])]
+        .sort((a, b) => a.startTime - b.startTime),
+    })),
+    config,
+    mode,
+  );
+
+  // Effective height may exceed computeTotalHeight if overlap prevention pushes cards down
+  let maxPositionBottom = 0;
+  for (const envId of envIds) {
+    for (const p of columnPositions[envId] ?? []) {
+      maxPositionBottom = Math.max(maxPositionBottom, p.y + p.height);
+    }
+  }
+  const effectiveHeight = Math.max(totalHeight, maxPositionBottom + 40, 200);
+
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Fixed column headers */}
@@ -109,9 +130,9 @@ export function TimelineComparisonLayout({
 
       {/* Single scrollable container — all columns scroll together */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
-        <div className="flex" style={{ height: Math.max(totalHeight, 200) }}>
+        <div className="flex" style={{ height: effectiveHeight }}>
           {/* Time axis column */}
-          <TimeAxis hourMarkers={hourMarkers} totalHeight={Math.max(totalHeight, 200)} />
+          <TimeAxis hourMarkers={hourMarkers} totalHeight={effectiveHeight} />
 
           {/* Environment columns */}
           {envIds.map((envId, envIndex) => (
@@ -122,7 +143,7 @@ export function TimelineComparisonLayout({
               envIndex={envIndex}
               comparisonResults={comparisonResults}
               config={config}
-              totalHeight={Math.max(totalHeight, 200)}
+              totalHeight={effectiveHeight}
               hourMarkers={hourMarkers}
               isDark={isDark}
               hoveredItinerary={comparisonHoveredItinerary}
@@ -130,6 +151,7 @@ export function TimelineComparisonLayout({
               onHover={onComparisonHover}
               onSelect={onComparisonToggleSelect}
               onHoverLeg={onComparisonHoverLeg}
+              precomputedPositions={columnPositions[envId]}
             />
           ))}
         </div>

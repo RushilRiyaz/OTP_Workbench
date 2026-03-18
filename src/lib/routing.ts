@@ -226,6 +226,8 @@ export interface RoutingResponse {
     to: { name: string; lon: number; lat: number };
     itineraries: Itinerary[];
   };
+  /** Raw response from non-OTP APIs (e.g. INSA) for JSON viewer toggle */
+  _rawApiResponse?: unknown;
 }
 
 export interface RoutingError {

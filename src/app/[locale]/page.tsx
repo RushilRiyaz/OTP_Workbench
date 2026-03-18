@@ -26,6 +26,7 @@ import StopMonitorForm from "@/components/StopMonitorForm";
 import StopMonitorResults from "@/components/StopMonitorResults";
 import NearbySearchForm, { NearbySearchFormState, defaultNearbySearchFormState, toNearbySearchParams } from "@/components/NearbySearchForm";
 import { fetchNearbySearch, type NearbySearchItem } from "@/lib/nearbySearch";
+import { fetchInsaRouting, type InsaTripResponse } from "@/lib/insa";
 
 
 /** NFR-SM-BUG1: Resolve the correct stopId/koord string for the Stop Monitor API.
@@ -453,17 +454,21 @@ export default function Home() {
     setRoutingResult(null);
 
     try {
-      const envConfig = getEnvironmentConfig(selectedEnvironments[0] || "prod", customEnvironments);
-      const result = await fetchRouting(
-        {
-          start: startLocation,
-          destination: destinationLocation,
-          dateTime,
-          routingOptions,
-        },
-        undefined,
-        { baseUrl: envConfig.otpUrl, apiKey: envConfig.apiKey }
-      );
+      const envId = selectedEnvironments[0] || "prod";
+      const routingParams = {
+        start: startLocation,
+        destination: destinationLocation,
+        dateTime,
+        routingOptions,
+      };
+
+      const result = envId === "insa"
+        ? await fetchInsaRouting(routingParams)
+        : await fetchRouting(
+            routingParams,
+            undefined,
+            { baseUrl: getEnvironmentConfig(envId, customEnvironments).otpUrl, apiKey: getEnvironmentConfig(envId, customEnvironments).apiKey }
+          );
 
       if (result.success) {
         setRoutingResult(result.data);
@@ -525,19 +530,22 @@ export default function Home() {
 
     // Fetch concurrently for each environment
     // Wrap in try/catch so promises never reject — envId is always preserved
+    const routingParams = {
+      start: startLocation,
+      destination: destinationLocation,
+      dateTime,
+      routingOptions,
+    };
+
     const promises = selectedEnvironments.map(async (envId) => {
       try {
-        const envConfig = getEnvironmentConfig(envId, customEnvironments);
-        const result = await fetchRouting(
-          {
-            start: startLocation,
-            destination: destinationLocation,
-            dateTime,
-            routingOptions,
-          },
-          undefined,
-          { baseUrl: envConfig.otpUrl, apiKey: envConfig.apiKey }
-        );
+        const result = envId === "insa"
+          ? await fetchInsaRouting(routingParams)
+          : await fetchRouting(
+              routingParams,
+              undefined,
+              { baseUrl: getEnvironmentConfig(envId, customEnvironments).otpUrl, apiKey: getEnvironmentConfig(envId, customEnvironments).apiKey }
+            );
         return { envId, result };
       } catch (err) {
         console.error(`[Comparison] Unexpected error for ${envId}:`, err);
@@ -651,33 +659,49 @@ export default function Home() {
     if (!routingResult?.plan?.itineraries?.length) return;
 
     const itineraries = routingResult.plan.itineraries;
-    const refItinerary = direction === "earlier"
-      ? itineraries[0]
-      : itineraries[itineraries.length - 1];
+    const envId = selectedEnvironments[0] || "prod";
 
-    // Shift time by 1 minute in the appropriate direction
-    const refTime = direction === "earlier" ? refItinerary.startTime : refItinerary.endTime;
-    const shiftedDate = new Date(refTime + (direction === "later" ? 60000 : -60000));
+    let result;
 
-    const berlinStr = shiftedDate.toLocaleString("sv-SE", { timeZone: "Europe/Berlin" });
-    const adjustedDateTime = berlinStr.slice(0, 16).replace(" ", "T");
+    if (envId === "insa") {
+      // INSA: use native scroll pagination (scrB/scrF tokens)
+      const rawResponse = routingResult._rawApiResponse as InsaTripResponse | undefined;
+      const token = direction === "earlier" ? rawResponse?.scrB : rawResponse?.scrF;
+      if (!token) return;
 
-    // Build modified routing options for earlier (arriveBy)
-    const modifiedOptions = direction === "earlier"
-      ? { ...routingOptions, timingMode: "arriveBy" as const }
-      : { ...routingOptions, timingMode: "departAt" as const };
+      result = await fetchInsaRouting(
+        { start: startLocation, destination: destinationLocation, dateTime, routingOptions },
+        undefined,
+        { context: token },
+      );
+    } else {
+      // OTP: time-shift approach
+      const refItinerary = direction === "earlier"
+        ? itineraries[0]
+        : itineraries[itineraries.length - 1];
 
-    const envConfig = getEnvironmentConfig(selectedEnvironments[0] || "prod", customEnvironments);
-    const result = await fetchRouting(
-      {
-        start: startLocation,
-        destination: destinationLocation,
-        dateTime: adjustedDateTime,
-        routingOptions: modifiedOptions,
-      },
-      undefined,
-      { baseUrl: envConfig.otpUrl, apiKey: envConfig.apiKey }
-    );
+      const refTime = direction === "earlier" ? refItinerary.startTime : refItinerary.endTime;
+      const shiftedDate = new Date(refTime + (direction === "later" ? 60000 : -60000));
+
+      const berlinStr = shiftedDate.toLocaleString("sv-SE", { timeZone: "Europe/Berlin" });
+      const adjustedDateTime = berlinStr.slice(0, 16).replace(" ", "T");
+
+      const modifiedOptions = direction === "earlier"
+        ? { ...routingOptions, timingMode: "arriveBy" as const }
+        : { ...routingOptions, timingMode: "departAt" as const };
+
+      const envConfig = getEnvironmentConfig(envId, customEnvironments);
+      result = await fetchRouting(
+        {
+          start: startLocation,
+          destination: destinationLocation,
+          dateTime: adjustedDateTime,
+          routingOptions: modifiedOptions,
+        },
+        undefined,
+        { baseUrl: envConfig.otpUrl, apiKey: envConfig.apiKey }
+      );
+    }
 
     if (!result.success || !result.data.plan?.itineraries?.length) return;
 
@@ -696,12 +720,24 @@ export default function Home() {
     // Merge and sort by startTime
     const merged = [...itineraries, ...unique].sort((a, b) => a.startTime - b.startTime);
 
-    // Cap at 20 itineraries
-    const capped = merged.slice(0, 20);
+    // Cap at 20 itineraries — slide window in the direction the user is scrolling
+    const capped = direction === "later"
+      ? merged.slice(-20)
+      : merged.slice(0, 20);
 
     setRoutingResult({
       ...routingResult,
       plan: { ...routingResult.plan!, itineraries: capped },
+      // Update INSA scroll tokens: only update the token for the direction we scrolled,
+      // preserve the other so both directions remain functional
+      ...(envId === "insa" && result.data._rawApiResponse ? {
+        _rawApiResponse: {
+          ...(routingResult._rawApiResponse as Record<string, unknown> || {}),
+          ...(direction === "earlier"
+            ? { scrB: (result.data._rawApiResponse as InsaTripResponse).scrB }
+            : { scrF: (result.data._rawApiResponse as InsaTripResponse).scrF }),
+        },
+      } : {}),
     });
 
     // Adjust selected index if we prepended
@@ -709,7 +745,7 @@ export default function Home() {
       const offset = capped.length - itineraries.length;
       setSelectedItineraryIndex((prev) => Math.min(prev + offset, capped.length - 1));
     }
-  }, [routingResult, startLocation, destinationLocation, routingOptions, selectedEnvironments, customEnvironments]);
+  }, [routingResult, startLocation, destinationLocation, dateTime, routingOptions, selectedEnvironments, customEnvironments]);
 
   const handleSmClear = useCallback(() => {
     setSmResults({});

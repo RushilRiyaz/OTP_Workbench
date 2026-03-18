@@ -141,7 +141,9 @@
     "failed": "Fehlgeschlagen",
     "earlierDepartures": "Frühere Abfahrten",
     "laterDepartures": "Spätere Abfahrten",
-    "loading": "Laden..."
+    "loading": "Laden...",
+    "viewNormalized": "Normalisiert",
+    "viewRaw": "Original"
   },
   "ItineraryCard": {
     "direct": "Direkt",

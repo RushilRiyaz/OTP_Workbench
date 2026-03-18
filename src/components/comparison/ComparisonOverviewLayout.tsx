@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useIsDark } from "@/lib/useIsDark";
 import type { Itinerary } from "@/lib/routing";
-import { computeTimelineRange } from "@/lib/timelineUtils";
+import { computeTimelineRange, floorToMinute } from "@/lib/timelineUtils";
 import {
   MODE_LABELS,
   formatTimestamp,
@@ -132,7 +132,7 @@ export function ComparisonOverviewLayout({
 
           {/* Itinerary bars — positioned by departure time, sized by duration */}
           {mergedItineraries.map(({ envId, envIndex, itinerary, label, originalIndex }, i) => {
-            const leftPct = ((itinerary.startTime - timelineStart) / timelineSpan) * 100;
+            const leftPct = ((floorToMinute(itinerary.startTime) - timelineStart) / timelineSpan) * 100;
             const widthPct = Math.max(((itinerary.duration * 1000) / timelineSpan) * 100, 5);
             const top = PADDING_TOP + i * (BAR_HEIGHT + BAR_GAP);
             const envColor = ENV_COLORS[envIndex] ?? "#888";
