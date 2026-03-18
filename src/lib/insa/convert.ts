@@ -152,8 +152,8 @@ export function convertLeg(leg: InsaLeg): Leg {
     endTimeHHMM: formatTimeHHMM(endTime),
   };
 
-  // Walking / transfer leg
-  if (leg.type === "WALK" || leg.type === "TRSF") {
+  // Non-transit leg (WALK, TRSF, KISS, BIKE, TAXI, or any unknown type)
+  if (leg.type !== "JNY") {
     const nonTransit: NonTransitLeg = {
       ...baseLeg,
       transitLeg: false,
