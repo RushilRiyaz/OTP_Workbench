@@ -10,6 +10,7 @@ import "react-leaflet-cluster/dist/assets/MarkerCluster.Default.css";
 import { useIsDark } from "@/lib/useIsDark";
 import type { NearbySearchItem } from "@/lib/nearbySearch";
 import { categorizeItem, getStationCount, type MarkerCategory } from "@/lib/nearbySearch";
+import { defaultNearbySearchFormState } from "@/components/NearbySearchForm";
 import { LEIPZIG_HBF, DEFAULT_ZOOM, TILE_URL, TILE_ATTRIBUTION } from "./constants";
 import CursorTracker from "./CursorTracker";
 import JsonHighlighted from "../JsonHighlighted";
@@ -116,6 +117,9 @@ function MapClickHandler({
     );
   }, []);
 
+  // Track that a hold just ended so the subsequent click event skips radius reset
+  const wasHolding = useRef(false);
+
   const cleanup = useCallback(() => {
     if (holdTimer.current) {
       clearTimeout(holdTimer.current);
@@ -127,6 +131,7 @@ function MapClickHandler({
     }
     if (isHolding.current) {
       map.dragging.enable();
+      wasHolding.current = true;
     }
     isHolding.current = false;
     holdingRef.current = false;
@@ -200,8 +205,15 @@ function MapClickHandler({
     click(e) {
       // Don't set center if click was on a marker/cluster
       if (isMarkerOrCluster(e.originalEvent.target as EventTarget)) return;
+      // Skip if this click follows a hold-to-radius (mouseup fires click too)
+      if (wasHolding.current) {
+        wasHolding.current = false;
+        return;
+      }
       if (!isHolding.current) {
         onCenterChange({ lat: e.latlng.lat, lon: e.latlng.lng });
+        // Reset radius to default on quick click (hold-to-radius sets its own)
+        onRadiusChange(defaultNearbySearchFormState.radius);
       }
     },
   });
