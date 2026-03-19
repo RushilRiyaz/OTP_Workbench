@@ -1,8 +1,6 @@
 // Shared test fixtures for unit tests
 
-import type { LocationValue } from "@/components/LocationInput";
-import type { RoutingOptions } from "@/components/RoutingOptionsForm";
-import type { RequestHistoryEntry } from "@/lib/types";
+import type { LocationValue, RoutingOptions, RequestHistoryEntry } from "@/lib/types";
 import type {
   Station,
   FromToLocation,
@@ -11,7 +9,8 @@ import type {
   Itinerary,
   RoutingResponse,
   Alert,
-} from "@/lib/routing";
+} from "@/lib/api/routing";
+import type { MonitorItem, StopsItem, StopMonitorAlert } from "@/lib/api/stopMonitor";
 
 // --- LocationValue factories ---
 
@@ -239,6 +238,62 @@ export function createAlert(overrides?: Partial<Alert>): Alert {
     alertHeaderText: "Service disruption",
     alertDescriptionText: "Tram line 15 is disrupted due to construction work.",
     alertCategory: 0,
+    ...overrides,
+  };
+}
+
+// --- NFR-SM6.2: Stop Monitor factories ---
+
+export function createStopMonitorAlert(overrides?: Partial<StopMonitorAlert>): StopMonitorAlert {
+  return {
+    alertUrl: "https://example.com/alert/1",
+    effectiveStartDate: 1738540800000,
+    effectiveEndDate: 1738627200000,
+    alertHeaderText: "Service disruption on line 11",
+    alertDescriptionText: "Tram line 11 is disrupted due to construction work.",
+    alertCategory: 0,
+    ...overrides,
+  };
+}
+
+export function createMonitorItem(overrides?: Partial<MonitorItem>): MonitorItem {
+  return {
+    arrival_time: "17:23:12",
+    date: "20260307",
+    departure_time: "17:23:30",
+    departure_date: "20260307",
+    trip_id: "lvb05517STRB__20260307",
+    stop_id: "1000101",
+    parent_id: "0013000_parent",
+    route_id: "LVTRAM11",
+    trip_headsign: "Wahren",
+    route_color: "BB1E10",
+    directionId: "0",
+    agencyName: "Leipziger Verkehrsbetriebe",
+    trip_cancelled: false,
+    stop_cancelled: false,
+    trip_accessible_scheduled: true,
+    trip_accessible: true,
+    track_scheduled: null,
+    track: null,
+    delay_time: null,
+    departure_delay: null,
+    waiting_time: 5,
+    dep_waiting_time: 5,
+    alerts: [],
+    transport_type: "Tram",
+    line: "11",
+    ...overrides,
+  };
+}
+
+export function createStopsItem(overrides?: Partial<StopsItem>): StopsItem {
+  return {
+    stop_name: "Leipzig, Hauptbahnhof",
+    stop_id: "0013000",
+    lat: 51.3447,
+    lon: 12.3813,
+    priority: 9999,
     ...overrides,
   };
 }

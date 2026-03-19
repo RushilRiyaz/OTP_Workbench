@@ -491,6 +491,76 @@ async function runAllTests(): Promise<void> {
       }
     );
 
+    // ─── Stop Monitor tests (33-39) ───────────────────────────────
+
+    // Switch to Stopmonitor tab for SM tests
+    await homePage.clickTab('Stopmonitor');
+    await sleep(500);
+
+    // Test 33: Can switch to Stopmonitor tab
+    await runTest('Can switch to Stopmonitor tab', async () => {
+      const activeTab = await homePage.getActiveTabName();
+      if (!activeTab.toLowerCase().includes('stopmonitor')) {
+        throw new Error(
+          `Expected Stopmonitor tab, found: ${activeTab}`
+        );
+      }
+    });
+
+    // Test 34: Stop monitor form shows stop input
+    await runTest('Stop monitor form shows stop input', async () => {
+      const visible = await homePage.isStopMonitorFormVisible();
+      if (!visible) throw new Error('Stop monitor form not visible');
+    });
+
+    // Test 35: Can submit a stop monitor request
+    await runTest('Can submit a stop monitor request', async () => {
+      const stopName = await homePage.enterStopMonitorStop('Augustusplatz');
+      console.log(`    Selected stop: "${stopName}"`);
+      await homePage.clickMonitorButton();
+      // Wait for stop monitor API response
+      await sleep(10000);
+    });
+
+    // Test 36: Stop monitor results are visible
+    await runTest('Stop monitor results are visible', async () => {
+      const visible = await homePage.isStopMonitorResultsVisible();
+      if (!visible) throw new Error('Stop monitor results not visible');
+    });
+
+    // Test 37: Stop monitor shows departure entries
+    await runTest('Stop monitor shows departure entries', async () => {
+      const count = await homePage.getStopMonitorEntryCount();
+      if (count === 0) throw new Error('No departure entries found in stop monitor');
+    });
+
+    // Test 38: Stop monitor JSON view works
+    await runTest('Stop monitor JSON view works', async () => {
+      await homePage.clickStopMonitorJsonView();
+      await sleep(300);
+      const visible = await homePage.isStopMonitorJsonVisible();
+      if (!visible) throw new Error('Stop monitor JSON view not visible');
+      // Switch back to board view
+      await homePage.clickStopMonitorBoardView();
+      await sleep(300);
+    });
+
+    // Test 39: Stop monitor clear shows confirmation dialog
+    await runTest('Stop monitor clear shows confirmation dialog', async () => {
+      await homePage.clickStopMonitorClear();
+      await sleep(300);
+      const visible = await homePage.isClearConfirmVisible();
+      if (!visible) throw new Error('Clear confirmation dialog not visible');
+    });
+
+    // Test 40: Stop monitor confirm clear removes results
+    await runTest('Stop monitor confirm clear removes results', async () => {
+      await homePage.confirmClear();
+      await sleep(1000);
+      const visible = await homePage.isStopMonitorResultsVisible();
+      if (visible) throw new Error('Stop monitor results still visible after clear');
+    });
+
   } catch (error) {
     console.error('\n❌ Fatal error during test execution:', error);
     process.exitCode = 1;

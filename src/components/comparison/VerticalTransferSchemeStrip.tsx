@@ -1,14 +1,14 @@
 "use client";
 
-import type { Itinerary, TransitLeg } from "@/lib/routing";
+import type { Itinerary, TransitLeg } from "@/lib/api/routing";
 import {
   MODE_LABELS,
   formatTimestamp,
   formatDuration,
   getLegColor,
   getUniqueProducts,
-} from "@/lib/legUtils";
-import { ITINERARY_COLORS } from "./types";
+} from "@/lib/utils/legUtils";
+import { ComparisonCardShell } from "./ComparisonCardShell";
 
 // FR15.2/15.3/FR17: Vertical stop-chain diagram strip
 export function VerticalTransferSchemeStrip({
@@ -42,7 +42,6 @@ export function VerticalTransferSchemeStrip({
   const walkColor = isDark ? "#888888" : "#999999";
   const totalDuration = itinerary.duration || 1;
   const isSelected = selectedSlotIndex >= 0;
-  const selectionColor = isSelected ? ITINERARY_COLORS[selectedSlotIndex] : undefined;
 
   const depTime = itinerary.startTimeHHMM ?? formatTimestamp(itinerary.startTime);
   const arrTime = itinerary.endTimeHHMM ?? formatTimestamp(itinerary.endTime);
@@ -109,35 +108,17 @@ export function VerticalTransferSchemeStrip({
   }
 
   return (
-    <div
-      className={`absolute left-1 right-1 rounded-lg border-2 transition-all cursor-pointer overflow-hidden ${
-        isSelected
-          ? "bg-white dark:bg-zinc-900 shadow-lg z-30"
-          : isHovered
-          ? "border-zinc-400 dark:border-zinc-500 bg-white dark:bg-zinc-800 shadow-sm z-10"
-          : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-600 z-0"
-      }`}
-      style={{ top: y, height, borderColor: isSelected ? selectionColor : undefined }}
+    <ComparisonCardShell
+      isSelected={isSelected}
+      isHovered={isHovered}
+      selectedSlotIndex={selectedSlotIndex}
+      envColor={envColor}
+      className="absolute left-1 right-1 overflow-hidden"
+      style={{ top: y, height }}
       onMouseEnter={() => onHover?.(envId, itineraryIndex)}
       onMouseLeave={() => onHover?.(envId, null)}
       onClick={() => onSelect?.(envId, itineraryIndex)}
     >
-      {/* Left accent bar showing env color */}
-      <div
-        className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-lg"
-        style={{ backgroundColor: envColor }}
-      />
-
-      {/* FR17: Selection badge — numbered circle */}
-      {isSelected && (
-        <div
-          className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white z-40"
-          style={{ backgroundColor: selectionColor }}
-        >
-          {selectedSlotIndex + 1}
-        </div>
-      )}
-
       {/* Strip content */}
       <div style={{ height: "100%" }} className="flex flex-col pl-1.5 pr-1">
         {/* Departure time header */}
@@ -247,6 +228,6 @@ export function VerticalTransferSchemeStrip({
         </div>
       </div>
 
-    </div>
+    </ComparisonCardShell>
   );
 }

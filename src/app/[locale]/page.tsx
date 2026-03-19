@@ -1,24 +1,22 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import ParameterArea from "@/components/ParameterArea";
-import EvaluationArea from "@/components/EvaluationArea";
-import JourneyForm from "@/components/JourneyForm";
-import EnvironmentSelector, { Environment } from "@/components/EnvironmentSelector";
-import { TabId } from "@/components/Tabs";
-import { LocationValue, emptyLocationValue } from "@/components/LocationInput";
-import { RoutingOptions, defaultRoutingOptions } from "@/components/RoutingOptionsForm";
-import { ValidationError, RequestHistoryEntry } from "@/lib/types";
-import { validateRoutingParams } from "@/lib/validation";
-import { fetchRouting, RoutingResponse, RoutingError, Itinerary } from "@/lib/routing";
-import { getRequestHistory, addToRequestHistory, clearRequestHistory, generateDisplayLabel } from "@/lib/requestHistory";
-import { serializeFormState, deserializeUrlParams } from "@/lib/urlParams";
-import { getEnvironmentConfig, getAutocompleteConfig } from "@/components/EnvironmentSelector";
-import type { ComparisonItineraryRef, DetailHoveredLeg, ComparisonMapItinerary } from "@/components/comparison/types";
-import { ITINERARY_COLORS, ENV_COLORS } from "@/components/comparison/types";
-import { toggleComparisonSelection } from "@/lib/comparisonSelectionUtils";
-
+import ParameterArea from "@/components/layout/ParameterArea";
+import EvaluationArea from "@/components/layout/EvaluationArea";
+import JourneyForm from "@/components/routing/JourneyForm";
+import EnvironmentSelector from "@/components/shared/EnvironmentSelector";
+import { TabId } from "@/components/layout/Tabs";
+import type { RequestHistoryEntry } from "@/lib/types";
+import { getEnvironmentConfig } from "@/lib/types";
+import StopMonitorForm from "@/components/stop-monitor/StopMonitorForm";
+import NearbySearchForm from "@/components/nearby-search/NearbySearchForm";
+import { useEnvironment } from "@/lib/hooks/useEnvironment";
+import { useRouting } from "@/lib/hooks/useRouting";
+import { useComparison } from "@/lib/hooks/useComparison";
+import { useStopMonitor } from "@/lib/hooks/useStopMonitor";
+import { useNearbySearch } from "@/lib/hooks/useNearbySearch";
+import { useUrlStateSync } from "@/lib/hooks/useUrlStateSync";
 
 export default function Home() {
   const t = useTranslations("JourneyForm");
@@ -26,484 +24,159 @@ export default function Home() {
   // Shared state: active tab
   const [activeTab, setActiveTab] = useState<TabId>("routing");
 
-  // Environment selection state
-  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>(["prod"]); // FR3.6: PROD preselected
-  const [customEnvironments, setCustomEnvironments] = useState<Environment[]>([]);
-  const [selectedAutocompleteEnv, setSelectedAutocompleteEnv] = useState<string>("prod");
+  // --- Domain hooks ---
 
-  // Journey state - lifted from JourneyForm for map interaction (FR8)
-  const [startLocation, setStartLocation] = useState<LocationValue>(emptyLocationValue);
-  const [destinationLocation, setDestinationLocation] = useState<LocationValue>(emptyLocationValue);
+  const env = useEnvironment();
 
-  // FR6: Lifted state from JourneyForm
-  const [dateTime, setDateTime] = useState<string>(() => {
-    // Use Europe/Berlin (GMT+1/+2) instead of UTC
-    const now = new Date();
-    const berlinStr = now.toLocaleString("sv-SE", { timeZone: "Europe/Berlin" });
-    // sv-SE locale produces "yyyy-MM-dd HH:mm:ss" — take the first 16 chars for datetime-local
-    return berlinStr.slice(0, 16).replace(" ", "T");
+  const routing = useRouting({
+    getEnvConfig: () => {
+      const envId = env.selectedEnvironments[0] || "prod";
+      const config = getEnvironmentConfig(envId, env.customEnvironments);
+      return { envId, otpUrl: config.otpUrl, apiKey: config.apiKey };
+    },
+    selectedAutocompleteEnv: env.selectedAutocompleteEnv,
   });
-  const [routingOptions, setRoutingOptions] = useState<RoutingOptions>(defaultRoutingOptions);
 
-  // FR6: Request state
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
-  const [routingResult, setRoutingResult] = useState<RoutingResponse | null>(null);
-  const [routingError, setRoutingError] = useState<RoutingError | null>(null);
+  const comparison = useComparison({
+    selectedEnvironments: env.selectedEnvironments,
+    customEnvironments: env.customEnvironments,
+    routingFormState: {
+      startLocation: routing.startLocation,
+      destinationLocation: routing.destinationLocation,
+      dateTime: routing.dateTime,
+      routingOptions: routing.routingOptions,
+    },
+  });
 
-  // Selected itinerary index for results display
-  const [selectedItineraryIndex, setSelectedItineraryIndex] = useState<number>(0);
+  const stopMonitor = useStopMonitor({
+    customEnvironments: env.customEnvironments,
+  });
 
-  // FR13: Comparison results — one entry per selected environment
-  const [comparisonResults, setComparisonResults] = useState<
-    Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }>
-  >({});
+  const nearbySearch = useNearbySearch({
+    getApiKey: () =>
+      getEnvironmentConfig(env.selectedEnvironments[0] || "prod", env.customEnvironments).apiKey,
+  });
 
-  // FR11.8: Hovered leg index for map polyline highlighting
-  const [hoveredLegIndex, setHoveredLegIndex] = useState<number | null>(null);
+  const { linkCopied, handleCopyLink } = useUrlStateSync({
+    routingState: {
+      startLocation: routing.startLocation,
+      destinationLocation: routing.destinationLocation,
+      dateTime: routing.dateTime,
+      routingOptions: routing.routingOptions,
+    },
+    envState: {
+      selectedEnvironments: env.selectedEnvironments,
+      selectedAutocompleteEnv: env.selectedAutocompleteEnv,
+      customEnvironments: env.customEnvironments,
+    },
+    setters: {
+      setStartLocation: routing.setStartLocation,
+      setDestinationLocation: routing.setDestinationLocation,
+      setDateTime: routing.setDateTime,
+      setRoutingOptions: routing.setRoutingOptions,
+      setSelectedEnvironments: env.setSelectedEnvironments,
+      setSelectedAutocompleteEnv: env.setSelectedAutocompleteEnv,
+      setCustomEnvironments: env.setCustomEnvironments,
+    },
+  });
 
-  // FR14.5/14.6: Comparison interaction state — hovered itinerary + leg hover
-  const [comparisonHoveredItinerary, setComparisonHoveredItinerary] = useState<{
-    envId: string;
-    itineraryIndex: number;
-  } | null>(null);
-  const [comparisonHoveredLegIndex, setComparisonHoveredLegIndex] = useState<number | null>(null);
+  // --- Cross-domain logic ---
 
-  // FR17.1: Multi-select for detail comparison (up to 3)
-  const [comparisonSelectedItineraries, setComparisonSelectedItineraries] = useState<ComparisonItineraryRef[]>([]);
-  const [detailHoveredLeg, setDetailHoveredLeg] = useState<DetailHoveredLeg | null>(null);
-  const [showDetailView, setShowDetailView] = useState(false);
-  const isDetailComparisonView = showDetailView && comparisonSelectedItineraries.length > 0;
-
-  // FR17.4: Derive itineraries for map — detail mode shows all selected, overview shows hovered
-  const comparisonMapItineraries = useMemo((): ComparisonMapItinerary[] => {
-    if (isDetailComparisonView) {
-      // Detail mode: show all selected itineraries with ITINERARY_COLORS
-      const items: ComparisonMapItinerary[] = [];
-      for (let i = 0; i < comparisonSelectedItineraries.length; i++) {
-        const ref = comparisonSelectedItineraries[i];
-        const it = comparisonResults[ref.envId]?.result?.plan?.itineraries?.[ref.itineraryIndex];
-        if (it) items.push({ itinerary: it, color: ITINERARY_COLORS[i] ?? "#888" });
-      }
-      return items;
-    }
-    // Overview mode: show hovered itinerary with env color
-    if (comparisonHoveredItinerary) {
-      const it = comparisonResults[comparisonHoveredItinerary.envId]?.result?.plan?.itineraries?.[comparisonHoveredItinerary.itineraryIndex];
-      if (it) {
-        const envIndex = selectedEnvironments.indexOf(comparisonHoveredItinerary.envId);
-        return [{ itinerary: it, color: ENV_COLORS[envIndex] ?? "#888" }];
-      }
-    }
-    return [];
-  }, [isDetailComparisonView, comparisonSelectedItineraries, comparisonHoveredItinerary, comparisonResults, selectedEnvironments]);
-
-  // Reset hover when itinerary selection changes
-  const handleSelectItinerary = useCallback((index: number) => {
-    setSelectedItineraryIndex(index);
-    setHoveredLegIndex(null);
-  }, []);
-
-  // FR14.5: Comparison hover — update map with hovered itinerary
-  const handleComparisonHover = useCallback((envId: string, itineraryIndex: number | null) => {
-    if (itineraryIndex === null) {
-      setComparisonHoveredItinerary(null);
-    } else {
-      setComparisonHoveredItinerary({ envId, itineraryIndex });
-    }
-    setComparisonHoveredLegIndex(null);
-  }, []);
-
-  // FR17.1: Toggle itinerary in/out of detail comparison (cap at 3)
-  const handleComparisonToggleSelect = useCallback((envId: string, itineraryIndex: number) => {
-    setComparisonSelectedItineraries((prev) => toggleComparisonSelection(prev, envId, itineraryIndex));
-    setDetailHoveredLeg(null);
-    setComparisonHoveredLegIndex(null);
-  }, []);
-
-  // FR17.5: Enter/exit detail comparison view (selections preserved on exit)
-  const handleEnterDetailView = useCallback(() => {
-    setShowDetailView(true);
-  }, []);
-
-  const handleExitDetailView = useCallback(() => {
-    setShowDetailView(false);
-    setDetailHoveredLeg(null);
-  }, []);
-
-  // FR17: Set detail hovered leg
-  const handleDetailHoverLeg = useCallback((leg: DetailHoveredLeg | null) => {
-    setDetailHoveredLeg(leg);
-  }, []);
-
-  // FR6.4: Request history (loaded from localStorage)
-  const [requestHistory, setRequestHistory] = useState<RequestHistoryEntry[]>([]);
-
-  // FR6.6: URL sync state
-  const [urlInitialized, setUrlInitialized] = useState(false);
-  const [linkCopied, setLinkCopied] = useState<"success" | "error" | null>(null);
-  const urlUpdateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Determine if single select mode based on active tab
-  // FR3.5: Single environment only when Routing use case selected
-  const singleSelectMode = activeTab === "routing";
-
-  // FR3.5: When switching to single-select mode, keep only first selection
+  // FR3.5: Single environment only when Routing or NearbySearch tab
+  const singleSelectMode = activeTab === "routing" || activeTab === "nearby-search";
+  const isRoutingTab = activeTab === "routing" || activeTab === "routing-comparison";
   useEffect(() => {
     if (singleSelectMode) {
-      setSelectedEnvironments((prev) => (prev.length > 1 ? [prev[0]] : prev));
+      env.setSelectedEnvironments((prev: string[]) => (prev.length > 1 ? [prev[0]] : prev));
     }
   }, [singleSelectMode]);
 
-  // Auto-sync autocomplete env when OTP env changes (for predefined envs)
-  const handleEnvironmentChange = useCallback((selectedIds: string[]) => {
-    setSelectedEnvironments(selectedIds);
-    const newEnvId = selectedIds[0];
-    // Auto-match autocomplete to OTP selection for predefined envs
-    if (newEnvId && ["prod", "stage", "dev"].includes(newEnvId)) {
-      setSelectedAutocompleteEnv(newEnvId);
-    }
-  }, []);
-
-  // FR6.4: Load request history from localStorage on mount
+  // INSA only supports routing — strip it when switching to non-routing tabs
   useEffect(() => {
-    setRequestHistory(getRequestHistory());
-  }, []);
-
-  // FR6.6: Read URL params on mount
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.toString()) {
-      const parsed = deserializeUrlParams(searchParams);
-
-      if (parsed.start) setStartLocation(parsed.start);
-      if (parsed.destination) setDestinationLocation(parsed.destination);
-      if (parsed.dateTime) setDateTime(parsed.dateTime);
-      if (parsed.routingOptions) setRoutingOptions(parsed.routingOptions);
-      if (parsed.selectedEnvironment) setSelectedEnvironments([parsed.selectedEnvironment]);
-      if (parsed.selectedAutocompleteEnv) setSelectedAutocompleteEnv(parsed.selectedAutocompleteEnv);
-      if (parsed.customEnvironments) setCustomEnvironments(parsed.customEnvironments);
-    }
-
-    setUrlInitialized(true);
-  }, []);
-
-  // FR6.6: Update URL when form state changes (debounced)
-  useEffect(() => {
-    if (!urlInitialized) return;
-    if (typeof window === "undefined") return;
-
-    // Clear previous timeout
-    if (urlUpdateTimeoutRef.current) {
-      clearTimeout(urlUpdateTimeoutRef.current);
-    }
-
-    // Debounce URL update
-    urlUpdateTimeoutRef.current = setTimeout(() => {
-      const queryString = serializeFormState({
-        start: startLocation,
-        destination: destinationLocation,
-        dateTime,
-        routingOptions,
-        selectedEnvironment: selectedEnvironments[0] || "prod",
-        selectedAutocompleteEnv,
-        customEnvironments,
+    if (!isRoutingTab && env.selectedEnvironments.includes("insa")) {
+      env.setSelectedEnvironments((prev: string[]) => {
+        const filtered = prev.filter((id) => id !== "insa");
+        return filtered.length > 0 ? filtered : ["prod"];
       });
-
-      const newUrl = queryString
-        ? `${window.location.pathname}?${queryString}`
-        : window.location.pathname;
-
-      window.history.replaceState(null, "", newUrl);
-    }, 300);
-
-    return () => {
-      if (urlUpdateTimeoutRef.current) {
-        clearTimeout(urlUpdateTimeoutRef.current);
-      }
-    };
-  }, [urlInitialized, startLocation, destinationLocation, dateTime, routingOptions, selectedEnvironments, selectedAutocompleteEnv, customEnvironments]);
-
-  // FR6.6: Copy link to clipboard
-  const handleCopyLink = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setLinkCopied("success");
-      setTimeout(() => setLinkCopied(null), 2000);
-    } catch (err) {
-      console.error("Failed to copy link:", err);
-      setLinkCopied("error");
-      setTimeout(() => setLinkCopied(null), 2000);
     }
-  }, []);
+  }, [isRoutingTab]);
 
-  const handleAddCustomEnvironment = (env: Environment) => {
-    setCustomEnvironments((prev) => [...prev, env]);
-  };
-
-  const handleRemoveCustomEnvironment = (envId: string) => {
-    setCustomEnvironments((prev) => prev.filter((e) => e.id !== envId));
-  };
-
-  // FR6.1: Start routing request
-  const handleSubmitRouting = async () => {
-    // Clear previous errors and results
-    setValidationErrors([]);
-    setRoutingError(null);
-
-    // FR6.2: Validate mandatory inputs
-    const errors = validateRoutingParams({
-      start: startLocation,
-      destination: destinationLocation,
-      dateTime,
-      routingOptions,
-    });
-
-    // FR6.3: Display error if mandatory fields missing
-    if (errors.length > 0) {
-      setValidationErrors(errors);
-      return;
-    }
-
-    // Start request
-    setIsLoading(true);
-    setRoutingResult(null);
-
-    try {
-      const envConfig = getEnvironmentConfig(selectedEnvironments[0] || "prod", customEnvironments);
-      const result = await fetchRouting(
-        {
-          start: startLocation,
-          destination: destinationLocation,
-          dateTime,
-          routingOptions,
-        },
-        undefined,
-        { baseUrl: envConfig.otpUrl, apiKey: envConfig.apiKey }
-      );
-
-      if (result.success) {
-        setRoutingResult(result.data);
-        setSelectedItineraryIndex(0);
-
-        // FR6.4: Save to request history
-        const historyEntry: RequestHistoryEntry = {
-          id: crypto.randomUUID(),
-          timestamp: Date.now(),
-          start: startLocation,
-          destination: destinationLocation,
-          dateTime,
-          routingOptions,
-          selectedEnvironment: selectedEnvironments[0] || "prod",
-          selectedAutocompleteEnv,
-          displayLabel: generateDisplayLabel(startLocation, destinationLocation),
-        };
-        addToRequestHistory(historyEntry);
-        setRequestHistory(getRequestHistory());
-      } else {
-        setRoutingError(result.error);
-        console.error("[Routing] Error:", result.error);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // FR13: Comparison submit — fetch routing for all selected environments concurrently
-  const handleComparisonSubmit = async () => {
-    setValidationErrors([]);
-
-    const errors = validateRoutingParams({
-      start: startLocation,
-      destination: destinationLocation,
-      dateTime,
-      routingOptions,
-    });
-
-    if (errors.length > 0) {
-      setValidationErrors(errors);
-      return;
-    }
-
-    if (selectedEnvironments.length === 0) return;
-
-    // FR17: Clear stale selections before new results arrive
-    setComparisonSelectedItineraries([]);
-    setShowDetailView(false);
-    setDetailHoveredLeg(null);
-
-    // Set all envs to loading
-    const initialState: Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }> = {};
-    for (const envId of selectedEnvironments) {
-      initialState[envId] = { result: null, error: null, isLoading: true };
-    }
-    setComparisonResults(initialState);
-    setIsLoading(true);
-
-    // Fetch concurrently for each environment
-    // Wrap in try/catch so promises never reject — envId is always preserved
-    const promises = selectedEnvironments.map(async (envId) => {
-      try {
-        const envConfig = getEnvironmentConfig(envId, customEnvironments);
-        const result = await fetchRouting(
-          {
-            start: startLocation,
-            destination: destinationLocation,
-            dateTime,
-            routingOptions,
-          },
-          undefined,
-          { baseUrl: envConfig.otpUrl, apiKey: envConfig.apiKey }
-        );
-        return { envId, result };
-      } catch (err) {
-        console.error(`[Comparison] Unexpected error for ${envId}:`, err);
-        const error: RoutingError = {
-          type: "network",
-          message: err instanceof Error ? err.message : "Unexpected error",
-        };
-        return { envId, result: { success: false as const, error } };
-      }
-    });
-
-    const results = await Promise.all(promises);
-
-    const nextState: Record<string, { result: RoutingResponse | null; error: RoutingError | null; isLoading: boolean }> = {};
-    for (const { envId, result } of results) {
-      if (result.success) {
-        nextState[envId] = { result: result.data, error: null, isLoading: false };
-      } else {
-        nextState[envId] = { result: null, error: result.error, isLoading: false };
-      }
-    }
-
-    setComparisonResults(nextState);
-    setIsLoading(false);
-  };
-
-  // FR6.5: Load historical request (overwrites current, no warning)
-  const handleLoadRequest = (entry: RequestHistoryEntry) => {
-    setStartLocation(entry.start);
-    setDestinationLocation(entry.destination);
-    setDateTime(entry.dateTime);
-    setRoutingOptions(entry.routingOptions);
-    // Preserve selected environments when on comparison tab
-    if (activeTab !== "routing-comparison") {
-      setSelectedEnvironments([entry.selectedEnvironment]);
-    }
-    setSelectedAutocompleteEnv(entry.selectedAutocompleteEnv || entry.selectedEnvironment);
-    // Clear any previous errors/results
-    setValidationErrors([]);
-    setRoutingError(null);
-    setRoutingResult(null);
-  };
-
-  // FR6.4: Clear request history
-  const handleClearHistory = () => {
-    clearRequestHistory();
-    setRequestHistory([]);
-  };
-
-  // Clear routing results and return to map-only view
+  // Clear all results (routing + comparison)
   const handleClearResults = useCallback(() => {
-    setRoutingResult(null);
-    setComparisonResults({});
-    setSelectedItineraryIndex(0);
-    setHoveredLegIndex(null);
-    // FR14/FR17: Reset comparison interaction state
-    setComparisonHoveredItinerary(null);
-    setComparisonSelectedItineraries([]);
-    setShowDetailView(false);
-    setDetailHoveredLeg(null);
-    setComparisonHoveredLegIndex(null);
-  }, []);
+    routing.clearRoutingState();
+    comparison.clearComparisonState();
+  }, [routing.clearRoutingState, comparison.clearComparisonState]);
 
-  // FR12.5: Load earlier/later itineraries
-  const handleLoadMore = useCallback(async (direction: "earlier" | "later") => {
-    if (!routingResult?.plan?.itineraries?.length) return;
-
-    const itineraries = routingResult.plan.itineraries;
-    const refItinerary = direction === "earlier"
-      ? itineraries[0]
-      : itineraries[itineraries.length - 1];
-
-    // Shift time by 1 minute in the appropriate direction
-    const refTime = direction === "earlier" ? refItinerary.startTime : refItinerary.endTime;
-    const shiftedDate = new Date(refTime + (direction === "later" ? 60000 : -60000));
-
-    const berlinStr = shiftedDate.toLocaleString("sv-SE", { timeZone: "Europe/Berlin" });
-    const adjustedDateTime = berlinStr.slice(0, 16).replace(" ", "T");
-
-    // Build modified routing options for earlier (arriveBy)
-    const modifiedOptions = direction === "earlier"
-      ? { ...routingOptions, timingMode: "arriveBy" as const }
-      : { ...routingOptions, timingMode: "departAt" as const };
-
-    const envConfig = getEnvironmentConfig(selectedEnvironments[0] || "prod", customEnvironments);
-    const result = await fetchRouting(
-      {
-        start: startLocation,
-        destination: destinationLocation,
-        dateTime: adjustedDateTime,
-        routingOptions: modifiedOptions,
-      },
-      undefined,
-      { baseUrl: envConfig.otpUrl, apiKey: envConfig.apiKey }
-    );
-
-    if (!result.success || !result.data.plan?.itineraries?.length) return;
-
-    const newItineraries = result.data.plan.itineraries;
-
-    // Deduplicate by startTime+endTime fingerprint
-    const existingKeys = new Set(
-      itineraries.map((it: Itinerary) => `${it.startTime}-${it.endTime}`)
-    );
-    const unique = newItineraries.filter(
-      (it: Itinerary) => !existingKeys.has(`${it.startTime}-${it.endTime}`)
-    );
-
-    if (unique.length === 0) return;
-
-    // Merge and sort by startTime
-    const merged = [...itineraries, ...unique].sort((a, b) => a.startTime - b.startTime);
-
-    // Cap at 20 itineraries
-    const capped = merged.slice(0, 20);
-
-    setRoutingResult({
-      ...routingResult,
-      plan: { ...routingResult.plan!, itineraries: capped },
-    });
-
-    // Adjust selected index if we prepended
-    if (direction === "earlier") {
-      const offset = capped.length - itineraries.length;
-      setSelectedItineraryIndex((prev) => Math.min(prev + offset, capped.length - 1));
+  // Load historical request — sets routing form + env state
+  const handleLoadRequest = (entry: RequestHistoryEntry) => {
+    routing.setFormFromHistory(entry);
+    if (activeTab !== "routing-comparison") {
+      env.setSelectedEnvironments([entry.selectedEnvironment]);
     }
-  }, [routingResult, startLocation, destinationLocation, routingOptions, selectedEnvironments, customEnvironments]);
+    env.setSelectedAutocompleteEnv(entry.selectedAutocompleteEnv || entry.selectedEnvironment);
+  };
+
+  // Pick the right loading/errors/submit based on active tab
+  const isComparisonTab = activeTab === "routing-comparison";
+  const formIsLoading = isComparisonTab ? comparison.isLoading : routing.isLoading;
+  const formValidationErrors = isComparisonTab ? comparison.validationErrors : routing.validationErrors;
+  const formOnSubmit = isComparisonTab ? comparison.handleComparisonSubmit : routing.handleSubmitRouting;
 
   return (
     <div className="flex h-[calc(100vh-56px)] w-full">
       <ParameterArea>
-        {/* Environment Selection - FR3.x */}
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
-          <EnvironmentSelector
-            singleSelectMode={singleSelectMode}
-            selectedEnvironments={selectedEnvironments}
-            onSelectionChange={handleEnvironmentChange}
-            customEnvironments={customEnvironments}
-            onAddCustomEnvironment={handleAddCustomEnvironment}
-            onRemoveCustomEnvironment={handleRemoveCustomEnvironment}
-            selectedAutocompleteEnv={selectedAutocompleteEnv}
-            onAutocompleteEnvChange={setSelectedAutocompleteEnv}
-          />
-        </div>
+        {activeTab === "stopmonitor" ? (
+          /* FR18: Stop Monitor parameter area */
+          <>
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
+              <EnvironmentSelector
+                singleSelectMode={false}
+                selectedEnvironments={stopMonitor.smSelectedEnvs}
+                onSelectionChange={stopMonitor.setSmSelectedEnvs}
+                customEnvironments={env.customEnvironments}
+                onAddCustomEnvironment={env.handleAddCustomEnvironment}
+                onRemoveCustomEnvironment={env.handleRemoveCustomEnvironment}
+                selectedAutocompleteEnv={env.selectedAutocompleteEnv}
+                onAutocompleteEnvChange={env.setSelectedAutocompleteEnv}
+                excludeEnvironmentIds={["insa"]}
+              />
+            </div>
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs mb-3">
+              <StopMonitorForm
+                stopLocation={stopMonitor.smStop}
+                onStopChange={stopMonitor.setSmStop}
+                dateTime={stopMonitor.smDateTime}
+                onDateTimeChange={stopMonitor.setSmDateTime}
+                arrOnly={stopMonitor.smArrOnly}
+                onArrOnlyChange={stopMonitor.setSmArrOnly}
+                depOnly={stopMonitor.smDepOnly}
+                onDepOnlyChange={stopMonitor.setSmDepOnly}
+                validationErrors={stopMonitor.smValidationErrors}
+                isLoading={stopMonitor.smIsLoading}
+                onSubmit={stopMonitor.handleStopMonitorSubmit}
+                autocompleteEnvId={env.selectedAutocompleteEnv}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
+              <EnvironmentSelector
+                singleSelectMode={singleSelectMode}
+                selectedEnvironments={env.selectedEnvironments}
+                onSelectionChange={env.handleEnvironmentChange}
+                customEnvironments={env.customEnvironments}
+                onAddCustomEnvironment={env.handleAddCustomEnvironment}
+                onRemoveCustomEnvironment={env.handleRemoveCustomEnvironment}
+                selectedAutocompleteEnv={env.selectedAutocompleteEnv}
+                onAutocompleteEnvChange={env.setSelectedAutocompleteEnv}
+                excludeEnvironmentIds={isRoutingTab ? undefined : ["insa"]}
+              />
+            </div>
 
-        {/* Journey Form */}
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
+            {/* Journey Form — shown on routing tabs */}
+            {(activeTab === "routing" || activeTab === "routing-comparison") && (
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
           {/* Section label + Copy Link */}
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">{t("routing")}</span>
@@ -540,55 +213,97 @@ export default function Home() {
           </div>
 
           <JourneyForm
-            start={startLocation}
-            destination={destinationLocation}
-            onStartChange={setStartLocation}
-            onDestinationChange={setDestinationLocation}
-            dateTime={dateTime}
-            onDateTimeChange={setDateTime}
-            routingOptions={routingOptions}
-            onRoutingOptionsChange={setRoutingOptions}
-            validationErrors={validationErrors}
-            isLoading={isLoading}
-            onSubmit={activeTab === "routing-comparison" ? handleComparisonSubmit : handleSubmitRouting}
-            routingError={routingError}
-            requestHistory={requestHistory}
+            start={routing.startLocation}
+            destination={routing.destinationLocation}
+            onStartChange={routing.setStartLocation}
+            onDestinationChange={routing.setDestinationLocation}
+            dateTime={routing.dateTime}
+            onDateTimeChange={routing.setDateTime}
+            routingOptions={routing.routingOptions}
+            onRoutingOptionsChange={routing.setRoutingOptions}
+            validationErrors={formValidationErrors}
+            isLoading={formIsLoading}
+            onSubmit={formOnSubmit}
+            routingError={routing.routingError}
+            requestHistory={routing.requestHistory}
             onLoadRequest={handleLoadRequest}
-            onClearHistory={handleClearHistory}
-            autocompleteEnvId={selectedAutocompleteEnv}
+            onClearHistory={routing.handleClearHistory}
+            autocompleteEnvId={env.selectedAutocompleteEnv}
           />
-        </div>
+            </div>
+            )}
 
+            {/* FR22: NearbySearch Form — shown on nearby-search tab */}
+            {activeTab === "nearby-search" && (
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs p-3 mb-3">
+                <NearbySearchForm
+                  formState={nearbySearch.nearbySearchFormState}
+                  onFormStateChange={nearbySearch.setNearbySearchFormState}
+                  isLoading={nearbySearch.nearbySearchLoading}
+                  onSubmit={nearbySearch.handleNearbySearchSubmit}
+                  error={nearbySearch.nearbySearchError}
+                />
+              </div>
+            )}
+          </>
+        )}
       </ParameterArea>
       <EvaluationArea
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        startLocation={startLocation}
-        destinationLocation={destinationLocation}
-        onStartChange={setStartLocation}
-        onDestinationChange={setDestinationLocation}
-        routingResult={routingResult}
-        selectedItineraryIndex={selectedItineraryIndex}
-        onSelectItinerary={handleSelectItinerary}
-        onLoadMore={handleLoadMore}
-        onClearResults={handleClearResults}
-        hoveredLegIndex={hoveredLegIndex}
-        onHoverLeg={setHoveredLegIndex}
-        comparisonResults={comparisonResults}
-        selectedEnvironments={selectedEnvironments}
-        customEnvironments={customEnvironments}
-        comparisonHoveredItinerary={comparisonHoveredItinerary}
-        comparisonSelectedItineraries={comparisonSelectedItineraries}
-        comparisonMapItineraries={comparisonMapItineraries}
-        comparisonHoveredLegIndex={comparisonHoveredLegIndex}
-        onComparisonHover={handleComparisonHover}
-        onComparisonToggleSelect={handleComparisonToggleSelect}
-        onEnterDetailView={handleEnterDetailView}
-        onExitDetailView={handleExitDetailView}
-        onComparisonHoverLeg={setComparisonHoveredLegIndex}
-        isDetailComparisonView={isDetailComparisonView}
-        detailHoveredLeg={detailHoveredLeg}
-        onDetailHoverLeg={handleDetailHoverLeg}
+        routing={{
+          startLocation: routing.startLocation,
+          destinationLocation: routing.destinationLocation,
+          onStartChange: routing.setStartLocation,
+          onDestinationChange: routing.setDestinationLocation,
+          routingResult: routing.routingResult,
+          selectedItineraryIndex: routing.selectedItineraryIndex,
+          onSelectItinerary: routing.handleSelectItinerary,
+          onLoadMore: routing.handleLoadMore,
+          onClearResults: handleClearResults,
+          hoveredLegIndex: routing.hoveredLegIndex,
+          onHoverLeg: routing.setHoveredLegIndex,
+        }}
+        comparison={{
+          comparisonResults: comparison.comparisonResults,
+          selectedEnvironments: env.selectedEnvironments,
+          customEnvironments: env.customEnvironments,
+          comparisonHoveredItinerary: comparison.comparisonHoveredItinerary,
+          comparisonSelectedItineraries: comparison.comparisonSelectedItineraries,
+          comparisonMapItineraries: comparison.comparisonMapItineraries,
+          comparisonHoveredLegIndex: comparison.comparisonHoveredLegIndex,
+          onComparisonHover: comparison.handleComparisonHover,
+          onComparisonToggleSelect: comparison.handleComparisonToggleSelect,
+          onComparisonHoverLeg: comparison.setComparisonHoveredLegIndex,
+          isDetailComparisonView: comparison.isDetailComparisonView,
+          detailHoveredLeg: comparison.detailHoveredLeg,
+          onEnterDetailView: comparison.handleEnterDetailView,
+          onExitDetailView: comparison.handleExitDetailView,
+          onDetailHoverLeg: comparison.handleDetailHoverLeg,
+        }}
+        stopMonitor={{
+          smResults: stopMonitor.smResults,
+          smSelectedEnvs: stopMonitor.smSelectedEnvs,
+          smStop: stopMonitor.smStop,
+          smDateTime: stopMonitor.smDateTime,
+          smArrOnly: stopMonitor.smArrOnly,
+          smDepOnly: stopMonitor.smDepOnly,
+          onStopMonitorMore: stopMonitor.handleStopMonitorMore,
+          smStopMonitorUrl: stopMonitor.smMapConfig.stopMonitorUrl,
+          smApiKey: stopMonitor.smMapConfig.apiKey,
+          smSelectedStopId: stopMonitor.smSelectedStopId,
+          onSmStopSelect: stopMonitor.handleSmStopSelect,
+          onSmClear: stopMonitor.handleSmClear,
+        }}
+        nearbySearch={{
+          nearbySearchCenter: nearbySearch.nearbySearchFormState.center,
+          nearbySearchRadius: nearbySearch.nearbySearchFormState.radius,
+          nearbySearchResults: nearbySearch.nearbySearchResults,
+          nearbySearchSelectedItem: nearbySearch.nearbySearchSelectedItem,
+          onNearbySearchCenterChange: nearbySearch.handleNearbySearchCenterChange,
+          onNearbySearchRadiusChange: nearbySearch.handleNearbySearchRadiusChange,
+          onNearbySearchSelectItem: nearbySearch.setNearbySearchSelectedItem,
+        }}
       />
     </div>
   );

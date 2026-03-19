@@ -1,10 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { RoutingResponse, RoutingError } from "@/lib/routing";
-import type { TimelineConfig } from "@/lib/timelineUtils";
-import { timeToY, durationToHeight } from "@/lib/timelineUtils";
-import { ENV_COLORS, type ComparisonItineraryRef } from "./types";
+import type { RoutingResponse, RoutingError } from "@/lib/api/routing";
+import type { TimelineConfig } from "@/lib/utils/timelineUtils";
+import { timeToY, durationToHeight, CARD_HEIGHT, CARD_GAP, MIN_STRIP_HEIGHT, STRIP_GAP } from "@/lib/utils/timelineUtils";
+import { ENV_COLORS, type ComparisonItineraryRef } from "@/lib/types";
 import { TimelineTransferScheme } from "./TimelineTransferScheme";
 import { VerticalTransferSchemeStrip } from "./VerticalTransferSchemeStrip";
 
@@ -23,6 +23,7 @@ export function EnvColumn({
   onHover,
   onSelect,
   onHoverLeg,
+  precomputedPositions,
 }: {
   mode: "horizontal" | "vertical";
   envId: string;
@@ -37,6 +38,7 @@ export function EnvColumn({
   onHover?: (envId: string, itineraryIndex: number | null) => void;
   onSelect?: (envId: string, itineraryIndex: number) => void;
   onHoverLeg?: (index: number | null) => void;
+  precomputedPositions?: { y: number; height: number }[];
 }) {
   const t = useTranslations("Comparison");
   const entry = comparisonResults[envId];
@@ -59,31 +61,29 @@ export function EnvColumn({
     .map((it, originalIndex) => ({ itinerary: it, originalIndex }))
     .sort((a, b) => a.itinerary.startTime - b.itinerary.startTime);
 
-  // Compute Y positions with overlap prevention — mode-dependent
-  const positions: { y: number; height: number }[] = [];
-  let nextAvailableY = 0;
-
-  if (mode === "horizontal") {
-    const CARD_HEIGHT = 80;
-    const CARD_GAP = 8;
-    for (const { itinerary } of sorted) {
-      const timeY = timeToY(itinerary.startTime, config);
-      const y = Math.max(timeY, nextAvailableY);
-      positions.push({ y, height: CARD_HEIGHT });
-      nextAvailableY = y + CARD_HEIGHT + CARD_GAP;
+  // Use cross-column aligned positions if provided, else fall back to per-column computation
+  const positions: { y: number; height: number }[] = precomputedPositions ?? (() => {
+    const fallback: { y: number; height: number }[] = [];
+    let nextAvailableY = 0;
+    if (mode === "horizontal") {
+      for (const { itinerary } of sorted) {
+        const timeY = timeToY(itinerary.startTime, config);
+        const y = Math.max(timeY, nextAvailableY);
+        fallback.push({ y, height: CARD_HEIGHT });
+        nextAvailableY = y + CARD_HEIGHT + CARD_GAP;
+      }
+    } else {
+      for (const { itinerary } of sorted) {
+        const timeY = timeToY(itinerary.startTime, config);
+        const rawHeight = durationToHeight(itinerary.duration, config);
+        const height = Math.max(rawHeight, MIN_STRIP_HEIGHT);
+        const y = Math.max(timeY, nextAvailableY);
+        fallback.push({ y, height });
+        nextAvailableY = y + height + STRIP_GAP;
+      }
     }
-  } else {
-    const MIN_STRIP_HEIGHT = 60;
-    const STRIP_GAP = 4;
-    for (const { itinerary } of sorted) {
-      const timeY = timeToY(itinerary.startTime, config);
-      const rawHeight = durationToHeight(itinerary.duration, config);
-      const height = Math.max(rawHeight, MIN_STRIP_HEIGHT);
-      const y = Math.max(timeY, nextAvailableY);
-      positions.push({ y, height });
-      nextAvailableY = y + height + STRIP_GAP;
-    }
-  }
+    return fallback;
+  })();
 
   return (
     <div

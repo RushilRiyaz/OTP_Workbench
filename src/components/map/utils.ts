@@ -1,4 +1,4 @@
-import type { LocationValue } from "@/components/LocationInput";
+import type { LocationValue } from "@/lib/types";
 
 // Extract lat/lng from LocationValue
 // Handles autocomplete results (location.lat/lon) and direct coordinates
