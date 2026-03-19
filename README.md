@@ -111,6 +111,10 @@ NEXT_PUBLIC_PROD_API_KEY=your-api-key-here
 NEXT_PUBLIC_STAGE_OTP_URL=https://api.lmservices.mobilityinnovate.net/apidev/otp
 NEXT_PUBLIC_STAGE_AUTOCOMPLETE_URL=https://api.lmservices.mobilityinnovate.net/apidev/autocomplete
 NEXT_PUBLIC_STAGE_API_KEY=your-api-key-here
+
+# INSA Routing API (for INSA comparison)
+NEXT_PUBLIC_INSA_API_URL=https://reiseauskunft.insa.de/restproxy/2.49/trip
+NEXT_PUBLIC_INSA_ACCESS_ID=your-access-id-here
 ```
 
 Replace `<your-api-key>` with the API keys from Eva's email.
